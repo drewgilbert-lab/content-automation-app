@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getDashboardData } from "@/lib/dashboard";
+import { countPendingSubmissions } from "@/lib/submissions";
 import type { KnowledgeType } from "@/lib/knowledge-types";
 import { StatCard } from "./components/stat-card";
 import { GapTable } from "./components/gap-table";
@@ -14,7 +15,10 @@ const typeOrder: KnowledgeType[] = [
 ];
 
 export default async function DashboardPage() {
-  const data = await getDashboardData();
+  const [data, pendingCount] = await Promise.all([
+    getDashboardData(),
+    countPendingSubmissions(),
+  ]);
 
   const totalGaps =
     data.gaps.noRelationships.length +
@@ -103,26 +107,29 @@ export default async function DashboardPage() {
           />
         </section>
 
-        {/* Queue placeholder */}
+        {/* Review Queue */}
         <section>
           <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-500">
             Review Queue
           </h2>
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 opacity-60">
+          <Link
+            href="/queue"
+            className="block rounded-xl border border-gray-800 bg-gray-900 p-6 hover:border-gray-700 transition-colors"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-300">
                   Pending Submissions
                 </p>
                 <p className="text-xs text-gray-500">
-                  Coming soon — requires Group E (Review Queue)
+                  Submissions awaiting review
                 </p>
               </div>
-              <span className="rounded-full bg-gray-800 px-2.5 py-0.5 text-xs text-gray-500">
-                0
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-yellow-500/15 text-yellow-400" : "bg-gray-800 text-gray-500"}`}>
+                {pendingCount}
               </span>
             </div>
-          </div>
+          </Link>
         </section>
       </div>
     </main>

@@ -9,6 +9,7 @@ import type {
 } from "@/lib/knowledge-types";
 import { VALID_TYPES, SUB_TYPES, getTypeLabel } from "@/lib/knowledge-types";
 import { MarkdownRenderer } from "./markdown-renderer";
+import { useRole } from "@/app/components/role-provider";
 
 interface KnowledgeFormProps {
   mode: "create" | "edit";
@@ -45,6 +46,8 @@ export function KnowledgeForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { role } = useRole();
+
   const personas = allObjects.filter((o) => o.type === "persona");
   const segments = allObjects.filter((o) => o.type === "segment");
 
@@ -70,6 +73,49 @@ export function KnowledgeForm({
         .filter(Boolean);
 
       try {
+        // Contributor: route through submission queue
+        if (role === "contributor") {
+          const body: Record<string, unknown> = { name: name.trim(), content, tags };
+          if (mode === "create") body.type = type;
+          if (type === "segment" || initialData?.type === "segment") {
+            body.revenueRange = revenueRange || undefined;
+            body.employeeRange = employeeRange || undefined;
+          }
+          if (type === "business_rule" || initialData?.type === "business_rule") {
+            body.subType = subType || undefined;
+          }
+          if (type === "icp" && mode === "create") {
+            body.personaId = personaId || undefined;
+            body.segmentId = segmentId || undefined;
+          }
+
+          const submissionBody = {
+            submitter: "contributor",
+            objectType: mode === "create" ? type : initialData!.type,
+            objectName: name.trim(),
+            submissionType: mode === "create" ? "new" : "update",
+            proposedContent: JSON.stringify(body),
+            ...(mode === "edit" ? { targetObjectId: initialData!.id } : {}),
+          };
+
+          const res = await fetch("/api/submissions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(submissionBody),
+          });
+
+          if (!res.ok) {
+            const data = await res.json();
+            setError(data.error ?? "Failed to submit");
+            setSaving(false);
+            return;
+          }
+
+          router.push("/queue");
+          router.refresh();
+          return;
+        }
+
         const url =
           mode === "create"
             ? "/api/knowledge"
@@ -130,6 +176,7 @@ export function KnowledgeForm({
       personaId,
       segmentId,
       router,
+      role,
     ]
   );
 
@@ -327,9 +374,11 @@ export function KnowledgeForm({
         >
           {saving
             ? "Saving..."
-            : mode === "create"
-              ? "Create"
-              : "Save Changes"}
+            : role === "contributor"
+              ? "Submit for Review"
+              : mode === "create"
+                ? "Create"
+                : "Save Changes"}
         </button>
         <button
           type="button"

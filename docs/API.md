@@ -272,3 +272,122 @@ Returns health metrics for the knowledge base: object counts, staleness, and rel
 | 500 | `{ "error": "Failed to fetch dashboard data" }` | Server/Weaviate error |
 
 **Implementation:** `app/api/dashboard/route.ts` → calls `getDashboardData()` from `lib/dashboard.ts`
+
+---
+
+## POST /api/submissions
+
+Creates a new submission for review.
+
+**Runtime:** `nodejs`
+
+**Request:**
+```json
+{
+  "submitter": "string (required)",
+  "objectType": "string (required) — persona | segment | use_case | business_rule | icp",
+  "objectName": "string (required)",
+  "submissionType": "string (required) — new | update",
+  "proposedContent": "string (required) — JSON-serialized proposed data",
+  "targetObjectId": "string (required for update submissions)"
+}
+```
+
+**Response (success):**
+- Status: `201`
+- Body: `{ "id": "string", "status": "pending" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing required fields, invalid type, or missing targetObjectId for update |
+| 500 | `{ "error": "Failed to create submission" }` | Server error |
+
+**Implementation:** `app/api/submissions/route.ts` → calls `createSubmission()` from `lib/submissions.ts`
+
+---
+
+## GET /api/submissions
+
+Returns all submissions, with optional filters.
+
+**Runtime:** `nodejs`
+
+**Query Parameters:**
+- `type` (optional): Filter by submission type. Valid values: `new`, `update`
+- `status` (optional): Filter by status. Valid values: `pending`, `accepted`, `rejected`, `deferred`
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "submissions": SubmissionListItem[] }`
+
+Each `SubmissionListItem` contains: `id`, `submitter`, `objectName`, `objectType`, `submissionType`, `status`, `createdAt`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Invalid type or status filter |
+| 500 | `{ "error": "Failed to list submissions" }` | Server error |
+
+**Implementation:** `app/api/submissions/route.ts` → calls `listSubmissions()` from `lib/submissions.ts`
+
+---
+
+## GET /api/submissions/[id]
+
+Returns a single submission by ID.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Submission UUID
+
+**Response (success):**
+- Status: `200`
+- Body: Full `SubmissionDetail` object
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Submission not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to fetch submission" }` | Server error |
+
+**Implementation:** `app/api/submissions/[id]/route.ts` → calls `getSubmission()` from `lib/submissions.ts`
+
+---
+
+## POST /api/submissions/[id]/review
+
+Reviews a pending submission: accept, reject, or defer.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Submission UUID
+
+**Request:**
+```json
+{
+  "action": "accept | reject | defer",
+  "comment": "string (required for reject)",
+  "note": "string (optional for defer)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "status": "string", "objectId": "string (on accept)" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Invalid action or missing comment on reject |
+| 404 | `{ "error": "..." }` | Submission not found |
+| 409 | `{ "error": "..." }` | Submission already closed (accepted/rejected) |
+| 500 | `{ "error": "Failed to review submission" }` | Server error |
+
+**Implementation:** `app/api/submissions/[id]/review/route.ts` → calls `reviewSubmission()` from `lib/submissions.ts`

@@ -116,6 +116,28 @@ Cross-references:
 
 ---
 
+### Collection: `Submission`
+
+Stores pending knowledge base submissions for the review queue. Not vectorized.
+
+| Property | Type | Notes |
+|---|---|---|
+| `submitter` | text | Who submitted |
+| `objectType` | text | Knowledge type (persona, segment, etc.) |
+| `objectName` | text | Proposed object name |
+| `submissionType` | text | "new" or "update" |
+| `proposedContent` | text | JSON-serialized proposed data (not vectorized) |
+| `targetObjectId` | text | UUID of existing object (updates only) |
+| `status` | text | pending / accepted / rejected / deferred |
+| `reviewComment` | text | Reviewer comment (on reject) |
+| `reviewNote` | text | Reviewer note (on defer) |
+| `createdAt` | date | Submission timestamp |
+| `reviewedAt` | date | Review timestamp |
+
+No cross-references. No vectorization.
+
+---
+
 ## Cross-Reference Design
 
 Weaviate cross-references are directional links between objects. They allow the application to traverse relationships (e.g. "give me the personas and use cases linked to Enterprise segment") and provide transparency about which knowledge informed a generated piece.

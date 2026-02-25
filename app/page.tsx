@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RoleToggle } from "@/app/components/role-toggle";
 import { checkWeaviateConnection } from "@/lib/weaviate";
 import { checkClaudeConnection } from "@/lib/claude";
 
@@ -49,6 +50,13 @@ const navItems = [
     available: true,
   },
   {
+    title: "Review Queue",
+    description: "Review and approve pending knowledge base submissions.",
+    href: "/queue",
+    icon: "◇",
+    available: true,
+  },
+  {
     title: "Content",
     description: "Browse, create, and manage generated content across all formats.",
     href: "/content",
@@ -78,13 +86,16 @@ export default async function HomePage() {
     <main className="min-h-screen bg-gray-950 text-white">
       <div className="mx-auto max-w-5xl px-6 py-16">
         {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
-            Content Engine
-          </h1>
-          <p className="mt-2 text-gray-400">
-            AI-powered content operations platform
-          </p>
+        <div className="mb-12 flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-white">
+              Content Engine
+            </h1>
+            <p className="mt-2 text-gray-400">
+              AI-powered content operations platform
+            </p>
+          </div>
+          <RoleToggle />
         </div>
 
         {/* Connection Status */}

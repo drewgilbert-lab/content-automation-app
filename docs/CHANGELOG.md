@@ -4,6 +4,22 @@
 
 ---
 
+### Group E — Review Queue (February 2026)
+
+**E1 — Submission API:** `POST /api/submissions` creates pending submissions. Accepts object type, name, proposed content (JSON-serialized), and optional target object ID for updates. Stores in new `Submission` Weaviate collection.
+
+**E2 — Queue list API:** `GET /api/submissions` returns all submissions with optional filters by submission type and status. `GET /api/submissions/[id]` returns a single submission detail.
+
+**E3 — Queue review API:** `POST /api/submissions/[id]/review` accepts actions: `accept` (writes to Weaviate and closes), `reject` (requires comment, closes), `defer` (optional note, stays open). Accept on "new" submissions creates the knowledge object; accept on "update" submissions updates the existing object.
+
+**E4 — Queue UI:** Review queue page at `/queue` with filterable submission list (All/New/Update tabs, show-closed toggle). Review page at `/queue/[id]` with full content preview for new submissions, side-by-side comparison for updates, and Accept/Reject/Defer action buttons. AI Merge placeholder (Group F).
+
+**E5 — Connector/User submission flow:** Role toggle (Admin/Contributor) added to app header, persisted in localStorage. Contributors' create/edit form submissions route through the submission API instead of writing directly to Weaviate. "Submit for Review" button replaces direct save. Dashboard review queue section now shows live pending count with link to queue.
+
+**Infrastructure:** New `Submission` Weaviate collection (migration: `scripts/add-submission-collection.ts`). New `lib/submissions.ts` business logic layer. New `lib/submission-types.ts` type definitions. `diff` npm package added for future content diffing.
+
+---
+
 ## Group D — Health Dashboard — 2026-02-25
 
 ### D1 — Dashboard data API

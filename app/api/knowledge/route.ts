@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { type, name, content, tags, subType, revenueRange, employeeRange, personaId, segmentId } = body;
+    const { type, name, content, tags, subType, revenueRange, employeeRange, website, customerName, industry, personaId, segmentId } = body;
 
     if (!type || !name || !content) {
       return new Response(
@@ -64,6 +64,9 @@ export async function POST(req: NextRequest) {
       subType: subType ? String(subType) : undefined,
       revenueRange: revenueRange ? String(revenueRange) : undefined,
       employeeRange: employeeRange ? String(employeeRange) : undefined,
+      website: website ? String(website) : undefined,
+      customerName: customerName ? String(customerName) : undefined,
+      industry: industry ? String(industry) : undefined,
       personaId: personaId ? String(personaId) : undefined,
       segmentId: segmentId ? String(segmentId) : undefined,
     };

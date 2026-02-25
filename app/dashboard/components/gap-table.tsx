@@ -77,6 +77,7 @@ interface GapTableProps {
   asymmetricRelationships: GapItem[];
   icpMissingRefs: GapItem[];
   businessRulesNoSubType: GapItem[];
+  customerEvidenceNoSubType: GapItem[];
 }
 
 export function GapTable({
@@ -85,13 +86,15 @@ export function GapTable({
   asymmetricRelationships,
   icpMissingRefs,
   businessRulesNoSubType,
+  customerEvidenceNoSubType,
 }: GapTableProps) {
   const totalGaps =
     noRelationships.length +
     partialRelationships.length +
     asymmetricRelationships.length +
     icpMissingRefs.length +
-    businessRulesNoSubType.length;
+    businessRulesNoSubType.length +
+    customerEvidenceNoSubType.length;
 
   if (totalGaps === 0) {
     return (
@@ -129,6 +132,13 @@ export function GapTable({
         items={businessRulesNoSubType.map((item) => ({
           ...item,
           gapDetail: "No subType set",
+        }))}
+      />
+      <GapSection
+        title="Customer Evidence Missing Sub-Type"
+        items={customerEvidenceNoSubType.map((item) => ({
+          ...item,
+          gapDetail: "No subType set (proof_point or reference)",
         }))}
       />
     </div>

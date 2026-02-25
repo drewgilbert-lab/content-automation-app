@@ -6,6 +6,8 @@ const colorMap: Record<KnowledgeType, string> = {
   use_case: "bg-amber-500/15 text-amber-400",
   business_rule: "bg-purple-500/15 text-purple-400",
   icp: "bg-rose-500/15 text-rose-400",
+  competitor: "bg-orange-500/15 text-orange-400",
+  customer_evidence: "bg-teal-500/15 text-teal-400",
 };
 
 export function TypeBadge({ type }: { type: KnowledgeType }) {

@@ -4,6 +4,22 @@
 
 ---
 
+### New Object Types — Competitor and CustomerEvidence (February 2026)
+
+**Migration script:** `scripts/add-competitor-customerevidence-collections.ts` creates the two new Weaviate collections (`Competitor` and `CustomerEvidence`) with their full property schemas. Run this script against an existing Weaviate instance before using the new types.
+
+**Type system:** `lib/knowledge-types.ts` adds `"competitor"` and `"customer_evidence"` to the `KnowledgeType` union. Adds `CUSTOMER_EVIDENCE_SUB_TYPES = ["proof_point", "reference"]`. Adds optional fields `website?`, `customerName?`, and `industry?` to `KnowledgeDetail`, `KnowledgeCreateInput`, and `KnowledgeUpdateInput`.
+
+**CRUD layer:** `lib/knowledge.ts` — both new types are fully wired into all list, get, create, update, delete, deprecate, and restore operations. Collection name maps and type routing updated.
+
+**Health dashboard:** `lib/dashboard.ts` — `Competitor` and `CustomerEvidence` collections added to parallel data fetches. New `customerEvidenceNoSubType` gap check flags CustomerEvidence objects that are missing a required `subType`. New stat cards and gap section added to `app/dashboard/`.
+
+**Form:** `app/knowledge/components/knowledge-form.tsx` — type-specific field blocks added for both types. Competitor shows the optional `website` field. CustomerEvidence shows the required `subType` select (proof_point / reference) plus optional `customerName` and `industry` text fields.
+
+**Type badge:** Both types added to the `TypeBadge` component with appropriate labels and colors.
+
+---
+
 ### Roadmap Scoping — Groups J, K, L (February 2026)
 
 **Group J — Inbound MCP Server for 3rd Party Write Access:** Fully scoped in ROADMAP.md. Five steps (J1–J5): standalone MCP server process with Streamable HTTP transport, read-only discovery tools (list types, search, get object), write tools that create Submissions (never write to Weaviate directly), Submission metadata extension (`sourceChannel`, `sourceAppId`, `sourceDescription`), and API key authentication. Includes example use cases (n8n workflows, Slack bots, CRM sync scripts, AI agents). Risk/gap analysis covers separate hosting requirement, rate limiting, duplicate detection, queue overwhelm, and MCP spec evolution.

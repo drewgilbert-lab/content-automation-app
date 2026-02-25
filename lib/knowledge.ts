@@ -28,6 +28,8 @@ const COLLECTIONS = [
   "UseCase",
   "BusinessRule",
   "ICP",
+  "Competitor",
+  "CustomerEvidence",
 ] as const;
 
 const COLLECTION_TO_TYPE: Record<string, KnowledgeType> = {
@@ -36,6 +38,8 @@ const COLLECTION_TO_TYPE: Record<string, KnowledgeType> = {
   UseCase: "use_case",
   BusinessRule: "business_rule",
   ICP: "icp",
+  Competitor: "competitor",
+  CustomerEvidence: "customer_evidence",
 };
 
 const TYPE_TO_COLLECTION: Record<KnowledgeType, string> = {
@@ -44,6 +48,8 @@ const TYPE_TO_COLLECTION: Record<KnowledgeType, string> = {
   use_case: "UseCase",
   business_rule: "BusinessRule",
   icp: "ICP",
+  competitor: "Competitor",
+  customer_evidence: "CustomerEvidence",
 };
 
 const CROSS_REF_CONFIG: Record<
@@ -188,6 +194,15 @@ export async function getKnowledgeObject(
           employeeRange: obj.properties.employeeRange
             ? String(obj.properties.employeeRange)
             : undefined,
+          website: obj.properties.website
+            ? String(obj.properties.website)
+            : undefined,
+          customerName: obj.properties.customerName
+            ? String(obj.properties.customerName)
+            : undefined,
+          industry: obj.properties.industry
+            ? String(obj.properties.industry)
+            : undefined,
           sourceFile: obj.properties.sourceFile
             ? String(obj.properties.sourceFile)
             : undefined,
@@ -242,6 +257,14 @@ export async function createKnowledgeObject(
     }
     if (input.type === "business_rule") {
       if (input.subType) properties.subType = input.subType;
+    }
+    if (input.type === "competitor") {
+      if (input.website) properties.website = input.website;
+    }
+    if (input.type === "customer_evidence") {
+      if (input.subType) properties.subType = input.subType;
+      if (input.customerName) properties.customerName = input.customerName;
+      if (input.industry) properties.industry = input.industry;
     }
 
     const id = await collection.data.insert(properties);
@@ -300,6 +323,9 @@ export async function updateKnowledgeObject(
       properties.revenueRange = input.revenueRange;
     if (input.employeeRange !== undefined)
       properties.employeeRange = input.employeeRange;
+    if (input.website !== undefined) properties.website = input.website;
+    if (input.customerName !== undefined) properties.customerName = input.customerName;
+    if (input.industry !== undefined) properties.industry = input.industry;
 
     await collection.data.update({ id, properties });
 

@@ -8,7 +8,7 @@ This document defines the rules that govern how knowledge is stored, how context
 
 ## Knowledge Object Types
 
-Five types of knowledge objects are stored in Weaviate. Each type has a distinct role in the context assembly process.
+Eight types of knowledge objects are stored in Weaviate. Each type has a distinct role in the context assembly process.
 
 | Type | Role | Examples |
 |---|---|---|
@@ -18,6 +18,8 @@ Five types of knowledge objects are stored in Weaviate. Each type has a distinct
 | `icp` | The intersection of persona and segment — the ideal buyer profile | To be defined |
 | `business_rule` | Passive constraints and guidelines that apply to all content — tone, brand, what not to say | Tone Guide, Competitor Policy, Prohibited Terms |
 | `skill` | Active procedural instructions for specific tasks — how to structure and generate specific content types | Campaign Brief Generator, Ops Configuration Guide |
+| `competitor` | Competitive intelligence about rival products and companies — injected when generating competitive content such as battlecards, positioning, and objection responses | Competitor strengths/weaknesses, pricing, positioning |
+| `customer_evidence` | Customer proof points and named references — injected to ground claims in real customer outcomes; subTypes: `proof_point` (quantified results) and `reference` (named customers/quotes) | "Customer reduced churn by 30%", Named customer quote |
 
 ---
 
@@ -205,6 +207,10 @@ business_rule ────────────────────► al
 skill ────────────────────────────► matched content types (instructions)
 
 icp = persona ∩ segment ──────────► all content types (targeting precision)
+
+competitor ───────────────────────► competitive content (battlecards, positioning, objection handling)
+
+customer_evidence ────────────────► all content types (grounding claims in real outcomes)
 ```
 
 ### Cross-Reference Map

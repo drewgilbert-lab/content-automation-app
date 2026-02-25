@@ -94,6 +94,44 @@ Cross-references:
 
 ---
 
+### Collection: `Competitor`
+
+Stores competitive intelligence about rival products or companies. Injected as context when generating competitive content such as battlecards, positioning documents, and objection responses.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Competitor name (e.g. "Acme Corp") |
+| `content` | `text` | Full markdown content — vectorized for semantic search |
+| `website` | `text` | Competitor's website URL (optional) |
+| `tags` | `text[]` | Optional labels (e.g. ["direct", "enterprise"]) |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+No cross-references in this phase.
+
+---
+
+### Collection: `CustomerEvidence`
+
+Stores customer proof points and named references. Injected to ground generated content in real customer outcomes. Proof points are quantified results; references are named customers or quotes.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Evidence name or short label |
+| `content` | `text` | Full markdown content — vectorized for semantic search |
+| `subType` | `text` | `"proof_point"` (quantified result) or `"reference"` (named customer/quote) |
+| `customerName` | `text` | Name of the customer (optional) |
+| `industry` | `text` | Customer's industry vertical (optional) |
+| `tags` | `text[]` | Optional labels |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+No cross-references in this phase.
+
+---
+
 ### Collection: `Skill`
 
 Stores procedural task instructions that tell the AI how to perform specific types of work. Separated from `BusinessRule` (which stores passive constraints). See [ROADMAP.md](./ROADMAP.md) Group I for full scope and migration plan.
@@ -294,6 +332,7 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 | `scripts/add-deprecated-field.ts` | Adds `deprecated: boolean` property to all 5 knowledge collections (Persona, Segment, UseCase, BusinessRule, ICP) | Done |
 | `scripts/add-submission-collection.ts` | Creates the `Submission` collection for the review queue | Done |
 | `scripts/migrate-instruction-templates.ts` | Migrates `BusinessRule` objects with `subType: "instruction_template"` to the new `Skill` collection | Planned (Group I5) |
+| `scripts/add-competitor-customerevidence-collections.ts` | Creates the `Competitor` and `CustomerEvidence` Weaviate collections | Done |
 | `scripts/add-submission-source-fields.ts` | Adds `sourceChannel`, `sourceAppId`, `sourceDescription` properties to the `Submission` collection | Planned (Group J4) |
 
 ### Seed Script Status

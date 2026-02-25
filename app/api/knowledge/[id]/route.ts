@@ -45,7 +45,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, content, tags, subType, revenueRange, employeeRange } = body;
+    const { name, content, tags, subType, revenueRange, employeeRange, website, customerName, industry } = body;
 
     if (name !== undefined && !String(name).trim()) {
       return new Response(
@@ -61,6 +61,9 @@ export async function PUT(
     if (subType !== undefined) input.subType = String(subType);
     if (revenueRange !== undefined) input.revenueRange = String(revenueRange);
     if (employeeRange !== undefined) input.employeeRange = String(employeeRange);
+    if (website !== undefined) input.website = String(website);
+    if (customerName !== undefined) input.customerName = String(customerName);
+    if (industry !== undefined) input.industry = String(industry);
 
     await updateKnowledgeObject(id, input);
     const updated = await getKnowledgeObject(id);

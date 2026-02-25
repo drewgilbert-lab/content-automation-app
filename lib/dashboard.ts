@@ -31,6 +31,7 @@ export interface DashboardData {
     asymmetricRelationships: DashboardGapItem[];
     icpMissingRefs: DashboardGapItem[];
     businessRulesNoSubType: DashboardItem[];
+    customerEvidenceNoSubType: DashboardItem[];
   };
 }
 
@@ -55,6 +56,8 @@ const COLLECTIONS = [
   "UseCase",
   "BusinessRule",
   "ICP",
+  "Competitor",
+  "CustomerEvidence",
 ] as const;
 
 const STALE_THRESHOLD_DAYS = 90;
@@ -143,6 +146,8 @@ function computeCounts(objects: ObjectWithRefs[]): Record<KnowledgeType, number>
     use_case: 0,
     business_rule: 0,
     icp: 0,
+    competitor: 0,
+    customer_evidence: 0,
   };
   for (const obj of objects) {
     counts[obj.type]++;
@@ -288,6 +293,12 @@ function findBusinessRulesNoSubType(objects: ObjectWithRefs[]): DashboardItem[] 
     .map(toItem);
 }
 
+function findCustomerEvidenceNoSubType(objects: ObjectWithRefs[]): DashboardItem[] {
+  return objects
+    .filter((obj) => obj.type === "customer_evidence" && !obj.subType)
+    .map(toItem);
+}
+
 // ─── Main export ───────────────────────────────────────────────────────────────
 
 export async function getDashboardData(): Promise<DashboardData> {
@@ -310,6 +321,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         asymmetricRelationships: findAsymmetricRelationships(objects),
         icpMissingRefs: findIcpMissingRefs(objects),
         businessRulesNoSubType: findBusinessRulesNoSubType(objects),
+        customerEvidenceNoSubType: findCustomerEvidenceNoSubType(objects),
       },
     };
   });

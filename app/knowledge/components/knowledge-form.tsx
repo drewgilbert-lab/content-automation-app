@@ -7,7 +7,7 @@ import type {
   KnowledgeDetail,
   KnowledgeListItem,
 } from "@/lib/knowledge-types";
-import { VALID_TYPES, SUB_TYPES, getTypeLabel } from "@/lib/knowledge-types";
+import { VALID_TYPES, SUB_TYPES, CUSTOMER_EVIDENCE_SUB_TYPES, getTypeLabel } from "@/lib/knowledge-types";
 import { MarkdownRenderer } from "./markdown-renderer";
 import { useRole } from "@/app/components/role-provider";
 
@@ -41,6 +41,9 @@ export function KnowledgeForm({
   );
   const [personaId, setPersonaId] = useState("");
   const [segmentId, setSegmentId] = useState("");
+  const [website, setWebsite] = useState(initialData?.website ?? "");
+  const [customerName, setCustomerName] = useState(initialData?.customerName ?? "");
+  const [industry, setIndustry] = useState(initialData?.industry ?? "");
 
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -87,6 +90,14 @@ export function KnowledgeForm({
           if (type === "icp" && mode === "create") {
             body.personaId = personaId || undefined;
             body.segmentId = segmentId || undefined;
+          }
+          if (type === "competitor" || initialData?.type === "competitor") {
+            body.website = website || undefined;
+          }
+          if (type === "customer_evidence" || initialData?.type === "customer_evidence") {
+            body.subType = subType || undefined;
+            body.customerName = customerName || undefined;
+            body.industry = industry || undefined;
           }
 
           const submissionBody = {
@@ -140,6 +151,14 @@ export function KnowledgeForm({
           body.personaId = personaId || undefined;
           body.segmentId = segmentId || undefined;
         }
+        if (type === "competitor" || initialData?.type === "competitor") {
+          body.website = website || undefined;
+        }
+        if (type === "customer_evidence" || initialData?.type === "customer_evidence") {
+          body.subType = subType || undefined;
+          body.customerName = customerName || undefined;
+          body.industry = industry || undefined;
+        }
 
         const res = await fetch(url, {
           method,
@@ -173,6 +192,9 @@ export function KnowledgeForm({
       subType,
       revenueRange,
       employeeRange,
+      website,
+      customerName,
+      industry,
       personaId,
       segmentId,
       router,
@@ -323,6 +345,71 @@ export function KnowledgeForm({
             ))}
           </select>
         </div>
+      )}
+
+      {/* Competitor-specific fields */}
+      {activeType === "competitor" && (
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            Website
+          </label>
+          <input
+            type="text"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="e.g. https://competitor.com"
+            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          />
+        </div>
+      )}
+
+      {/* CustomerEvidence-specific fields */}
+      {activeType === "customer_evidence" && (
+        <>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              Sub Type
+            </label>
+            <select
+              value={subType}
+              onChange={(e) => setSubType(e.target.value)}
+              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+            >
+              <option value="">Select sub type...</option>
+              {CUSTOMER_EVIDENCE_SUB_TYPES.map((st) => (
+                <option key={st} value={st}>
+                  {st.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                Customer Name
+              </label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                placeholder="e.g. Acme Corp"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                Industry
+              </label>
+              <input
+                type="text"
+                value={industry}
+                onChange={(e) => setIndustry(e.target.value)}
+                placeholder="e.g. Financial Services"
+                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+              />
+            </div>
+          </div>
+        </>
       )}
 
       {/* ICP-specific fields (create only) */}

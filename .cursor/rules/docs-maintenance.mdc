@@ -25,3 +25,4 @@ Provide the sub-agent with:
 | New functional requirement or module definition | `docs/PRD.md` |
 | New future plan, deferred scope, or phase change | `docs/ROADMAP.md` |
 | Any meaningful progress | `docs/CHANGELOG.md` (prepend, newest first) |
+| New or modified user-facing feature or workflow | `docs/user-guides/<feature>.md` (create if new, update if existing) |

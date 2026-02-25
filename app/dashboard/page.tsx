@@ -12,6 +12,8 @@ const typeOrder: KnowledgeType[] = [
   "use_case",
   "business_rule",
   "icp",
+  "competitor",
+  "customer_evidence",
 ];
 
 export default async function DashboardPage() {
@@ -25,7 +27,8 @@ export default async function DashboardPage() {
     data.gaps.partialRelationships.length +
     data.gaps.asymmetricRelationships.length +
     data.gaps.icpMissingRefs.length +
-    data.gaps.businessRulesNoSubType.length;
+    data.gaps.businessRulesNoSubType.length +
+    data.gaps.customerEvidenceNoSubType.length;
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -93,6 +96,7 @@ export default async function DashboardPage() {
             asymmetricRelationships={data.gaps.asymmetricRelationships}
             icpMissingRefs={data.gaps.icpMissingRefs}
             businessRulesNoSubType={data.gaps.businessRulesNoSubType}
+            customerEvidenceNoSubType={data.gaps.customerEvidenceNoSubType}
           />
         </section>
 

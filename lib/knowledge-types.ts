@@ -3,7 +3,9 @@ export type KnowledgeType =
   | "segment"
   | "use_case"
   | "business_rule"
-  | "icp";
+  | "icp"
+  | "competitor"
+  | "customer_evidence";
 
 export interface KnowledgeListItem {
   id: string;
@@ -33,6 +35,9 @@ export interface KnowledgeDetail {
   subType?: string;
   revenueRange?: string;
   employeeRange?: string;
+  website?: string;
+  customerName?: string;
+  industry?: string;
   sourceFile?: string;
   crossReferences: Record<string, CrossReference[]>;
 }
@@ -53,6 +58,9 @@ export interface KnowledgeCreateInput {
   subType?: string;
   revenueRange?: string;
   employeeRange?: string;
+  website?: string;
+  customerName?: string;
+  industry?: string;
   personaId?: string;
   segmentId?: string;
 }
@@ -64,6 +72,9 @@ export interface KnowledgeUpdateInput {
   subType?: string;
   revenueRange?: string;
   employeeRange?: string;
+  website?: string;
+  customerName?: string;
+  industry?: string;
 }
 
 export const VALID_TYPES: KnowledgeType[] = [
@@ -72,9 +83,13 @@ export const VALID_TYPES: KnowledgeType[] = [
   "use_case",
   "business_rule",
   "icp",
+  "competitor",
+  "customer_evidence",
 ];
 
 export const SUB_TYPES = ["tone", "constraint", "instruction_template"] as const;
+
+export const CUSTOMER_EVIDENCE_SUB_TYPES = ["proof_point", "reference"] as const;
 
 export function getTypeLabel(type: KnowledgeType): string {
   const labels: Record<KnowledgeType, string> = {
@@ -83,6 +98,8 @@ export function getTypeLabel(type: KnowledgeType): string {
     use_case: "Use Case",
     business_rule: "Business Rule",
     icp: "ICP",
+    competitor: "Competitor",
+    customer_evidence: "Customer Evidence",
   };
   return labels[type];
 }

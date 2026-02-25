@@ -61,6 +61,7 @@ docs/
   ROADMAP.md              — Phases, future modules, backlog, open questions
   CHANGELOG.md            — What was built and when
   API.md                  — API route contracts (incl. planned bulk upload, skills routes)
+  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge)
 ```
 
 ## Current Phase: 1
@@ -92,3 +93,4 @@ docs/
 - Tech decisions and rationale: `docs/TECH_DECISIONS.md`
 - Full requirements and user stories: `docs/PRD.md`
 - Future phases, backlog, open questions: `docs/ROADMAP.md`
+- End-user feature guides: `docs/user-guides/`

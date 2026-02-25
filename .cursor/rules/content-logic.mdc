@@ -1,0 +1,53 @@
+---
+description: Content generation logic, context assembly, and content type specs
+globs: ["app/**/generate/**", "lib/claude.ts"]
+---
+
+# Content Generation Logic
+
+## Context Assembly Flow
+
+1. User submits generation request
+2. Semantic search in Weaviate across Persona, Segment, UseCase, BusinessRule collections
+3. Assemble system prompt with sections: Target Persona, Target Segment, Use Case, Business Rules
+4. Call Claude with assembled system prompt + user message
+5. Stream response
+6. Save to GeneratedContent collection with metadata (content type, knowledge object IDs, prompt)
+
+## System Prompt Template
+
+```
+You are a B2B content writer creating [CONTENT_TYPE] for [COMPANY_NAME].
+
+## Target Persona
+[Persona content from Weaviate]
+
+## Target Account Segment
+[Segment content from Weaviate]
+
+## Use Case / Topic
+[Use case content from Weaviate]
+
+## Business Rules
+[Applicable business rules from Weaviate]
+
+Use the above context to write content that is accurate, on-brand, and directly relevant to the persona's real pain points and goals.
+```
+
+## Content Types & Context Priority
+
+| Type | Length | Primary Context |
+|---|---|---|
+| Email | 150–300 words | Persona → Segment → UseCase |
+| Blog | 800–1500 words | UseCase → Persona → Segment |
+| Social | 50–700 chars | UseCase → Persona |
+| Thought Leadership | 500–1000 words | UseCase → BusinessRules → Persona |
+| Internal Doc | Variable | Instruction template → all |
+
+## Phase 1 Acceptance Criteria (Generate module)
+
+- System retrieves relevant knowledge objects from Weaviate based on prompt
+- Displays which knowledge objects were used as context
+- Streams Claude response to UI in real time
+- Saves generated content to Weaviate with metadata
+- User can regenerate with same or modified context

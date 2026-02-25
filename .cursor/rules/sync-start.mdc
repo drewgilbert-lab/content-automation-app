@@ -1,0 +1,21 @@
+---
+description: Instructions for regenerating start.mdc from docs folder
+---
+
+# Sync start.mdc
+
+Regenerate `.cursor/rules/start.mdc` by reading all files in `docs/` and summarizing the current project state.
+
+## Procedure
+
+1. Read every file in `docs/` (PRD, TECH_DECISIONS, BUSINESS_LOGIC, KNOWLEDGE_BASE, SCOPE, CHANGELOG, API)
+2. Rewrite `.cursor/rules/start.mdc` with current facts
+3. Preserve `alwaysApply: true` frontmatter
+
+## Constraints
+
+- Must stay under 250 lines total (including frontmatter)
+- Written for AI — no filler words, no narrative
+- Orientation only: stack, repo structure, module status, detail pointers
+- Do NOT duplicate full schema, seed inventory, or API contracts — those live in glob-triggered rules
+- Do NOT include changelog history — that lives in `docs/CHANGELOG.md`

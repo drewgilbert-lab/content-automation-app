@@ -1,0 +1,63 @@
+---
+description: Weaviate schema, connection pattern, and seed data reference
+globs: ["lib/weaviate.ts", "scripts/**"]
+---
+
+# Weaviate Patterns
+
+## Connection Pattern
+
+Every Weaviate call must use `withWeaviate` — creates a fresh connection per request, closes in `finally`. Required for Vercel serverless safety.
+```typescript
+await withWeaviate(async (client) => { /* use client */ });
+```
+
+## Env Vars
+
+```
+WEAVIATE_URL=        # REST endpoint from console.weaviate.cloud
+WEAVIATE_API_KEY=    # Admin API key
+CONTENT_REPO_PATH=   # Path to content-automation/ folder (seed only)
+```
+
+## Schema (6 collections)
+
+### Persona
+`name` text, `content` text (vectorized), `tags` text[], `sourceFile` text, `createdAt` date, `updatedAt` date
+Cross-refs: `hasSegments` → Segment[], `hasUseCases` → UseCase[]
+
+### Segment
+`name` text, `content` text (vectorized), `revenueRange` text, `employeeRange` text, `tags` text[], `sourceFile` text, `createdAt` date, `updatedAt` date
+Cross-refs: `hasPersonas` → Persona[], `hasUseCases` → UseCase[]
+
+### UseCase
+`name` text, `content` text (vectorized), `tags` text[], `sourceFile` text, `createdAt` date, `updatedAt` date
+
+### ICP
+`name` text, `content` text (vectorized), `tags` text[], `createdAt` date, `updatedAt` date
+Cross-refs: `persona` → Persona, `segment` → Segment
+
+### BusinessRule
+`name` text, `content` text (vectorized), `subType` text (`"tone"` | `"constraint"` | `"instruction_template"`), `tags` text[], `sourceFile` text, `createdAt` date, `updatedAt` date
+
+### GeneratedContent
+`title` text, `contentType` text, `body` text, `prompt` text, `status` text (`draft`|`submitted`|`in_review`|`approved`|`rejected`|`published`), `createdAt` date, `updatedAt` date
+Cross-refs: `usedPersona` → Persona, `usedSegment` → Segment, `usedUseCases` → UseCase[], `usedBusinessRules` → BusinessRule[]
+
+## Seed Data (24 objects from `content-automation/`)
+
+**Personas (4):** Marketing, RevOps, Sales, Strategy — `Octave/Library/Personas/`
+**Segments (5):** Commercial, Enterprise, Mid-Market, SMB, Strategic — `Octave/Library/Account Segments/`
+**Use Cases (15):** AI-Driven Sales Plays, B2B Data Enrichment, Competitor Analysis, High-Intent Lead Gen, ICP Segmentation Refinement, Inbound Marketing Automation, Market Sizing, Maximize ABM Performance, Predictive Account Scoring, Revenue Growth Intelligence Platform, Signal-based Account Prioritization, Territory Coverage Optimization, Territory Planning, Voice-of-Customer, Whitespace Analysis — `Octave/Library/Use Cases/`
+**Instruction Templates (2):** Campaign Brief Generator, Ops Config Guide Generator — `content_transformation/` → BusinessRule with `subType: "instruction_template"`
+
+**Not yet written:** ICP definitions, Tone Guide, Competitor Policy, Claim Standards, CTA Standards, Prohibited Terms
+
+## Persona-Segment-UseCase Map
+
+| Persona | Segments | Key Use Cases |
+|---|---|---|
+| Sales | Enterprise, Strategic, Mid-Market | High-Intent Lead Gen, Competitor Analysis, Territory Planning |
+| Marketing | Enterprise, Mid-Market, Commercial | ICP Segmentation, Inbound Marketing, Signal-based Prioritization |
+| RevOps | Enterprise, Mid-Market | Predictive Account Scoring, Territory Coverage, B2B Data Enrichment |
+| Strategy | Strategic, Enterprise | Market Sizing, Whitespace Analysis, Revenue Growth Intelligence |

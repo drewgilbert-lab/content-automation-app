@@ -1,0 +1,36 @@
+---
+description: API route contracts and patterns
+globs: ["app/api/**", "lib/**"]
+---
+
+# API Patterns
+
+## Runtime
+
+All API routes that use Weaviate or Anthropic SDKs must set:
+```typescript
+export const runtime = "nodejs";
+```
+
+## Env Vars
+
+```
+WEAVIATE_URL=        # Weaviate Cloud REST endpoint
+WEAVIATE_API_KEY=    # Weaviate admin API key
+ANTHROPIC_API_KEY=   # Anthropic API key
+```
+
+## Endpoints
+
+### POST /api/chat
+Streams Claude response as plain text.
+
+**Request:** `{ message: string, systemPrompt?: string }`
+**Response:** `text/plain; charset=utf-8`, `Transfer-Encoding: chunked`
+**Errors:** 400 if `message` missing, 500 on failure. Both return `{ error: string }` as JSON.
+**Default system prompt:** Generic content assistant if `systemPrompt` omitted.
+
+## Code Patterns
+
+**Weaviate** — Always use `withWeaviate` from `lib/weaviate.ts`. Never hold a persistent client reference.
+**Claude** — Use `streamMessage(systemPrompt, userMessage)` from `lib/claude.ts`. Returns `ReadableStream<Uint8Array>`.

@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Content Engine
 
-## Getting Started
+Internal AI platform that stores company knowledge (personas, segments, use cases, ICP, business rules) in Weaviate and uses it as context for Claude-powered content generation.
 
-First, run the development server:
+## Prerequisites
+
+- Node.js 20+
+- Weaviate Cloud account ([console.weaviate.cloud](https://console.weaviate.cloud))
+- Anthropic API key ([console.anthropic.com](https://console.anthropic.com))
+
+## Setup
+
+```bash
+git clone <repo-url>
+cd content-automation-app
+npm install
+```
+
+Copy the credential template and fill in your keys:
+
+```bash
+cp .env.example .env.local
+```
+
+Required variables in `.env.local`:
+
+```
+WEAVIATE_URL=        # REST endpoint from Weaviate Cloud console
+WEAVIATE_API_KEY=    # Admin API key from Weaviate Cloud console
+ANTHROPIC_API_KEY=   # From Anthropic console
+```
+
+## Run
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). The dashboard shows connection status for both Weaviate and Claude.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16, App Router, TypeScript |
+| Styling | Tailwind CSS v4 |
+| Vector DB | Weaviate Cloud |
+| LLM | Anthropic Claude |
+| Deploy | Vercel (pending) |
 
-## Learn More
+## Documentation
 
-To learn more about Next.js, take a look at the following resources:
+Detailed documentation lives in `docs/`:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Document | Purpose |
+|---|---|
+| [PRD.md](docs/PRD.md) | Product requirements, modules, user stories |
+| [TECH_DECISIONS.md](docs/TECH_DECISIONS.md) | Architecture decision records |
+| [BUSINESS_LOGIC.md](docs/BUSINESS_LOGIC.md) | Context assembly, content types, workflows |
+| [KNOWLEDGE_BASE.md](docs/KNOWLEDGE_BASE.md) | Weaviate schema, content inventory, seed plan |
+| [SCOPE.md](docs/SCOPE.md) | Project overview, goals, development status |
+| [CHANGELOG.md](docs/CHANGELOG.md) | What was built and when |
+| [API.md](docs/API.md) | API route contracts |

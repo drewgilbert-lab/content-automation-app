@@ -1,0 +1,56 @@
+---
+description: Project context for new sessions
+alwaysApply: true
+---
+
+# Content Engine
+
+> Internal AI platform. Stores company knowledge in Weaviate, retrieves via semantic search, sends context + prompt to Claude for content generation.
+
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16, App Router, TypeScript |
+| Styling | Tailwind CSS v4 |
+| Vector DB | Weaviate Cloud (`weaviate-client` v3) |
+| LLM | Anthropic Claude (`claude-opus-4-5`) via `lib/claude.ts` |
+| Deploy | Vercel (pending) |
+
+## Repo Structure
+
+```
+app/
+  page.tsx                — Dashboard with connection status badges
+  layout.tsx              — Root layout, Geist font
+  api/chat/route.ts       — POST, streams Claude response
+lib/
+  weaviate.ts             — withWeaviate<T>(fn), checkWeaviateConnection()
+  claude.ts               — streamMessage(), checkClaudeConnection()
+docs/
+  PRD.md                  — Product requirements, modules, user stories
+  TECH_DECISIONS.md       — Architecture decision records
+  BUSINESS_LOGIC.md       — Context assembly, content types, workflows
+  KNOWLEDGE_BASE.md       — Weaviate schema, content inventory, seed plan
+  SCOPE.md                — Project overview, goals, status
+  CHANGELOG.md            — What was built and when
+  API.md                  — API route contracts
+```
+
+## Current Phase: 1
+
+| Module | Status |
+|---|---|
+| Dashboard | Done |
+| Knowledge Base (CRUD) | Pending |
+| Generate (content creation) | Pending |
+| Content Library | Future (Phase 2) |
+| Workflows | Future (Phase 2) |
+
+## Detail Pointers
+
+- Weaviate schema, seed inventory, connection pattern: `docs/KNOWLEDGE_BASE.md`
+- API contracts: `docs/API.md`
+- Content types, context assembly: `docs/BUSINESS_LOGIC.md`
+- Tech decisions and rationale: `docs/TECH_DECISIONS.md`
+- Full requirements and user stories: `docs/PRD.md`

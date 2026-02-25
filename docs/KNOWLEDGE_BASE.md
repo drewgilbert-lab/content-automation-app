@@ -1,0 +1,248 @@
+# Content Engine — Knowledge Base
+
+> Last updated: February 2026
+
+This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
+
+---
+
+## Weaviate Collections
+
+Each knowledge object type maps to a Weaviate collection. Collections must be created before data is seeded.
+
+### Collection: `Persona`
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Persona name (e.g. "Sales") |
+| `content` | `text` | Full markdown content — vectorized for semantic search |
+| `tags` | `text[]` | Optional labels (e.g. ["gtm", "revenue"]) |
+| `sourceFile` | `text` | Original filename from seed import |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+Cross-references:
+- `hasSegments` → `Segment[]` (which segments this persona most commonly appears in)
+- `hasUseCases` → `UseCase[]` (which use cases are most relevant to this persona)
+
+---
+
+### Collection: `Segment`
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Segment name (e.g. "Enterprise Account Segment") |
+| `content` | `text` | Full markdown content — vectorized for semantic search |
+| `revenueRange` | `text` | Revenue band (e.g. "$1B–$10B") |
+| `employeeRange` | `text` | Employee count range |
+| `tags` | `text[]` | Optional labels |
+| `sourceFile` | `text` | Original filename from seed import |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+Cross-references:
+- `hasPersonas` → `Persona[]` (which personas operate within this segment)
+- `hasUseCases` → `UseCase[]` (which use cases are relevant to this segment)
+
+---
+
+### Collection: `UseCase`
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Use case name (e.g. "High-Intent Lead Generation") |
+| `content` | `text` | Full markdown content — vectorized for semantic search |
+| `tags` | `text[]` | Optional labels |
+| `sourceFile` | `text` | Original filename from seed import |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+---
+
+### Collection: `ICP`
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | ICP name |
+| `content` | `text` | Full definition — vectorized for semantic search |
+| `tags` | `text[]` | Optional labels |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+Cross-references:
+- `persona` → `Persona` (the target persona for this ICP)
+- `segment` → `Segment` (the target segment for this ICP)
+
+---
+
+### Collection: `BusinessRule`
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Rule name (e.g. "Tone Guide", "Campaign Brief Generator") |
+| `content` | `text` | Rule content or instruction template — vectorized |
+| `subType` | `text` | `"tone"`, `"constraint"`, `"instruction_template"` |
+| `tags` | `text[]` | Optional labels |
+| `sourceFile` | `text` | Original filename if seeded from file |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+---
+
+### Collection: `GeneratedContent`
+
+Stores all content produced by the system with full generation metadata.
+
+| Property | Type | Description |
+|---|---|---|
+| `title` | `text` | Auto-generated or user-provided title |
+| `contentType` | `text` | `"email"`, `"blog"`, `"social"`, `"thought_leadership"`, `"internal_doc"` |
+| `body` | `text` | The generated content |
+| `prompt` | `text` | The user's original generation request |
+| `status` | `text` | `"draft"`, `"submitted"`, `"in_review"`, `"approved"`, `"rejected"`, `"published"` |
+| `createdAt` | `date` | Generation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+Cross-references:
+- `usedPersona` → `Persona` (which persona was used as context)
+- `usedSegment` → `Segment` (which segment was used as context)
+- `usedUseCases` → `UseCase[]` (which use cases were used as context)
+- `usedBusinessRules` → `BusinessRule[]` (which rules were applied)
+
+---
+
+## Cross-Reference Design
+
+Weaviate cross-references are directional links between objects. They allow the application to traverse relationships (e.g. "give me the personas and use cases linked to Enterprise segment") and provide transparency about which knowledge informed a generated piece.
+
+```
+Persona ──hasSegments──► Segment
+Persona ──hasUseCases──► UseCase
+
+Segment ──hasPersonas──► Persona
+Segment ──hasUseCases──► UseCase
+
+ICP ──persona──► Persona
+ICP ──segment──► Segment
+
+GeneratedContent ──usedPersona──► Persona
+GeneratedContent ──usedSegment──► Segment
+GeneratedContent ──usedUseCases──► UseCase[]
+GeneratedContent ──usedBusinessRules──► BusinessRule[]
+```
+
+Cross-references are populated:
+- For seeded objects: manually mapped during seed script execution
+- For generated content: automatically recorded at generation time
+
+---
+
+## Content Inventory
+
+Full list of files in `content-automation/` and their target Weaviate collection.
+
+### Personas → `Persona` collection
+
+| File | Object Name | Status |
+|---|---|---|
+| `Octave/Library/Personas/Marketing.md` | Marketing | Pending seed |
+| `Octave/Library/Personas/RevOps.md` | RevOps | Pending seed |
+| `Octave/Library/Personas/Sales.md` | Sales | Pending seed |
+| `Octave/Library/Personas/Strategy.md` | Strategy | Pending seed |
+
+### Account Segments → `Segment` collection
+
+| File | Object Name | Status |
+|---|---|---|
+| `Octave/Library/Account Segments/Commercial Account Segment.md` | Commercial | Pending seed |
+| `Octave/Library/Account Segments/Enterprise Account Segment.md` | Enterprise | Pending seed |
+| `Octave/Library/Account Segments/Mid-Market Account Segment.md` | Mid-Market | Pending seed |
+| `Octave/Library/Account Segments/SMB Account Segment.md` | SMB | Pending seed |
+| `Octave/Library/Account Segments/Strategic Account Segment.md` | Strategic | Pending seed |
+
+### Use Cases → `UseCase` collection
+
+| File | Object Name | Status |
+|---|---|---|
+| `Octave/Library/Use Cases/AI-Driven Sales Plays.md` | AI-Driven Sales Plays | Pending seed |
+| `Octave/Library/Use Cases/B2B Data Enrichment For GTM Precision.md` | B2B Data Enrichment For GTM Precision | Pending seed |
+| `Octave/Library/Use Cases/Competitor Analysis And Takeout.md` | Competitor Analysis And Takeout | Pending seed |
+| `Octave/Library/Use Cases/High-Intent Lead Generation.md` | High-Intent Lead Generation | Pending seed |
+| `Octave/Library/Use Cases/ICP Segmentation Refinement.md` | ICP Segmentation Refinement | Pending seed |
+| `Octave/Library/Use Cases/Inbound Marketing Automation.md` | Inbound Marketing Automation | Pending seed |
+| `Octave/Library/Use Cases/Market Sizing.md` | Market Sizing | Pending seed |
+| `Octave/Library/Use Cases/Maximize ABM Performance.md` | Maximize ABM Performance | Pending seed |
+| `Octave/Library/Use Cases/Predictive Account Scoring.md` | Predictive Account Scoring | Pending seed |
+| `Octave/Library/Use Cases/Revenue Growth Intelligence Platform.md` | Revenue Growth Intelligence Platform | Pending seed |
+| `Octave/Library/Use Cases/Signal-based Account Prioritization.md` | Signal-based Account Prioritization | Pending seed |
+| `Octave/Library/Use Cases/Territory Coverage Optimization.md` | Territory Coverage Optimization | Pending seed |
+| `Octave/Library/Use Cases/Territory Planning and Optimization.md` | Territory Planning and Optimization | Pending seed |
+| `Octave/Library/Use Cases/Voice-of-the-Customer Generation and Activation.md` | Voice-of-the-Customer Generation and Activation | Pending seed |
+| `Octave/Library/Use Cases/Whitespace Analysis And Activation.md` | Whitespace Analysis And Activation | Pending seed |
+
+### Instruction Templates → `BusinessRule` collection (`subType: "instruction_template"`)
+
+| File | Object Name | Status |
+|---|---|---|
+| `content_transformation/campaign_brief_instructions.md` | Campaign Brief Generator | Pending seed |
+| `content_transformation/ops_guide_instructions.md` | Ops Configuration Guide Generator | Pending seed |
+
+### To Be Created (not in seed files)
+
+| Collection | Object Name | Status |
+|---|---|---|
+| `ICP` | — | Not yet defined |
+| `BusinessRule` | Tone Guide | Not yet written |
+| `BusinessRule` | Competitor Policy | Not yet written |
+| `BusinessRule` | Claim Standards | Not yet written |
+| `BusinessRule` | CTA Standards | Not yet written |
+| `BusinessRule` | Prohibited Terms | Not yet written |
+
+---
+
+## Seed Plan
+
+### Prerequisites
+
+1. Weaviate Cloud account created at [console.weaviate.cloud](https://console.weaviate.cloud)
+2. `WEAVIATE_URL` and `WEAVIATE_API_KEY` added to `.env.local`
+3. `CONTENT_REPO_PATH` added to `.env.local` pointing to the content-automation folder:
+   ```
+   CONTENT_REPO_PATH=/Users/drew.gilbert/Documents/content-automation
+   ```
+
+### Seed Script Plan
+
+A one-time script at `scripts/seed.ts` will:
+
+1. Read each markdown file from `CONTENT_REPO_PATH`
+2. Map the file to its target collection and object name
+3. Create Weaviate collections if they don't exist (using schema above)
+4. Insert each file's content as a Weaviate object
+5. Log success/failure per object
+6. Report total objects created
+
+The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node.js `fs` module.
+
+### Seed Script Status
+
+| Step | Status |
+|---|---|
+| Collections schema defined | Done (this document) |
+| `CONTENT_REPO_PATH` env var added | Pending |
+| `scripts/seed.ts` created | Pending |
+| Collections created in Weaviate Cloud | Pending |
+| Seed script executed | Pending |
+| Objects verified in Weaviate dashboard | Pending |
+
+---
+
+## Vectorizer Configuration
+
+Weaviate Cloud auto-vectorizes text properties on insert using its default vectorizer. The `content` property on each collection is the primary vectorized field — it contains the full markdown text of the knowledge object.
+
+- **Default vectorizer:** Weaviate Cloud default (configurable per collection)
+- **Primary vectorized property:** `content`
+- **Secondary vectorized properties:** `name`, `tags` (included in vector index)
+
+If retrieval quality needs improvement, the vectorizer can be updated to use a specific embedding model (e.g. `text2vec-openai` or `text2vec-google`) without migrating data — only re-indexing is required.

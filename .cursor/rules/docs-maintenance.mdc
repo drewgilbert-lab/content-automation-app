@@ -1,0 +1,26 @@
+---
+description: Protocol for updating project docs after code changes
+---
+
+# Doc Maintenance Protocol
+
+After completing a coding task that changes project state, delegate doc updates to a sub-agent using the Task tool. Do NOT read and update docs in the current conversation — preserve context for coding.
+
+## Sub-Agent Prompt Template
+
+Provide the sub-agent with:
+1. What changed (files created/modified, new endpoints, schema changes)
+2. Which docs to update (from mapping below)
+3. Instruction to update "Last updated" date on any modified doc
+
+## Change → Doc Mapping
+
+| Change type | Update |
+|---|---|
+| New/modified API route | `docs/API.md` |
+| New/modified Weaviate collection or property | `docs/KNOWLEDGE_BASE.md` |
+| New dependency, framework change, or arch decision | `docs/TECH_DECISIONS.md` |
+| Content type, workflow rule, or context assembly change | `docs/BUSINESS_LOGIC.md` |
+| Feature completed or module status changed | `docs/SCOPE.md` |
+| New functional requirement or module definition | `docs/PRD.md` |
+| Any meaningful progress | `docs/CHANGELOG.md` (prepend, newest first) |

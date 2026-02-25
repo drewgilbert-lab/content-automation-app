@@ -42,6 +42,13 @@ const navItems = [
     available: true,
   },
   {
+    title: "Dashboard",
+    description: "Health metrics, relationship gaps, and staleness reports.",
+    href: "/dashboard",
+    icon: "◧",
+    available: true,
+  },
+  {
     title: "Content",
     description: "Browse, create, and manage generated content across all formats.",
     href: "/content",

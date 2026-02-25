@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getKnowledgeObject, getTypeLabel } from "@/lib/knowledge";
+import { getKnowledgeObject, getTypeLabel, getCompatibleRelationships } from "@/lib/knowledge";
 import { TypeBadge } from "../components/type-badge";
 import { MarkdownRenderer } from "../components/markdown-renderer";
 import { DetailActions } from "../components/detail-actions";
+import { ManageRelationships } from "../components/manage-relationships";
 
 function formatDate(iso: string): string {
   if (!iso) return "";
@@ -25,9 +26,7 @@ export default async function KnowledgeDetailPage({
 
   if (!obj) notFound();
 
-  const crossRefEntries = Object.entries(obj.crossReferences).filter(
-    ([, refs]) => refs.length > 0
-  );
+  const compatibleRelationships = getCompatibleRelationships(obj.type);
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -151,32 +150,13 @@ export default async function KnowledgeDetailPage({
               </div>
             </div>
 
-            {/* Cross-references */}
-            {crossRefEntries.length > 0 && (
-              <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                  Related Objects
-                </p>
-                {crossRefEntries.map(([label, refs]) => (
-                  <div key={label}>
-                    <p className="text-xs font-medium text-gray-500">
-                      {label}
-                    </p>
-                    <div className="mt-1 space-y-1">
-                      {refs.map((ref) => (
-                        <Link
-                          key={ref.id}
-                          href={`/knowledge/${ref.id}`}
-                          className="block text-sm text-blue-400 hover:text-blue-300"
-                        >
-                          {ref.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Relationships */}
+            <ManageRelationships
+              objectId={obj.id}
+              objectType={obj.type}
+              crossReferences={obj.crossReferences}
+              compatibleRelationships={compatibleRelationships}
+            />
           </div>
         </div>
       </div>

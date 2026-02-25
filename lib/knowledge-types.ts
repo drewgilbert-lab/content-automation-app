@@ -37,6 +37,13 @@ export interface KnowledgeDetail {
   crossReferences: Record<string, CrossReference[]>;
 }
 
+export interface RelationshipConfig {
+  property: string;
+  targetType: KnowledgeType;
+  label: string;
+  single?: boolean;
+}
+
 export interface KnowledgeCreateInput {
   type: KnowledgeType;
   name: string;

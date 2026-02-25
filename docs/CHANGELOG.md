@@ -4,6 +4,25 @@
 
 ---
 
+## Group C — Relationship Layer — 2026-02-24
+
+### C1 — Relationship write API
+- `POST /api/knowledge/[id]/relationships` — add a cross-reference between objects
+- `DELETE /api/knowledge/[id]/relationships` — remove a cross-reference
+- Accepts `targetId` and `relationshipType` in request body
+- Auto-syncs bidirectional Persona/Segment references
+- Validates source/target compatibility before writing
+
+### C2 — Manage Relationships panel
+- New `ManageRelationships` client component on every detail page
+- Shows current cross-references grouped by type with remove buttons
+- Search/select dropdown to add new references from compatible collections
+- ICP single-value handling (replace instead of append)
+- Optimistic UI updates with error handling
+- Replaces the old read-only "Related Objects" card
+
+---
+
 ## 2026-02 — Knowledge Base Write Layer (Group B)
 
 ### Added

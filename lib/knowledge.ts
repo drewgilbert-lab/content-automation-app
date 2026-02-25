@@ -8,6 +8,7 @@ import type {
   KnowledgeCreateInput,
   KnowledgeUpdateInput,
   CrossReference,
+  RelationshipConfig,
 } from "./knowledge-types";
 
 export type {
@@ -17,6 +18,7 @@ export type {
   KnowledgeCreateInput,
   KnowledgeUpdateInput,
   CrossReference,
+  RelationshipConfig,
 };
 export { VALID_TYPES, getTypeLabel } from "./knowledge-types";
 
@@ -382,4 +384,114 @@ export async function restoreKnowledgeObject(id: string): Promise<boolean> {
   });
 }
 
-export { CROSS_REF_CONFIG, TYPE_TO_COLLECTION, COLLECTION_TO_TYPE };
+const REVERSE_REF_MAP: Record<string, { collection: string; property: string }> = {
+  "Persona.hasSegments": { collection: "Segment", property: "hasPersonas" },
+  "Segment.hasPersonas": { collection: "Persona", property: "hasSegments" },
+};
+
+export function getCompatibleRelationships(
+  type: KnowledgeType
+): RelationshipConfig[] {
+  const collectionName = TYPE_TO_COLLECTION[type];
+  const config = CROSS_REF_CONFIG[collectionName] ?? [];
+  return config.map((c) => ({
+    property: c.linkOn,
+    targetType: c.targetType,
+    label: c.label,
+    single: collectionName === "ICP" ? true : undefined,
+  }));
+}
+
+export async function addRelationship(
+  sourceId: string,
+  targetId: string,
+  relationshipType: string
+): Promise<void> {
+  return withWeaviate(async (client) => {
+    const source = await findObjectCollection(client, sourceId);
+    if (!source) throw new Error("Source object not found");
+
+    const refConfig = CROSS_REF_CONFIG[source.collectionName] ?? [];
+    const refDef = refConfig.find((r) => r.linkOn === relationshipType);
+    if (!refDef) throw new Error(`Invalid relationship type "${relationshipType}" for ${source.type}`);
+
+    const target = await findObjectCollection(client, targetId);
+    if (!target) throw new Error("Target object not found");
+
+    const expectedTargetCollection = TYPE_TO_COLLECTION[refDef.targetType];
+    if (target.collectionName !== expectedTargetCollection) {
+      throw new Error(`Target must be a ${refDef.targetType}, got ${target.type}`);
+    }
+
+    const collection = client.collections.use(source.collectionName);
+
+    // For ICP single-value references, remove existing reference first
+    if (source.collectionName === "ICP" && (relationshipType === "persona" || relationshipType === "segment")) {
+      const obj = await collection.query.fetchObjectById(sourceId, {
+        returnReferences: [{ linkOn: relationshipType, returnProperties: ["name" as const] }],
+      });
+      const existing = (obj?.references?.[relationshipType] as { objects?: Array<{ uuid: string }> } | undefined)?.objects ?? [];
+      for (const ref of existing) {
+        await collection.data.referenceDelete({
+          fromUuid: sourceId,
+          fromProperty: relationshipType,
+          to: ref.uuid,
+        });
+      }
+    }
+
+    await collection.data.referenceAdd({
+      fromUuid: sourceId,
+      fromProperty: relationshipType,
+      to: targetId,
+    });
+
+    // Auto-sync reverse reference for bidirectional pairs
+    const reverseKey = `${source.collectionName}.${relationshipType}`;
+    const reverse = REVERSE_REF_MAP[reverseKey];
+    if (reverse) {
+      const reverseCollection = client.collections.use(reverse.collection);
+      await reverseCollection.data.referenceAdd({
+        fromUuid: targetId,
+        fromProperty: reverse.property,
+        to: sourceId,
+      });
+    }
+  });
+}
+
+export async function removeRelationship(
+  sourceId: string,
+  targetId: string,
+  relationshipType: string
+): Promise<void> {
+  return withWeaviate(async (client) => {
+    const source = await findObjectCollection(client, sourceId);
+    if (!source) throw new Error("Source object not found");
+
+    const refConfig = CROSS_REF_CONFIG[source.collectionName] ?? [];
+    const refDef = refConfig.find((r) => r.linkOn === relationshipType);
+    if (!refDef) throw new Error(`Invalid relationship type "${relationshipType}" for ${source.type}`);
+
+    const collection = client.collections.use(source.collectionName);
+    await collection.data.referenceDelete({
+      fromUuid: sourceId,
+      fromProperty: relationshipType,
+      to: targetId,
+    });
+
+    // Auto-sync reverse reference for bidirectional pairs
+    const reverseKey = `${source.collectionName}.${relationshipType}`;
+    const reverse = REVERSE_REF_MAP[reverseKey];
+    if (reverse) {
+      const reverseCollection = client.collections.use(reverse.collection);
+      await reverseCollection.data.referenceDelete({
+        fromUuid: targetId,
+        fromProperty: reverse.property,
+        to: sourceId,
+      });
+    }
+  });
+}
+
+export { CROSS_REF_CONFIG, TYPE_TO_COLLECTION, COLLECTION_TO_TYPE, REVERSE_REF_MAP };

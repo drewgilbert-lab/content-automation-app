@@ -22,7 +22,7 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 ### Out of Scope (Current Phase)
 
 - User authentication and role-based access
-- Content approval and publishing workflows (defined in [BUSINESS_LOGIC.md](./BUSINESS_LOGIC.md), not yet implemented)
+- Content approval and publishing workflows (defined in [ROADMAP.md](./ROADMAP.md), not yet implemented)
 - Vercel production deployment (infrastructure is ready; deployment is a pending step)
 - Integration with external systems (CRM, MAP, social platforms)
 - Multi-tenant or customer-facing use
@@ -41,37 +41,7 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 
 ---
 
-## Repository Structure
-
-```
-content-automation/              ← Existing knowledge source (markdown files, seed data)
-content-automation-app/          ← Next.js application (this repo)
-├── app/
-│   ├── page.tsx                 ← Dashboard homepage
-│   └── api/chat/route.ts        ← Claude streaming endpoint
-├── lib/
-│   ├── weaviate.ts              ← Weaviate client (serverless-safe)
-│   └── claude.ts                ← Anthropic client (LLM layer)
-├── docs/                        ← Project documentation (this folder)
-│   ├── README.md                ← This file
-│   ├── PRD.md                   ← Product requirements
-│   ├── TECH_DECISIONS.md        ← Technology decisions and rationale
-│   ├── BUSINESS_LOGIC.md        ← Business rules and content logic
-│   └── KNOWLEDGE_BASE.md        ← Weaviate schema and content inventory
-├── .env.local                   ← Local credentials (gitignored)
-└── .env.example                 ← Credential template (committed)
-```
-
----
-
-## Documentation Index
-
-| Document | Purpose |
-|---|---|
-| [PRD.md](./PRD.md) | Product modules, functional requirements, user stories |
-| [TECH_DECISIONS.md](./TECH_DECISIONS.md) | Technology choices and rationale, alternatives considered |
-| [BUSINESS_LOGIC.md](./BUSINESS_LOGIC.md) | Content generation rules, knowledge relationships, workflow states |
-| [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) | Weaviate schema, content inventory, seed plan |
+See [README.md](../README.md) for repo structure and full documentation index.
 
 ---
 
@@ -84,12 +54,12 @@ content-automation-app/          ← Next.js application (this repo)
 | Claude streaming | Done | `streamMessage` + `/api/chat` endpoint |
 | Dashboard homepage | Done | Connection status indicators for both services |
 | `.env` configuration | Done | Keys required: `WEAVIATE_URL`, `WEAVIATE_API_KEY`, `ANTHROPIC_API_KEY` |
-| Weaviate Cloud account | Pending | Sign up at console.weaviate.cloud |
-| Credentials in `.env.local` | Pending | Blocked on Weaviate Cloud setup |
-| Weaviate collections created | Pending | Schema defined in KNOWLEDGE_BASE.md |
-| Seed script | Pending | Imports content-automation/ files into Weaviate |
+| Weaviate Cloud account | Done | Sign up at console.weaviate.cloud |
+| Credentials in `.env.local` | Done | Weaviate connected; Claude API key pending |
+| Weaviate collections created | Done | Schema defined in KNOWLEDGE_BASE.md |
+| Seed script | Done | Imports content-automation/ files into Weaviate |
 | Knowledge Base UI | Pending | CRUD interface for knowledge objects |
 | Generate UI | Pending | Content generation with context retrieval |
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Pending | After local dev is confirmed working |
-| Approval workflows | Future | Defined in BUSINESS_LOGIC.md |
+| Approval workflows | Future | Defined in ROADMAP.md |

@@ -20,7 +20,8 @@ Provide the sub-agent with:
 | New/modified API route | `docs/API.md` |
 | New/modified Weaviate collection or property | `docs/KNOWLEDGE_BASE.md` |
 | New dependency, framework change, or arch decision | `docs/TECH_DECISIONS.md` |
-| Content type, workflow rule, or context assembly change | `docs/BUSINESS_LOGIC.md` |
+| Content type or context assembly change | `docs/BUSINESS_LOGIC.md` |
 | Feature completed or module status changed | `docs/SCOPE.md` |
 | New functional requirement or module definition | `docs/PRD.md` |
+| New future plan, deferred scope, or phase change | `docs/ROADMAP.md` |
 | Any meaningful progress | `docs/CHANGELOG.md` (prepend, newest first) |

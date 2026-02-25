@@ -54,10 +54,11 @@ Detailed documentation lives in `docs/`:
 
 | Document | Purpose |
 |---|---|
-| [PRD.md](docs/PRD.md) | Product requirements, modules, user stories |
-| [TECH_DECISIONS.md](docs/TECH_DECISIONS.md) | Architecture decision records |
-| [BUSINESS_LOGIC.md](docs/BUSINESS_LOGIC.md) | Context assembly, content types, workflows |
+| [SCOPE.md](docs/SCOPE.md) | Project identity, goals, development status |
+| [PRD.md](docs/PRD.md) | Functional requirements and user stories |
+| [BUSINESS_LOGIC.md](docs/BUSINESS_LOGIC.md) | Context assembly, content types, runtime logic |
 | [KNOWLEDGE_BASE.md](docs/KNOWLEDGE_BASE.md) | Weaviate schema, content inventory, seed plan |
-| [SCOPE.md](docs/SCOPE.md) | Project overview, goals, development status |
+| [TECH_DECISIONS.md](docs/TECH_DECISIONS.md) | Architecture decision records |
+| [ROADMAP.md](docs/ROADMAP.md) | Phases, future modules, backlog, open questions |
 | [CHANGELOG.md](docs/CHANGELOG.md) | What was built and when |
 | [API.md](docs/API.md) | API route contracts |

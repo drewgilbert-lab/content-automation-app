@@ -2,7 +2,7 @@
 
 > Last updated: February 2026
 
-This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior and future workflow implementation.
+This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
 ---
 
@@ -156,47 +156,7 @@ icp = persona ∩ segment ──────────► all content types (t
 
 ---
 
-## Workflow States
-
-Defined for future implementation. Not yet built.
-
-### Content Workflow
-
-```
-draft → submitted → in_review → approved → published
-                              ↓
-                           rejected → draft (with reviewer comments)
-```
-
-| State | Description | Who Acts |
-|---|---|---|
-| `draft` | Content was generated or saved; not submitted for review | Creator |
-| `submitted` | Creator has submitted for review | Creator |
-| `in_review` | Assigned reviewer is reviewing | Reviewer |
-| `approved` | Content has been approved | Reviewer |
-| `rejected` | Rejected with comments; returned to draft | Reviewer |
-| `published` | Approved content marked as live | Approver/Admin |
-
-### Rules
-
-- Content cannot move from `draft` directly to `approved` — it must pass through `in_review`
-- Rejected content returns to `draft` with reviewer comments attached
-- A content piece retains all previous versions when edited after rejection
-- Approved content cannot be edited without resetting to `draft`
-
----
-
-## Business Rules (To Be Defined)
-
-The following `business_rule` objects are planned but not yet created. They will be authored and added to Weaviate as part of the knowledge base setup.
-
-| Rule | Description | Status |
-|---|---|---|
-| Tone guide | Defines overall brand voice — direct, confident, data-driven, human | To be created |
-| Competitor policy | How (or whether) to reference competitors by name | To be created |
-| Claim standards | Which claims require data backing vs. can be stated generally | To be created |
-| CTA standards | Approved CTA language and what to avoid | To be created |
-| Prohibited terms | Words or phrases to never use | To be created |
+Workflow states and planned business rules are defined in [ROADMAP.md](./ROADMAP.md).
 
 ---
 

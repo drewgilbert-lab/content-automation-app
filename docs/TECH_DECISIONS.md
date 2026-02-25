@@ -192,7 +192,4 @@ We need a styling approach that is fast to work with, consistent, and compatible
 
 ---
 
-## Open Questions
-
-- **Embedding model:** Weaviate Cloud's default vectorizer will be used initially. If retrieval quality needs improvement, we can configure a specific embedding model (e.g. `text-embedding-3-small` via OpenAI or `text2vec-google` for Gemini alignment).
-- **Databricks integration:** The company uses Databricks as an operational data platform. If canonical data (accounts, contacts, segments) already exists there, a future sync pipeline from Databricks → Weaviate may be more reliable than manual entry. This is not in scope for Phase 1.
+Open questions and future technical investigations are tracked in [ROADMAP.md](./ROADMAP.md).

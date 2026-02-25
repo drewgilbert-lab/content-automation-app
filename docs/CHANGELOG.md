@@ -1,6 +1,30 @@
 # Content Engine — Changelog
 
-> Newest entries first.
+> Newest entries first. Last updated: February 2026
+
+---
+
+## 2026-02-25
+
+### Added
+- `docs/ROADMAP.md` — single source for phases, future modules, backlog, open questions
+- `scripts/seed.ts` — collection creation + 26 object seed + 49 cross-references
+- `npm run seed` script, `dotenv` and `tsx` dev dependencies
+
+### Changed — Docs Restructuring
+- Eliminated content overlap across all docs; each file now has a single responsibility
+- `SCOPE.md` — removed repo structure and doc index (duplicated in README/start.mdc)
+- `PRD.md` — stripped to requirements only; removed vision, seed inventory, content types, future modules; added pointers
+- `BUSINESS_LOGIC.md` — removed workflow states and planned business rules (moved to ROADMAP.md)
+- `KNOWLEDGE_BASE.md` — updated seed inventory status from "Pending seed" to "Seeded"
+- `TECH_DECISIONS.md` — removed Open Questions (moved to ROADMAP.md)
+- Updated `docs-maintenance.mdc`, `start.mdc`, and `README.md` to include ROADMAP.md
+
+### Changed
+- `.env.example` now includes `CONTENT_REPO_PATH`
+
+### Infrastructure
+- Weaviate Cloud connected, all collections seeded
 
 ---
 

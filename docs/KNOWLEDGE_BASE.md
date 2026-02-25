@@ -145,47 +145,47 @@ Full list of files in `content-automation/` and their target Weaviate collection
 
 | File | Object Name | Status |
 |---|---|---|
-| `Octave/Library/Personas/Marketing.md` | Marketing | Pending seed |
-| `Octave/Library/Personas/RevOps.md` | RevOps | Pending seed |
-| `Octave/Library/Personas/Sales.md` | Sales | Pending seed |
-| `Octave/Library/Personas/Strategy.md` | Strategy | Pending seed |
+| `Octave/Library/Personas/Marketing.md` | Marketing | Seeded |
+| `Octave/Library/Personas/RevOps.md` | RevOps | Seeded |
+| `Octave/Library/Personas/Sales.md` | Sales | Seeded |
+| `Octave/Library/Personas/Strategy.md` | Strategy | Seeded |
 
 ### Account Segments → `Segment` collection
 
 | File | Object Name | Status |
 |---|---|---|
-| `Octave/Library/Account Segments/Commercial Account Segment.md` | Commercial | Pending seed |
-| `Octave/Library/Account Segments/Enterprise Account Segment.md` | Enterprise | Pending seed |
-| `Octave/Library/Account Segments/Mid-Market Account Segment.md` | Mid-Market | Pending seed |
-| `Octave/Library/Account Segments/SMB Account Segment.md` | SMB | Pending seed |
-| `Octave/Library/Account Segments/Strategic Account Segment.md` | Strategic | Pending seed |
+| `Octave/Library/Account Segments/Commercial Account Segment.md` | Commercial | Seeded |
+| `Octave/Library/Account Segments/Enterprise Account Segment.md` | Enterprise | Seeded |
+| `Octave/Library/Account Segments/Mid-Market Account Segment.md` | Mid-Market | Seeded |
+| `Octave/Library/Account Segments/SMB Account Segment.md` | SMB | Seeded |
+| `Octave/Library/Account Segments/Strategic Account Segment.md` | Strategic | Seeded |
 
 ### Use Cases → `UseCase` collection
 
 | File | Object Name | Status |
 |---|---|---|
-| `Octave/Library/Use Cases/AI-Driven Sales Plays.md` | AI-Driven Sales Plays | Pending seed |
-| `Octave/Library/Use Cases/B2B Data Enrichment For GTM Precision.md` | B2B Data Enrichment For GTM Precision | Pending seed |
-| `Octave/Library/Use Cases/Competitor Analysis And Takeout.md` | Competitor Analysis And Takeout | Pending seed |
-| `Octave/Library/Use Cases/High-Intent Lead Generation.md` | High-Intent Lead Generation | Pending seed |
-| `Octave/Library/Use Cases/ICP Segmentation Refinement.md` | ICP Segmentation Refinement | Pending seed |
-| `Octave/Library/Use Cases/Inbound Marketing Automation.md` | Inbound Marketing Automation | Pending seed |
-| `Octave/Library/Use Cases/Market Sizing.md` | Market Sizing | Pending seed |
-| `Octave/Library/Use Cases/Maximize ABM Performance.md` | Maximize ABM Performance | Pending seed |
-| `Octave/Library/Use Cases/Predictive Account Scoring.md` | Predictive Account Scoring | Pending seed |
-| `Octave/Library/Use Cases/Revenue Growth Intelligence Platform.md` | Revenue Growth Intelligence Platform | Pending seed |
-| `Octave/Library/Use Cases/Signal-based Account Prioritization.md` | Signal-based Account Prioritization | Pending seed |
-| `Octave/Library/Use Cases/Territory Coverage Optimization.md` | Territory Coverage Optimization | Pending seed |
-| `Octave/Library/Use Cases/Territory Planning and Optimization.md` | Territory Planning and Optimization | Pending seed |
-| `Octave/Library/Use Cases/Voice-of-the-Customer Generation and Activation.md` | Voice-of-the-Customer Generation and Activation | Pending seed |
-| `Octave/Library/Use Cases/Whitespace Analysis And Activation.md` | Whitespace Analysis And Activation | Pending seed |
+| `Octave/Library/Use Cases/AI-Driven Sales Plays.md` | AI-Driven Sales Plays | Seeded |
+| `Octave/Library/Use Cases/B2B Data Enrichment For GTM Precision.md` | B2B Data Enrichment For GTM Precision | Seeded |
+| `Octave/Library/Use Cases/Competitor Analysis And Takeout.md` | Competitor Analysis And Takeout | Seeded |
+| `Octave/Library/Use Cases/High-Intent Lead Generation.md` | High-Intent Lead Generation | Seeded |
+| `Octave/Library/Use Cases/ICP Segmentation Refinement.md` | ICP Segmentation Refinement | Seeded |
+| `Octave/Library/Use Cases/Inbound Marketing Automation.md` | Inbound Marketing Automation | Seeded |
+| `Octave/Library/Use Cases/Market Sizing.md` | Market Sizing | Seeded |
+| `Octave/Library/Use Cases/Maximize ABM Performance.md` | Maximize ABM Performance | Seeded |
+| `Octave/Library/Use Cases/Predictive Account Scoring.md` | Predictive Account Scoring | Seeded |
+| `Octave/Library/Use Cases/Revenue Growth Intelligence Platform.md` | Revenue Growth Intelligence Platform | Seeded |
+| `Octave/Library/Use Cases/Signal-based Account Prioritization.md` | Signal-based Account Prioritization | Seeded |
+| `Octave/Library/Use Cases/Territory Coverage Optimization.md` | Territory Coverage Optimization | Seeded |
+| `Octave/Library/Use Cases/Territory Planning and Optimization.md` | Territory Planning and Optimization | Seeded |
+| `Octave/Library/Use Cases/Voice-of-the-Customer Generation and Activation.md` | Voice-of-the-Customer Generation and Activation | Seeded |
+| `Octave/Library/Use Cases/Whitespace Analysis And Activation.md` | Whitespace Analysis And Activation | Seeded |
 
 ### Instruction Templates → `BusinessRule` collection (`subType: "instruction_template"`)
 
 | File | Object Name | Status |
 |---|---|---|
-| `content_transformation/campaign_brief_instructions.md` | Campaign Brief Generator | Pending seed |
-| `content_transformation/ops_guide_instructions.md` | Ops Configuration Guide Generator | Pending seed |
+| `content_transformation/campaign_brief_instructions.md` | Campaign Brief Generator | Seeded |
+| `content_transformation/ops_guide_instructions.md` | Ops Configuration Guide Generator | Seeded |
 
 ### To Be Created (not in seed files)
 
@@ -229,11 +229,11 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 | Step | Status |
 |---|---|
 | Collections schema defined | Done (this document) |
-| `CONTENT_REPO_PATH` env var added | Pending |
-| `scripts/seed.ts` created | Pending |
-| Collections created in Weaviate Cloud | Pending |
-| Seed script executed | Pending |
-| Objects verified in Weaviate dashboard | Pending |
+| `CONTENT_REPO_PATH` env var added | Done |
+| `scripts/seed.ts` created | Done |
+| Collections created in Weaviate Cloud | Done |
+| Seed script executed | Done |
+| Objects verified in Weaviate dashboard | Done |
 
 ---
 

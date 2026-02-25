@@ -4,6 +4,32 @@
 
 ---
 
+### Roadmap Scoping — Groups J, K, L (February 2026)
+
+**Group J — Inbound MCP Server for 3rd Party Write Access:** Fully scoped in ROADMAP.md. Five steps (J1–J5): standalone MCP server process with Streamable HTTP transport, read-only discovery tools (list types, search, get object), write tools that create Submissions (never write to Weaviate directly), Submission metadata extension (`sourceChannel`, `sourceAppId`, `sourceDescription`), and API key authentication. Includes example use cases (n8n workflows, Slack bots, CRM sync scripts, AI agents). Risk/gap analysis covers separate hosting requirement, rate limiting, duplicate detection, queue overwhelm, and MCP spec evolution.
+
+**Group K — External REST API for 3rd Party Read Access:** Fully scoped in ROADMAP.md. Eight steps (K1–K8): API key auth middleware, list knowledge objects endpoint with pagination, object detail endpoint, semantic search endpoint via `nearText`, types and counts endpoint, conditional skills endpoints, unauthenticated health endpoint, and OpenAPI spec (stretch). Architecture decision: REST gateway over `/api/v1/` reusing `lib/knowledge.ts`, not direct Weaviate access or GraphQL. Risk/gap analysis covers single-key model, Vercel timeouts, schema breaking changes, and stale consumer data.
+
+**Group L — MCP Server for LLM Read Access (RAG Interface):** Fully scoped in ROADMAP.md. Fifteen steps (L1–L15): standalone MCP server with dual transport (stdio for Claude Desktop/Code/Cursor, SSE for Gemini and remote access), persistent Weaviate connection, seven MCP tools (`list_collections`, `list_objects`, `get_object`, `search_objects`, `get_relationships`, `get_dashboard_health`, `get_collection_schema`), three MCP resources (overview, relationship map, collection summaries), semantic search design, cross-LLM compatibility strategy, and Claude Desktop configuration. Phase 2 write access vision documented. Risk/gap analysis covers context window overflow, data exposure, duplicated logic, and connection stability.
+
+**Cross-cutting notes:** J + L consolidation opportunity (single MCP server with tool namespaces), K + L data overlap (shared `lib/knowledge.ts` implementation), unified API key strategy, and RBAC-free design.
+
+**Documentation updates:** ROADMAP.md (Groups J, K, L with full scope, risks, and open questions; cross-cutting notes; infrastructure backlog updates), PRD.md (user stories MCP-1–6, API-1–5, RAG-1–6), API.md (planned external API routes, MCP tool references), KNOWLEDGE_BASE.md (Submission schema extensions), TECH_DECISIONS.md (ADR-006 MCP architecture, ADR-007 external API gateway), BUSINESS_LOGIC.md (external access patterns), SCOPE.md (updated development status), start.mdc (updated module status table).
+
+---
+
+### Roadmap Scoping — Groups G, H, I (February 2026)
+
+**Group G — Bulk Upload with AI Classification:** Fully scoped in ROADMAP.md. Five steps (G1–G5): document parser supporting PDF/DOCX/Markdown/TXT, AI classification API using Claude, upload session management, uploader review UI with bulk actions, and submission bridge to the existing review queue. Risk/gap analysis covers parsing accuracy, classification errors, rate limiting, duplicate detection, session persistence, and cost management.
+
+**Group H — Enhanced Change Review Workflows:** Fully scoped in ROADMAP.md. Five steps (H1–H5) covering two workflows: (a) upload a document to add content to an existing knowledge object via AI merge with a new `document_add` submission type, and (b) visual diff component upgrade replacing the static side-by-side comparison with word-level diff highlighting in unified and side-by-side modes. Risk/gap analysis covers large diffs, concurrent edits, accessibility, and version history dependency.
+
+**Group I — Skills Module:** Fully scoped in ROADMAP.md. Six steps (I1–I6): new `Skill` Weaviate collection, CRUD API, library UI, context assembly integration, migration script for existing instruction templates, and a future skill testing interface. Includes separation criteria table (Skills = active procedural instructions vs. Business Rules = passive constraints). Risk/gap analysis covers skill conflicts, context window bloat, testing, versioning, migration, and composability.
+
+**Documentation updates:** PRD.md (user stories BU-1–5, CR-1–4, SK-1–6), KNOWLEDGE_BASE.md (Skill collection schema, `document_add` submission type, `usedSkills` cross-reference), API.md (bulk upload routes, document upload route, skills CRUD routes), BUSINESS_LOGIC.md (Skills vs Business Rules distinction, updated context assembly template with skills section), SCOPE.md (updated development status), start.mdc (regenerated).
+
+---
+
 ### Group F — AI Merge Workflow (February 2026)
 
 **F1 — Merge API:** `POST /api/submissions/[id]/merge` streams an AI-merged version of a knowledge object. Fetches the current live version and the proposed update from the submission, sends both to Claude with a merge system prompt, and returns the merged text as a streaming response. `lib/merge.ts` provides `buildMergePrompt()` for constructing the system prompt and user message.

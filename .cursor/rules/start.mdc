@@ -55,12 +55,12 @@ lib/
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
-  BUSINESS_LOGIC.md       — Context assembly, content types, runtime logic
-  KNOWLEDGE_BASE.md       — Weaviate schema, content inventory, seed plan
+  BUSINESS_LOGIC.md       — Context assembly, content types, skills vs rules, runtime logic
+  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill collection), content inventory, seed plan
   SCOPE.md                — Project overview, goals, status
   ROADMAP.md              — Phases, future modules, backlog, open questions
   CHANGELOG.md            — What was built and when
-  API.md                  — API route contracts
+  API.md                  — API route contracts (incl. planned bulk upload, skills routes)
 ```
 
 ## Current Phase: 1
@@ -74,6 +74,12 @@ docs/
 | Knowledge Base (Health Dashboard) | Done (Group D) |
 | Knowledge Base (Review Queue) | Done (Group E) |
 | Knowledge Base (AI Merge) | Done (Group F) |
+| Knowledge Base (Bulk Upload) | Scoped (Group G) |
+| Knowledge Base (Enhanced Review) | Scoped (Group H) |
+| Skills Module | Scoped (Group I) |
+| Inbound MCP Server (3rd Party Write) | Scoped (Group J) |
+| External REST API (3rd Party Read) | Scoped (Group K) |
+| LLM MCP Server (RAG Read Access) | Scoped (Group L) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |
@@ -82,7 +88,7 @@ docs/
 
 - Weaviate schema, seed inventory, connection pattern: `docs/KNOWLEDGE_BASE.md`
 - API contracts: `docs/API.md`
-- Content types, context assembly: `docs/BUSINESS_LOGIC.md`
+- Content types, context assembly, skills vs rules: `docs/BUSINESS_LOGIC.md`
 - Tech decisions and rationale: `docs/TECH_DECISIONS.md`
 - Full requirements and user stories: `docs/PRD.md`
 - Future phases, backlog, open questions: `docs/ROADMAP.md`

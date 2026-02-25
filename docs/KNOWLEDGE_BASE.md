@@ -94,6 +94,35 @@ Cross-references:
 
 ---
 
+### Collection: `Skill`
+
+Stores procedural task instructions that tell the AI how to perform specific types of work. Separated from `BusinessRule` (which stores passive constraints). See [ROADMAP.md](./ROADMAP.md) Group I for full scope and migration plan.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Skill name (e.g. "Campaign Brief Generator") — vectorized |
+| `description` | `text` | Short summary of what this skill does — vectorized |
+| `content` | `text` | Full instruction body in markdown — vectorized (primary) |
+| `active` | `boolean` | Toggle to enable/disable; inactive skills excluded from context assembly |
+| `contentType` | `text[]` | Content types that trigger this skill (e.g. `["email", "internal_doc"]`) |
+| `triggerConditions` | `text` | Optional JSON for complex trigger logic |
+| `parameters` | `text` | Optional JSON array of `SkillParameter` objects (`{ name, type, description, required }`) |
+| `outputFormat` | `text` | Description of expected output structure |
+| `version` | `text` | Semantic version string (e.g. `"1.0.0"`) |
+| `previousVersionId` | `text` | UUID of the prior version (for rollback) |
+| `tags` | `text[]` | Categorization labels |
+| `category` | `text` | Skill category (e.g. `"content_generation"`, `"documentation"`, `"transformation"`) |
+| `author` | `text` | Who created this skill |
+| `sourceFile` | `text` | Original file path if migrated from seed |
+| `deprecated` | `boolean` | Soft-delete flag |
+| `createdAt` | `date` | Creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+Cross-references:
+- Referenced by `GeneratedContent ──usedSkills──► Skill[]`
+
+---
+
 ### Collection: `GeneratedContent`
 
 Stores all content produced by the system with full generation metadata.
@@ -113,6 +142,7 @@ Cross-references:
 - `usedSegment` → `Segment` (which segment was used as context)
 - `usedUseCases` → `UseCase[]` (which use cases were used as context)
 - `usedBusinessRules` → `BusinessRule[]` (which rules were applied)
+- `usedSkills` → `Skill[]` (which skills were applied — added by Group I)
 
 ---
 
@@ -125,16 +155,21 @@ Stores pending knowledge base submissions for the review queue. Not vectorized.
 | `submitter` | text | Who submitted |
 | `objectType` | text | Knowledge type (persona, segment, etc.) |
 | `objectName` | text | Proposed object name |
-| `submissionType` | text | "new" or "update" |
+| `submissionType` | text | `"new"`, `"update"`, or `"document_add"` |
 | `proposedContent` | text | JSON-serialized proposed data (not vectorized) |
 | `targetObjectId` | text | UUID of existing object (updates only) |
 | `status` | text | pending / accepted / rejected / deferred |
 | `reviewComment` | text | Reviewer comment (on reject) |
 | `reviewNote` | text | Reviewer note (on defer) |
+| `sourceChannel` | text | How the submission was created: `"ui"`, `"mcp"`, or `"bulk_upload"`. Default: `"ui"`. Added by Group J. |
+| `sourceAppId` | text | Identifier for the external application (from MCP API key record). Added by Group J. |
+| `sourceDescription` | text | Free-text describing where the content came from (provided by MCP client). Added by Group J. |
 | `createdAt` | date | Submission timestamp |
 | `reviewedAt` | date | Review timestamp |
 
 No cross-references. No vectorization.
+
+The `sourceChannel`, `sourceAppId`, and `sourceDescription` properties are planned additions from [ROADMAP.md](./ROADMAP.md) Group J (Inbound MCP Server). Existing submissions default to `sourceChannel: "ui"` with the other fields empty.
 
 ---
 
@@ -156,6 +191,7 @@ GeneratedContent ──usedPersona──► Persona
 GeneratedContent ──usedSegment──► Segment
 GeneratedContent ──usedUseCases──► UseCase[]
 GeneratedContent ──usedBusinessRules──► BusinessRule[]
+GeneratedContent ──usedSkills──► Skill[]
 ```
 
 Cross-references are populated:
@@ -256,6 +292,9 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 | Script | Purpose | Status |
 |---|---|---|
 | `scripts/add-deprecated-field.ts` | Adds `deprecated: boolean` property to all 5 knowledge collections (Persona, Segment, UseCase, BusinessRule, ICP) | Done |
+| `scripts/add-submission-collection.ts` | Creates the `Submission` collection for the review queue | Done |
+| `scripts/migrate-instruction-templates.ts` | Migrates `BusinessRule` objects with `subType: "instruction_template"` to the new `Skill` collection | Planned (Group I5) |
+| `scripts/add-submission-source-fields.ts` | Adds `sourceChannel`, `sourceAppId`, `sourceDescription` properties to the `Submission` collection | Planned (Group J4) |
 
 ### Seed Script Status
 

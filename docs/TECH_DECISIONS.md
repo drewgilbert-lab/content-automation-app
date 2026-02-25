@@ -180,6 +180,83 @@ We need a styling approach that is fast to work with, consistent, and compatible
 
 ---
 
+## ADR-006: MCP Server Architecture (Groups J, L)
+
+**Status:** Decided (pending implementation)
+
+**Context:**
+Groups J (Inbound MCP for 3rd party write access) and L (MCP for LLM read access / RAG) both require an MCP server that connects to Weaviate. Key decisions: standalone process vs. integrated into Next.js, transport protocol, hosting, and whether to consolidate into a single server.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Standalone Node.js process | Full MCP SDK lifecycle; long-running with persistent Weaviate connection; requires separate hosting |
+| Next.js API route adapter | Fits Vercel serverless model but limited by 60s timeout; must shim MCP protocol into request/response |
+| Two separate servers (J and L) | Clean separation of write and read concerns; doubled infrastructure and maintenance |
+| Single consolidated server | One process, shared Weaviate connection and auth; tool namespace or key scope controls access |
+
+**Decision:** Single standalone Node.js process with `@modelcontextprotocol/sdk`, consolidating Groups J and L into one `mcp-server/` project.
+
+**Rationale:**
+- MCP servers are long-running processes with persistent connections — incompatible with Vercel's stateless serverless model
+- A single server reduces infrastructure (one deploy, one Weaviate connection, one auth layer) while exposing both read tools (for LLMs) and write-to-submission tools (for automation)
+- Tool namespaces or API key scopes control which tools are available per client connection
+- Dual transport: **stdio** (primary, for Claude Desktop/Code/Cursor — local, zero network config) and **SSE over HTTP** (secondary, for Gemini, remote access, and general HTTP clients)
+
+**Weaviate Connection Pattern:**
+Unlike the Next.js `withWeaviate` per-request pattern (ADR-002), the MCP server uses a **persistent** client connection created at startup and reused for all tool calls. This is appropriate because the MCP server is a long-lived process, not a stateless function. Reconnection logic with exponential backoff handles connection drops.
+
+**Hosting:**
+Requires a platform supporting long-running Node.js processes. Options: Railway, Fly.io, or a dedicated Vercel Function with Fluid Compute. Separate URL from the Next.js app (e.g. `mcp.content-engine.example.com`).
+
+**Implications:**
+- `mcp-server/` directory with its own `package.json` and `tsconfig.json`
+- Shares `lib/` modules with Next.js app where possible; duplicates schema definitions where framework coupling prevents sharing
+- Separate deployment pipeline from the Vercel-hosted Next.js app
+- API key authentication on Streamable HTTP / SSE transport; stdio is inherently local and secure
+
+---
+
+## ADR-007: External REST API Gateway (Group K)
+
+**Status:** Decided (pending implementation)
+
+**Context:**
+External internal tools need programmatic read access to knowledge objects. Three approaches were evaluated: sharing raw Weaviate credentials, building a REST API gateway, and building a GraphQL layer.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Direct Weaviate access | Lowest setup; exposes raw schema including internal collections; no business logic layer; highest schema coupling |
+| REST API gateway (`/api/v1/`) | Moderate setup; reuses existing `lib/knowledge.ts`; versioned responses; business logic applied; Vercel-native |
+| GraphQL API layer | Higher setup; excellent query flexibility; additional dependency and schema maintenance |
+
+**Decision:** REST API gateway at `/api/v1/` within the existing Next.js app.
+
+**Rationale:**
+- Matches existing REST route patterns — new routes mirror `app/api/knowledge/` but with auth, versioning, and stable response shapes
+- Reuses `lib/knowledge.ts` functions directly — no logic duplication
+- Runs natively on Vercel serverless — no additional infrastructure
+- Versioned from day one (`/v1/` prefix) — response contracts can evolve without breaking consumers
+- Business logic applied: deprecated objects filtered, cross-references resolved to names, internal collections (`Submission`, `GeneratedContent`) never exposed
+- GraphQL can be layered on top later if flexible nested queries become needed
+
+**Authentication:**
+`X-API-Key` header with constant-time comparison (`crypto.timingSafeEqual`). Phase 1: single key in `CONTENT_ENGINE_API_KEY` environment variable. Future: multi-key model with per-consumer metadata.
+
+**Rate Limiting:**
+Upstash Redis + `@upstash/ratelimit` for serverless-compatible rate limiting. 100 req/min global, 20 req/min for semantic search.
+
+**Implications:**
+- New routes under `app/api/v1/` — separate from internal routes at `app/api/`
+- `lib/api-auth.ts` and `lib/api-middleware.ts` for auth and rate limiting wrappers
+- New environment variables: `CONTENT_ENGINE_API_KEY`, optionally `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+- OpenAPI spec at `public/openapi.json` (stretch goal) for consumer documentation
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -189,6 +266,8 @@ We need a styling approach that is fast to work with, consistent, and compatible
 | ADR-003 | Anthropic Claude (current) | Feb 2026 | Decided |
 | ADR-004 | Vercel | Feb 2026 | Pending execution |
 | ADR-005 | Tailwind CSS v4 | Feb 2026 | Decided |
+| ADR-006 | Consolidated MCP Server (standalone Node.js) | Feb 2026 | Pending implementation |
+| ADR-007 | REST API Gateway (`/api/v1/`) | Feb 2026 | Pending implementation |
 
 ---
 

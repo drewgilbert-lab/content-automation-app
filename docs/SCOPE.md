@@ -58,8 +58,12 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Credentials in `.env.local` | Done | Weaviate connected; Claude API key pending |
 | Weaviate collections created | Done | Schema defined in KNOWLEDGE_BASE.md |
 | Seed script | Done | Imports content-automation/ files into Weaviate |
-| Knowledge Base UI | In Progress | Read (A), CRUD (B), Relationships (C), Health Dashboard (D) done; review queue (E) and AI merge (F) pending |
+| Knowledge Base UI | In Progress | Groups A–F done; Groups G (Bulk Upload), H (Enhanced Review), I (Skills) scoped in ROADMAP.md |
 | Generate UI | Pending | Content generation with context retrieval |
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Pending | After local dev is confirmed working |
+| Skills module | Scoped | Skill CRUD, context assembly integration; see ROADMAP.md Group I |
+| Inbound MCP server | Scoped | 3rd party apps push content via MCP, routed through review queue; see ROADMAP.md Group J |
+| External REST API | Scoped | Read-only `/api/v1/` endpoints with API key auth for 3rd party read access; see ROADMAP.md Group K |
+| LLM MCP server (RAG) | Scoped | MCP server for Claude/Gemini/ChatGPT read access to knowledge base; see ROADMAP.md Group L |
 | Approval workflows | Future | Defined in ROADMAP.md |

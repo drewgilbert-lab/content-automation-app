@@ -26,16 +26,20 @@ app/
   api/chat/route.ts       — POST, streams Claude response
   api/knowledge/route.ts  — GET list, POST create
   api/knowledge/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore
+  api/dashboard/route.ts  — GET health metrics (counts, staleness, gaps)
   knowledge/page.tsx      — Knowledge Base list page (filter tabs, search)
   knowledge/[id]/page.tsx — Knowledge Base detail page (markdown, sidebar, actions)
   knowledge/new/page.tsx  — Create form page
   knowledge/[id]/edit/page.tsx — Edit form page
   knowledge/components/   — KnowledgeList, KnowledgeForm, DetailActions, TypeBadge, MarkdownRenderer
+  dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness)
+  dashboard/components/   — StatCard, GapTable, StalenessList
 lib/
   weaviate.ts             — withWeaviate<T>(fn), checkWeaviateConnection()
   claude.ts               — streamMessage(), checkClaudeConnection()
   knowledge.ts            — CRUD operations: list, get, create, update, delete, deprecate/restore
   knowledge-types.ts      — Client-safe types, input types, utilities
+  dashboard.ts            — getDashboardData() health metrics aggregation
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
@@ -54,6 +58,8 @@ docs/
 | Dashboard | Done |
 | Knowledge Base (Read) | Done (Group A) |
 | Knowledge Base (CRUD) | Done (Group B) |
+| Knowledge Base (Relationships) | Done (Group C) |
+| Knowledge Base (Health Dashboard) | Done (Group D) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |

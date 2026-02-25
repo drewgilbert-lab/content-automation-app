@@ -228,3 +228,47 @@ Deprecates or restores a knowledge object.
 | 500 | `{ "error": "Failed to update knowledge object" }` | Server/Weaviate error |
 
 **Implementation:** `app/api/knowledge/[id]/route.ts` → calls `deprecateKnowledgeObject()` / `restoreKnowledgeObject()` from `lib/knowledge.ts`
+
+---
+
+## GET /api/dashboard
+
+Returns health metrics for the knowledge base: object counts, staleness, and relationship gap analysis.
+
+**Runtime:** `nodejs`
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `application/json`
+- Body:
+
+```json
+{
+  "counts": { "persona": 0, "segment": 0, "use_case": 0, "business_rule": 0, "icp": 0 },
+  "totalCount": 0,
+  "neverReviewed": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string" }],
+  "stale": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string" }],
+  "gaps": {
+    "noRelationships": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string" }],
+    "partialRelationships": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string", "gapDetail": "string" }],
+    "asymmetricRelationships": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string", "gapDetail": "string" }],
+    "icpMissingRefs": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string", "gapDetail": "string" }],
+    "businessRulesNoSubType": [{ "id": "string", "name": "string", "type": "string", "updatedAt": "string" }]
+  }
+}
+```
+
+**Gap analysis includes:**
+- Objects with zero cross-references (Persona, Segment, ICP only)
+- Partial relationships (e.g. UseCase not linked from any Persona or Segment; Persona with segments but no use cases)
+- Asymmetric relationships (A→B exists but B→A does not, for bidirectional pairs)
+- ICPs missing persona or segment reference
+- BusinessRules with no `subType`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 500 | `{ "error": "Failed to fetch dashboard data" }` | Server/Weaviate error |
+
+**Implementation:** `app/api/dashboard/route.ts` → calls `getDashboardData()` from `lib/dashboard.ts`

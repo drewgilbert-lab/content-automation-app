@@ -60,22 +60,13 @@ On every object detail page, add a "Manage Relationships" panel (separate from t
 
 ---
 
-### Group D — Health Dashboard
+### Group D — Health Dashboard — **Done**
 
-**D1 — Dashboard data API**
-Build `GET /api/dashboard` route. Returns:
-- Object count per collection type
-- Objects with `updatedAt === createdAt` (never reviewed)
-- Objects not updated in 90+ days (stale)
-- Relationship gap analysis:
-  - Objects with zero cross-references
-  - Objects with partial relationships by type (e.g. UseCase with no linked Personas)
-  - Asymmetric relationships (A→B exists but B→A does not)
-  - ICPs missing persona or segment reference
-  - BusinessRules with no `subType`
+**D1 — Dashboard data API** — **Done**
+`GET /api/dashboard` route. Returns object count per collection type, objects with `updatedAt === createdAt` (never reviewed), objects not updated in 90+ days (stale), and relationship gap analysis (zero cross-references, partial relationships, asymmetric relationships, ICPs missing persona/segment, BusinessRules with no `subType`). Business logic in `lib/dashboard.ts`; fetches all 5 collections in parallel with cross-references and runs analysis in memory.
 
-**D2 — Dashboard page**
-Render the manager health dashboard at `/dashboard` (or as the Knowledge Base landing page). Sections: health summary (counts + flags), relationship gap report (gap category, object name, "Fix" CTA linking to that object's relationship panel), staleness report (sorted list with "Never reviewed" / "Stale" labels). Queue badge showing pending submission count.
+**D2 — Dashboard page** — **Done**
+Health dashboard at `/dashboard`. Sections: overview stat cards (total count, per-type counts, never-reviewed, stale, gap counts), relationship gap report (collapsible sections by gap category with "Fix" CTA linking to object detail page), staleness report (sorted list with "Never Reviewed" / "Stale" badges), and review queue placeholder (disabled, pending Group E). Home page updated with active Dashboard navigation card.
 
 ---
 
@@ -119,7 +110,7 @@ Accessible from the Queue review panel (E4) via "Merge with AI" button. Calls F1
 
 | Module | What's Left | Requirements |
 |---|---|---|
-| Knowledge Base UI | Relationship management (Group C), health dashboard (Group D), review queue (Group E) | See [PRD.md](./PRD.md) Module 1 |
+| Knowledge Base UI | Review queue (Group E), AI merge workflow (Group F) | See [PRD.md](./PRD.md) Module 1 |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](./PRD.md) Module 2 |
 
 ### Acceptance Criteria

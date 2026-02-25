@@ -4,6 +4,29 @@
 
 ---
 
+## Group D — Health Dashboard — 2026-02-25
+
+### D1 — Dashboard data API
+- `GET /api/dashboard` — returns health metrics across all 5 knowledge collections
+- Object counts per type and total
+- Never-reviewed detection (`updatedAt === createdAt`)
+- Staleness detection (90+ days since last update)
+- Relationship gap analysis: zero refs, partial refs, asymmetric refs, ICP missing persona/segment, BusinessRule missing subType
+- `lib/dashboard.ts` — business logic module with `getDashboardData()`, fetches all collections in parallel with cross-references
+
+### D2 — Dashboard page
+- `/dashboard` — server component rendering 4 sections
+- Overview: stat card grid with per-type counts and warning/danger indicators
+- Relationship gaps: collapsible sections by gap category, each row with type badge and "Fix" link to object detail page
+- Staleness report: sorted list with "Never Reviewed" (amber) and "Stale" (red) badges
+- Review queue: disabled placeholder for Group E
+- `app/dashboard/components/stat-card.tsx` — reusable stat card with default/warning/danger variants
+- `app/dashboard/components/gap-table.tsx` — collapsible gap report with Fix CTAs
+- `app/dashboard/components/staleness-list.tsx` — deduplicated staleness list with badges
+- Home page (`app/page.tsx`) updated with active Dashboard navigation card
+
+---
+
 ## Group C — Relationship Layer — 2026-02-24
 
 ### C1 — Relationship write API

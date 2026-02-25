@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { checkWeaviateConnection } from "@/lib/weaviate";
 import { checkClaudeConnection } from "@/lib/claude";
 
@@ -34,11 +35,11 @@ function StatusBadge({ connected }: { connected: boolean }) {
 
 const navItems = [
   {
-    title: "Knowledge Graph",
+    title: "Knowledge Base",
     description: "Manage personas, segments, use cases, and business rules.",
     href: "/knowledge",
     icon: "◈",
-    available: false,
+    available: true,
   },
   {
     title: "Content",
@@ -113,21 +114,39 @@ export default async function HomePage() {
             Modules
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {navItems.map((item) => (
-              <div
-                key={item.href}
-                className="relative rounded-xl border border-gray-800 bg-gray-900 p-6 opacity-60"
-              >
-                <div className="mb-3 flex items-center gap-3">
-                  <span className="text-xl text-gray-400">{item.icon}</span>
-                  <h3 className="font-medium text-white">{item.title}</h3>
-                  <span className="ml-auto rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-500">
-                    Coming soon
-                  </span>
+            {navItems.map((item) => {
+              const card = (
+                <>
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="text-xl text-gray-400">{item.icon}</span>
+                    <h3 className="font-medium text-white">{item.title}</h3>
+                    {!item.available && (
+                      <span className="ml-auto rounded-full bg-gray-800 px-2 py-0.5 text-xs text-gray-500">
+                        Coming soon
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-400">{item.description}</p>
+                </>
+              );
+
+              return item.available ? (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="relative rounded-xl border border-gray-800 bg-gray-900 p-6 hover:border-gray-700 transition-colors"
+                >
+                  {card}
+                </Link>
+              ) : (
+                <div
+                  key={item.href}
+                  className="relative rounded-xl border border-gray-800 bg-gray-900 p-6 opacity-60"
+                >
+                  {card}
                 </div>
-                <p className="text-sm text-gray-400">{item.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

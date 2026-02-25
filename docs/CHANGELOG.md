@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-02-25 — Knowledge Base Read Layer (Group A)
+
+### Added
+- `lib/knowledge-types.ts` — client-safe types and utility functions for knowledge objects
+- `lib/knowledge.ts` — server-side Weaviate query module (`listKnowledgeObjects`, `getKnowledgeObject`)
+- `GET /api/knowledge` — list endpoint with optional `type` filter (26 objects across 5 collections)
+- `GET /api/knowledge/[id]` — detail endpoint with cross-reference resolution
+- `/knowledge` — Knowledge Base list page with type filter tabs, search, and grouped display
+- `/knowledge/[id]` — Knowledge Base detail page with markdown rendering, metadata sidebar, and cross-reference links
+- `react-markdown` and `remark-gfm` dependencies for content rendering
+
+### Changed
+- Dashboard: Knowledge Base module card is now active and links to `/knowledge`
+- `tsconfig.json`: Excluded `scripts/` directory from Next.js build type checking
+
+---
+
 ## 2026-02-25
 
 ### Added

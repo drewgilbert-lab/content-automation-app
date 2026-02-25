@@ -1,0 +1,10 @@
+---
+description: "Commit and push all changes to main. Triggered by /git or 'push to github'."
+---
+
+# Git Push Protocol
+
+1. Run `git status` and `git diff --stat` to see what changed
+2. Draft a concise commit message from the diff (1-line summary + optional body)
+3. Run: `git add -A && git commit -m "<message>" && git push origin main`
+4. Report the commit hash and files changed

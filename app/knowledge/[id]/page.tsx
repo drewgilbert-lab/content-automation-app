@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getKnowledgeObject, getTypeLabel, getCompatibleRelationships } from "@/lib/knowledge";
+import { getKnowledgeObject, getTypeLabel, getCompatibleRelationships, getReverseRelationships, getInboundReferences } from "@/lib/knowledge";
 import { TypeBadge } from "../components/type-badge";
 import { MarkdownRenderer } from "../components/markdown-renderer";
 import { DetailActions } from "../components/detail-actions";
@@ -27,6 +27,12 @@ export default async function KnowledgeDetailPage({
   if (!obj) notFound();
 
   const compatibleRelationships = getCompatibleRelationships(obj.type);
+  const reverseRelationships = getReverseRelationships(obj.type);
+
+  const inboundRefs = reverseRelationships.length > 0
+    ? await getInboundReferences(obj.id, obj.type)
+    : {};
+  const mergedCrossReferences = { ...obj.crossReferences, ...inboundRefs };
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -154,8 +160,9 @@ export default async function KnowledgeDetailPage({
             <ManageRelationships
               objectId={obj.id}
               objectType={obj.type}
-              crossReferences={obj.crossReferences}
+              crossReferences={mergedCrossReferences}
               compatibleRelationships={compatibleRelationships}
+              reverseRelationships={reverseRelationships}
             />
           </div>
         </div>

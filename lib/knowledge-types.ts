@@ -42,6 +42,7 @@ export interface RelationshipConfig {
   targetType: KnowledgeType;
   label: string;
   single?: boolean;
+  reverse?: boolean;
 }
 
 export interface KnowledgeCreateInput {

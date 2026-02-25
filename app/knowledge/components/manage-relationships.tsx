@@ -24,6 +24,7 @@ interface ManageRelationshipsProps {
   objectType: KnowledgeType;
   crossReferences: Record<string, CrossReference[]>;
   compatibleRelationships: RelationshipConfig[];
+  reverseRelationships?: RelationshipConfig[];
 }
 
 export function ManageRelationships({
@@ -31,6 +32,7 @@ export function ManageRelationships({
   objectType,
   crossReferences,
   compatibleRelationships,
+  reverseRelationships = [],
 }: ManageRelationshipsProps) {
   const router = useRouter();
   const [localRefs, setLocalRefs] =
@@ -47,6 +49,8 @@ export function ManageRelationships({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const allConfigs = [...compatibleRelationships, ...reverseRelationships];
+
   useEffect(() => {
     setLocalRefs(crossReferences);
   }, [crossReferences]);
@@ -57,11 +61,9 @@ export function ManageRelationships({
     return () => clearTimeout(timer);
   }, [error]);
 
-  const hasCompatible = compatibleRelationships.length > 0;
-  const refEntries = Object.entries(localRefs).filter(
+  const hasAnyRefs = Object.entries(localRefs).some(
     ([, refs]) => refs.length > 0
   );
-  const hasAnyRefs = refEntries.length > 0;
 
   const allLinkedIds = new Set(
     Object.values(localRefs).flatMap((refs) => refs.map((r) => r.id))
@@ -71,7 +73,7 @@ export function ManageRelationships({
     setLoadingCandidates(true);
     try {
       const targetTypes = [
-        ...new Set(compatibleRelationships.map((c) => c.targetType)),
+        ...new Set(allConfigs.map((c) => c.targetType)),
       ];
       const fetches = targetTypes.map(async (t) => {
         const res = await fetch(`/api/knowledge?type=${t}`);
@@ -90,7 +92,7 @@ export function ManageRelationships({
     } finally {
       setLoadingCandidates(false);
     }
-  }, [compatibleRelationships]);
+  }, [allConfigs]);
 
   function openDropdown() {
     setDropdownOpen(true);
@@ -121,34 +123,25 @@ export function ManageRelationships({
         c.name.toLowerCase().startsWith(search.toLowerCase())
     );
 
-  const displayed = filtered;
-
-  function getRelationshipProperty(candidateType: KnowledgeType): string | null {
-    const config = compatibleRelationships.find(
-      (c) => c.targetType === candidateType
-    );
-    return config?.property ?? null;
-  }
-
-  function getLabelForType(candidateType: KnowledgeType): string | null {
-    const config = compatibleRelationships.find(
-      (c) => c.targetType === candidateType
-    );
-    return config?.label ?? null;
+  function findConfigForType(candidateType: KnowledgeType): RelationshipConfig | null {
+    return allConfigs.find((c) => c.targetType === candidateType) ?? null;
   }
 
   async function handleAdd(candidate: KnowledgeListItem) {
-    const property = getRelationshipProperty(candidate.type);
-    if (!property) return;
+    const config = findConfigForType(candidate.type);
+    if (!config) return;
 
     setAddingId(candidate.id);
     try {
-      const res = await fetch(`/api/knowledge/${objectId}/relationships`, {
+      const sourceId = config.reverse ? candidate.id : objectId;
+      const targetId = config.reverse ? objectId : candidate.id;
+
+      const res = await fetch(`/api/knowledge/${sourceId}/relationships`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          targetId: candidate.id,
-          relationshipType: property,
+          targetId,
+          relationshipType: config.property,
         }),
       });
       if (!res.ok) {
@@ -156,19 +149,13 @@ export function ManageRelationships({
         throw new Error(data?.error ?? "Failed to add relationship");
       }
 
-      const label = getLabelForType(candidate.type);
-      if (label) {
-        setLocalRefs((prev) => {
-          const existing = prev[label] ?? [];
-          const config = compatibleRelationships.find(
-            (c) => c.targetType === candidate.type
-          );
-          if (config?.single) {
-            return { ...prev, [label]: [{ id: candidate.id, name: candidate.name, type: candidate.type }] };
-          }
-          return { ...prev, [label]: [...existing, { id: candidate.id, name: candidate.name, type: candidate.type }] };
-        });
-      }
+      setLocalRefs((prev) => {
+        const existing = prev[config.label] ?? [];
+        if (config.single) {
+          return { ...prev, [config.label]: [{ id: candidate.id, name: candidate.name, type: candidate.type }] };
+        }
+        return { ...prev, [config.label]: [...existing, { id: candidate.id, name: candidate.name, type: candidate.type }] };
+      });
 
       setDropdownOpen(false);
       router.refresh();
@@ -180,16 +167,19 @@ export function ManageRelationships({
   }
 
   async function handleRemove(refId: string, label: string) {
-    const config = compatibleRelationships.find((c) => c.label === label);
+    const config = allConfigs.find((c) => c.label === label);
     if (!config) return;
 
     setRemovingId(refId);
     try {
-      const res = await fetch(`/api/knowledge/${objectId}/relationships`, {
+      const sourceId = config.reverse ? refId : objectId;
+      const targetId = config.reverse ? objectId : refId;
+
+      const res = await fetch(`/api/knowledge/${sourceId}/relationships`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          targetId: refId,
+          targetId,
           relationshipType: config.property,
         }),
       });
@@ -210,26 +200,13 @@ export function ManageRelationships({
     }
   }
 
-  if (!hasCompatible && !hasAnyRefs) {
-    return (
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-          Relationships
-        </p>
-        <p className="mt-3 text-sm text-gray-500">
-          No relationships available for this type.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-5">
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
           Relationships
         </p>
-        {hasCompatible && (
+        {allConfigs.length > 0 && (
           <button
             onClick={openDropdown}
             className="text-xs text-blue-400 hover:text-blue-300"
@@ -254,12 +231,12 @@ export function ManageRelationships({
           <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-700 bg-gray-800 shadow-lg">
             {loadingCandidates ? (
               <p className="px-3 py-2 text-xs text-gray-500">Loading...</p>
-            ) : displayed.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <p className="px-3 py-2 text-xs text-gray-500">
                 No matches found
               </p>
             ) : (
-              displayed.map((c) => (
+              filtered.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => handleAdd(c)}
@@ -279,11 +256,11 @@ export function ManageRelationships({
         </div>
       )}
 
-      {compatibleRelationships.map((config) => {
+      {allConfigs.map((config) => {
         const refs = localRefs[config.label] ?? [];
         if (refs.length === 0) return null;
         return (
-          <div key={config.property}>
+          <div key={`${config.property}-${config.label}`}>
             <p className="text-xs font-medium text-gray-500">{config.label}</p>
             <div className="mt-1.5 space-y-1">
               {refs.map((ref) => (
@@ -315,12 +292,12 @@ export function ManageRelationships({
         );
       })}
 
-      {/* Read-only refs for labels not in compatibleRelationships */}
+      {/* Read-only refs for labels not in any config */}
       {Object.entries(localRefs)
         .filter(
           ([label, refs]) =>
             refs.length > 0 &&
-            !compatibleRelationships.some((c) => c.label === label)
+            !allConfigs.some((c) => c.label === label)
         )
         .map(([label, refs]) => (
           <div key={label}>
@@ -340,7 +317,7 @@ export function ManageRelationships({
           </div>
         ))}
 
-      {!hasAnyRefs && hasCompatible && (
+      {!hasAnyRefs && (
         <p className="text-sm text-gray-600">No relationships yet</p>
       )}
     </div>

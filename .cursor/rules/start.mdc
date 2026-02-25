@@ -30,6 +30,8 @@ app/
   api/submissions/route.ts — GET list, POST create submissions
   api/submissions/[id]/route.ts — GET submission detail
   api/submissions/[id]/review/route.ts — POST accept/reject/defer
+  api/submissions/[id]/merge/route.ts — POST stream AI merge
+  api/submissions/[id]/merge/save/route.ts — POST save merged content
   knowledge/page.tsx      — Knowledge Base list page (filter tabs, search)
   knowledge/[id]/page.tsx — Knowledge Base detail page (markdown, sidebar, actions)
   knowledge/new/page.tsx  — Create form page
@@ -37,7 +39,7 @@ app/
   knowledge/components/   — KnowledgeList, KnowledgeForm, DetailActions, TypeBadge, MarkdownRenderer
   queue/page.tsx          — Review queue list page (filter tabs, show-closed toggle)
   queue/[id]/page.tsx     — Submission review page (preview, diff, actions)
-  queue/components/       — SubmissionList, SubmissionReview, ContentDiff
+  queue/components/       — SubmissionList, SubmissionReview, ContentDiff, MergeEditor
   components/             — RoleProvider, RoleToggle
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
@@ -49,6 +51,7 @@ lib/
   dashboard.ts            — getDashboardData() health metrics aggregation
   submissions.ts          — Submission CRUD: create, list, get, review, countPending
   submission-types.ts     — Submission types, status enums, utilities
+  merge.ts                — buildMergePrompt() for AI merge workflow
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
@@ -70,6 +73,7 @@ docs/
 | Knowledge Base (Relationships) | Done (Group C) |
 | Knowledge Base (Health Dashboard) | Done (Group D) |
 | Knowledge Base (Review Queue) | Done (Group E) |
+| Knowledge Base (AI Merge) | Done (Group F) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |

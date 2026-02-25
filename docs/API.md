@@ -391,3 +391,66 @@ Reviews a pending submission: accept, reject, or defer.
 | 500 | `{ "error": "Failed to review submission" }` | Server error |
 
 **Implementation:** `app/api/submissions/[id]/review/route.ts` → calls `reviewSubmission()` from `lib/submissions.ts`
+
+---
+
+## POST /api/submissions/[id]/merge
+
+Generates an AI-merged version of a knowledge object by sending the current live content and the proposed update to Claude.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Submission UUID
+
+**Request:** No body required.
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `text/plain; charset=utf-8`
+- Transfer-Encoding: `chunked`
+- Body: streamed merged text from Claude
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Not an update submission, no target object, or invalid proposed content |
+| 404 | `{ "error": "..." }` | Submission or target object not found |
+| 409 | `{ "error": "Submission is already closed" }` | Submission already accepted/rejected |
+| 500 | `{ "error": "Failed to generate merge" }` | Server/Claude error |
+
+**Implementation:** `app/api/submissions/[id]/merge/route.ts` → calls `buildMergePrompt()` from `lib/merge.ts` and `streamMessage()` from `lib/claude.ts`
+
+---
+
+## POST /api/submissions/[id]/merge/save
+
+Saves the reviewer-edited merged content to the target knowledge object and closes the submission as accepted.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Submission UUID
+
+**Request:**
+```json
+{
+  "mergedContent": "string (required)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "status": "accepted", "objectId": "string" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing mergedContent, not an update submission, or no target object |
+| 404 | `{ "error": "Submission not found" }` | UUID not found |
+| 409 | `{ "error": "Submission is already closed" }` | Submission already accepted/rejected |
+| 500 | `{ "error": "Failed to save merged content" }` | Server error |
+
+**Implementation:** `app/api/submissions/[id]/merge/save/route.ts` → calls `updateKnowledgeObject()` from `lib/knowledge.ts`

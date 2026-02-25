@@ -402,6 +402,98 @@ export function getCompatibleRelationships(
   }));
 }
 
+const PLURAL_TYPE_LABELS: Record<KnowledgeType, string> = {
+  persona: "Personas",
+  segment: "Segments",
+  use_case: "Use Cases",
+  business_rule: "Business Rules",
+  icp: "ICPs",
+};
+
+export function getReverseRelationships(
+  type: KnowledgeType
+): RelationshipConfig[] {
+  const forwardTargetTypes = new Set(
+    (CROSS_REF_CONFIG[TYPE_TO_COLLECTION[type]] ?? []).map((c) => c.targetType)
+  );
+
+  const results: RelationshipConfig[] = [];
+  for (const [collection, configs] of Object.entries(CROSS_REF_CONFIG)) {
+    const sourceType = COLLECTION_TO_TYPE[collection];
+    if (forwardTargetTypes.has(sourceType)) continue;
+
+    for (const config of configs) {
+      if (config.targetType !== type) continue;
+      results.push({
+        property: config.linkOn,
+        targetType: sourceType,
+        label: PLURAL_TYPE_LABELS[sourceType],
+        reverse: true,
+      });
+    }
+  }
+  return results;
+}
+
+export async function getInboundReferences(
+  objectId: string,
+  objectType: KnowledgeType
+): Promise<Record<string, CrossReference[]>> {
+  const forwardTargetTypes = new Set(
+    (CROSS_REF_CONFIG[TYPE_TO_COLLECTION[objectType]] ?? []).map(
+      (c) => c.targetType
+    )
+  );
+
+  return withWeaviate(async (client) => {
+    const inbound: Record<string, CrossReference[]> = {};
+
+    for (const [collectionName, configs] of Object.entries(CROSS_REF_CONFIG)) {
+      const sourceType = COLLECTION_TO_TYPE[collectionName];
+      if (forwardTargetTypes.has(sourceType)) continue;
+
+      const matchingConfigs = configs.filter(
+        (c) => c.targetType === objectType
+      );
+      if (matchingConfigs.length === 0) continue;
+
+      const collection = client.collections.use(collectionName);
+      const returnReferences = matchingConfigs.map((c) => ({
+        linkOn: c.linkOn,
+        returnProperties: ["name" as const],
+      }));
+
+      const result = await collection.query.fetchObjects({
+        limit: 1000,
+        returnReferences,
+      });
+
+      for (const obj of result.objects) {
+        for (const config of matchingConfigs) {
+          const refs =
+            (
+              obj.references?.[config.linkOn] as
+                | { objects?: Array<{ uuid: string }> }
+                | undefined
+            )?.objects ?? [];
+          const hasRef = refs.some((r) => r.uuid === objectId);
+          if (hasRef) {
+            const label = PLURAL_TYPE_LABELS[sourceType];
+            if (!inbound[label]) inbound[label] = [];
+            inbound[label].push({
+              id: obj.uuid,
+              name: String(obj.properties.name ?? ""),
+              type: sourceType,
+            });
+          }
+        }
+      }
+    }
+
+    return inbound;
+  });
+}
+
 export async function addRelationship(
   sourceId: string,
   targetId: string,

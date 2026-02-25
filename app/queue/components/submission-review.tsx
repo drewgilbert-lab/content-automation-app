@@ -12,6 +12,7 @@ import type { KnowledgeDetail } from "@/lib/knowledge-types";
 import { getTypeLabel } from "@/lib/knowledge-types";
 import { MarkdownRenderer } from "@/app/knowledge/components/markdown-renderer";
 import { ContentDiff } from "./content-diff";
+import { MergeEditor } from "./merge-editor";
 
 const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
   pending: "bg-yellow-500/15 text-yellow-400",
@@ -57,7 +58,7 @@ interface SubmissionReviewProps {
   currentObject: KnowledgeDetail | null;
 }
 
-type ActionMode = "none" | "reject" | "defer";
+type ActionMode = "none" | "reject" | "defer" | "merge";
 
 export function SubmissionReview({
   submission,
@@ -232,198 +233,216 @@ export function SubmissionReview({
         </div>
       )}
 
-      {/* Content preview */}
-      {submission.submissionType === "new" && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
-            Proposed Content
-          </h3>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium text-gray-300">Name</p>
-              <p className="text-sm text-white">{proposedContent.name ?? submission.objectName}</p>
-            </div>
-            {proposedContent.subType && (
-              <div>
-                <p className="text-sm font-medium text-gray-300">Sub Type</p>
-                <p className="text-sm text-gray-400">{proposedContent.subType}</p>
-              </div>
-            )}
-            {proposedContent.revenueRange && (
-              <div>
-                <p className="text-sm font-medium text-gray-300">Revenue Range</p>
-                <p className="text-sm text-gray-400">{proposedContent.revenueRange}</p>
-              </div>
-            )}
-            {proposedContent.employeeRange && (
-              <div>
-                <p className="text-sm font-medium text-gray-300">Employee Range</p>
-                <p className="text-sm text-gray-400">{proposedContent.employeeRange}</p>
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-medium text-gray-300 mb-2">Content</p>
-              <MarkdownRenderer content={proposedContent.content ?? ""} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-300 mb-2">Tags</p>
-              <div className="flex flex-wrap gap-1.5">
-                {(proposedContent.tags?.length ?? 0) > 0 ? (
-                  (proposedContent.tags ?? []).map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
-                    >
-                      {tag}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-sm text-gray-500">No tags</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {submission.submissionType === "update" && currentObject && (
-        <ContentDiff
-          currentObject={currentObject}
-          proposedContent={proposedContent}
+      {/* Merge editor — full-width, replaces normal content and actions */}
+      {actionMode === "merge" && currentObject && (
+        <MergeEditor
+          currentContent={currentObject.content}
+          submissionId={submission.id}
+          onDiscard={() => setActionMode("none")}
+          onSaved={() => {
+            router.push("/queue");
+            router.refresh();
+          }}
         />
       )}
 
-      {submission.submissionType === "update" && !currentObject && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <p className="text-sm text-gray-500">
-            Current object could not be loaded. Showing proposed content only.
-          </p>
-          <div className="mt-4 space-y-4">
-            <div>
-              <p className="text-sm font-medium text-gray-300">Name</p>
-              <p className="text-sm text-white">{proposedContent.name ?? submission.objectName}</p>
+      {/* Normal view — hidden during merge */}
+      {actionMode !== "merge" && (
+        <>
+          {/* Content preview */}
+          {submission.submissionType === "new" && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+                Proposed Content
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-300">Name</p>
+                  <p className="text-sm text-white">{proposedContent.name ?? submission.objectName}</p>
+                </div>
+                {proposedContent.subType && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-300">Sub Type</p>
+                    <p className="text-sm text-gray-400">{proposedContent.subType}</p>
+                  </div>
+                )}
+                {proposedContent.revenueRange && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-300">Revenue Range</p>
+                    <p className="text-sm text-gray-400">{proposedContent.revenueRange}</p>
+                  </div>
+                )}
+                {proposedContent.employeeRange && (
+                  <div>
+                    <p className="text-sm font-medium text-gray-300">Employee Range</p>
+                    <p className="text-sm text-gray-400">{proposedContent.employeeRange}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-medium text-gray-300 mb-2">Content</p>
+                  <MarkdownRenderer content={proposedContent.content ?? ""} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-300 mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(proposedContent.tags?.length ?? 0) > 0 ? (
+                      (proposedContent.tags ?? []).map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
+                        >
+                          {tag}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-gray-500">No tags</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-300 mb-2">Content</p>
-              <MarkdownRenderer content={proposedContent.content ?? ""} />
+          )}
+
+          {submission.submissionType === "update" && currentObject && (
+            <ContentDiff
+              currentObject={currentObject}
+              proposedContent={proposedContent}
+            />
+          )}
+
+          {submission.submissionType === "update" && !currentObject && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <p className="text-sm text-gray-500">
+                Current object could not be loaded. Showing proposed content only.
+              </p>
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="text-sm font-medium text-gray-300">Name</p>
+                  <p className="text-sm text-white">{proposedContent.name ?? submission.objectName}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-300 mb-2">Content</p>
+                  <MarkdownRenderer content={proposedContent.content ?? ""} />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Error display */}
-      {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
-          <p className="text-sm text-red-200">{error}</p>
-        </div>
-      )}
+          {/* Error display */}
+          {error && (
+            <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
+              <p className="text-sm text-red-200">{error}</p>
+            </div>
+          )}
 
-      {/* Action buttons */}
-      {canReview && (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
-            Actions
-          </h3>
+          {/* Action buttons */}
+          {canReview && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+                Actions
+              </h3>
 
-          {actionMode === "none" && (
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                onClick={handleAccept}
-                disabled={loading}
-                className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Processing…" : "Accept"}
-              </button>
-              <button
-                onClick={() => setActionMode("reject")}
-                disabled={loading}
-                className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Reject
-              </button>
-              <button
-                onClick={() => setActionMode("defer")}
-                disabled={loading}
-                className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Defer
-              </button>
-              {submission.submissionType === "update" && (
-                <button
-                  disabled
-                  title="Coming soon — Group F"
-                  className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 opacity-50 cursor-not-allowed"
-                >
-                  AI Merge
-                </button>
+              {actionMode === "none" && (
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={handleAccept}
+                    disabled={loading}
+                    className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {loading ? "Processing…" : "Accept"}
+                  </button>
+                  <button
+                    onClick={() => setActionMode("reject")}
+                    disabled={loading}
+                    className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => setActionMode("defer")}
+                    disabled={loading}
+                    className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Defer
+                  </button>
+                  {submission.submissionType === "update" && currentObject && (
+                    <button
+                      onClick={() => setActionMode("merge")}
+                      disabled={loading}
+                      className="rounded-lg border border-indigo-600 bg-indigo-600/10 px-5 py-2.5 text-sm font-medium text-indigo-300 hover:bg-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Merge with AI
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {actionMode === "reject" && (
+                <div className="space-y-3">
+                  <textarea
+                    value={rejectComment}
+                    onChange={(e) => setRejectComment(e.target.value)}
+                    placeholder="Required: explain why this submission is being rejected"
+                    rows={4}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleReject}
+                      disabled={loading || !rejectComment.trim()}
+                      className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? "Rejecting…" : "Confirm Reject"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActionMode("none");
+                        setRejectComment("");
+                        setError(null);
+                      }}
+                      disabled={loading}
+                      className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {actionMode === "defer" && (
+                <div className="space-y-3">
+                  <textarea
+                    value={deferNote}
+                    onChange={(e) => setDeferNote(e.target.value)}
+                    placeholder="Optional: add a note for why this was deferred"
+                    rows={3}
+                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+                  />
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleDefer}
+                      disabled={loading}
+                      className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? "Deferring…" : "Confirm Defer"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setActionMode("none");
+                        setDeferNote("");
+                        setError(null);
+                      }}
+                      disabled={loading}
+                      className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           )}
-
-          {actionMode === "reject" && (
-            <div className="space-y-3">
-              <textarea
-                value={rejectComment}
-                onChange={(e) => setRejectComment(e.target.value)}
-                placeholder="Required: explain why this submission is being rejected"
-                rows={4}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={handleReject}
-                  disabled={loading || !rejectComment.trim()}
-                  className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Rejecting…" : "Confirm Reject"}
-                </button>
-                <button
-                  onClick={() => {
-                    setActionMode("none");
-                    setRejectComment("");
-                    setError(null);
-                  }}
-                  disabled={loading}
-                  className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-
-          {actionMode === "defer" && (
-            <div className="space-y-3">
-              <textarea
-                value={deferNote}
-                onChange={(e) => setDeferNote(e.target.value)}
-                placeholder="Optional: add a note for why this was deferred"
-                rows={3}
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
-              />
-              <div className="flex gap-3">
-                <button
-                  onClick={handleDefer}
-                  disabled={loading}
-                  className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Deferring…" : "Confirm Defer"}
-                </button>
-                <button
-                  onClick={() => {
-                    setActionMode("none");
-                    setDeferNote("");
-                    setError(null);
-                  }}
-                  disabled={loading}
-                  className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        </>
       )}
     </div>
   );

@@ -4,6 +4,32 @@
 
 ---
 
+### Group F — AI Merge Workflow (February 2026)
+
+**F1 — Merge API:** `POST /api/submissions/[id]/merge` streams an AI-merged version of a knowledge object. Fetches the current live version and the proposed update from the submission, sends both to Claude with a merge system prompt, and returns the merged text as a streaming response. `lib/merge.ts` provides `buildMergePrompt()` for constructing the system prompt and user message.
+
+**F1 — Merge save API:** `POST /api/submissions/[id]/merge/save` accepts the reviewer-edited merged content, updates the target knowledge object in Weaviate, and marks the submission as accepted.
+
+**F2 — Tracked-changes diff:** New `MergeEditor` client component (`app/queue/components/merge-editor.tsx`) computes character-level diffs between the current version and the AI-merged result using `diff-match-patch`. Added text shown in green, removed text in red with strikethrough. Two-panel layout: read-only tracked-changes view on the left, editable textarea on the right. Diff recalculates live as the reviewer edits.
+
+**F3 — Merge review UI:** "Merge with AI" button enabled on the queue review page for update submissions. Clicking it enters merge mode: hides the normal side-by-side diff view and renders the `MergeEditor` full-width. Streams the AI merge result, then lets the reviewer edit and save (commits to Weaviate + closes queue item) or discard (returns to normal review view).
+
+**Infrastructure:** `diff-match-patch` and `@types/diff-match-patch` npm packages added.
+
+---
+
+### Relationship Panel — Always Show Add Button (February 2026)
+
+**Bug fix / enhancement:** Previously, UseCase and BusinessRule detail pages displayed "No relationships available for this type" with no way to add relationships, because those types have no outbound cross-reference configs. Now the "+ Add" button is always visible when any relationship configs exist (forward or reverse), and users can manage relationships from any object type.
+
+**Reverse relationship support:** Added `reverse?: boolean` field to `RelationshipConfig` in `lib/knowledge-types.ts`. New `getReverseRelationships(type)` function in `lib/knowledge.ts` finds types that link TO a given type (e.g. Persona → UseCase), enabling types without outbound configs to discover their inbound relationship options.
+
+**Inbound reference resolution:** New `getInboundReferences(objectId, objectType)` function in `lib/knowledge.ts` queries other collections to find objects that reference a given object. The detail page (`app/knowledge/[id]/page.tsx`) merges inbound refs into `crossReferences` so they display alongside outbound refs.
+
+**UI changes:** `ManageRelationships` component (`app/knowledge/components/manage-relationships.tsx`) accepts a new `reverseRelationships` prop, removed the early return that hid the panel for types with no outbound configs, and handles reverse adds/removes by calling the relationship API on the candidate's ID instead of the current object's ID.
+
+---
+
 ### Group E — Review Queue (February 2026)
 
 **E1 — Submission API:** `POST /api/submissions` creates pending submissions. Accepts object type, name, proposed content (JSON-serialized), and optional target object ID for updates. Stores in new `Submission` Weaviate collection.

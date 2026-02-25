@@ -91,16 +91,16 @@ When a Connector or User saves a create or edit form, route the save through E1 
 
 ---
 
-### Group F — AI Merge Workflow
+### Group F — AI Merge Workflow — **Done**
 
-**F1 — Merge API**
-Build `POST /api/submissions/[id]/merge` route. Fetches the current live version of the target object and the proposed content from the submission. Sends both to Claude with a merge system prompt: "Given the current version and a proposed update, produce a single best-version document that preserves all accurate information from both. Return the merged document only." Streams or returns the merged text.
+**F1 — Merge API** — **Done**
+`POST /api/submissions/[id]/merge` streams an AI-merged document. Fetches the current live version of the target object and the proposed content from the submission. Sends both to Claude with a merge system prompt via `lib/merge.ts`. Returns a streaming text response. `POST /api/submissions/[id]/merge/save` accepts the reviewer-edited merged content, updates the target knowledge object, and closes the submission as accepted.
 
-**F2 — Tracked-changes diff**
-On the client, compute a character-level diff between the current version and the AI-merged result. Render: added text in green, removed text as red strikethrough, unchanged text as normal. The diff view is a live editor — edits update the diff highlighting in real time.
+**F2 — Tracked-changes diff** — **Done**
+Character-level diff computed client-side via `diff-match-patch`. Added text in green, removed text as red strikethrough, unchanged text as normal. Two-panel layout: read-only tracked-changes view (left) and editable textarea (right). Diff recalculates live as the reviewer edits.
 
-**F3 — Merge review UI**
-Accessible from the Queue review panel (E4) via "Merge with AI" button. Calls F1, renders the tracked-changes diff (F2) in a full-page editor. Actions: "Save" (commits the merged result to Weaviate and closes the queue item) or "Discard" (returns to the side-by-side review panel).
+**F3 — Merge review UI** — **Done**
+"Merge with AI" button on the Queue review panel (E4) for update submissions. Calls F1, renders the tracked-changes diff (F2) in a full-width editor. Actions: "Save" (commits the merged result to Weaviate and closes the queue item) or "Discard" (returns to the side-by-side review panel).
 
 ---
 
@@ -110,7 +110,7 @@ Accessible from the Queue review panel (E4) via "Merge with AI" button. Calls F1
 
 | Module | What's Left | Requirements |
 |---|---|---|
-| Knowledge Base UI | AI merge workflow (Group F) | See [PRD.md](./PRD.md) Module 1 |
+| Knowledge Base UI | Done — all groups (A–F) complete | See [PRD.md](./PRD.md) Module 1 |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](./PRD.md) Module 2 |
 
 ### Acceptance Criteria

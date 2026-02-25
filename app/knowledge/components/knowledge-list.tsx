@@ -137,10 +137,19 @@ function ObjectRow({ obj }: { obj: KnowledgeListItem }) {
   return (
     <Link
       href={`/knowledge/${obj.id}`}
-      className="flex items-center gap-4 rounded-lg border border-gray-800 bg-gray-900 px-5 py-4 hover:border-gray-700 transition-colors"
+      className={`flex items-center gap-4 rounded-lg border px-5 py-4 transition-colors ${
+        obj.deprecated
+          ? "border-gray-800/60 bg-gray-900/60 opacity-60"
+          : "border-gray-800 bg-gray-900 hover:border-gray-700"
+      }`}
     >
       <span className="font-medium text-white">{obj.name}</span>
       <TypeBadge type={obj.type} />
+      {obj.deprecated && (
+        <span className="rounded bg-yellow-900/50 border border-yellow-800 px-1.5 py-0.5 text-[10px] font-medium text-yellow-400">
+          Deprecated
+        </span>
+      )}
       <div className="flex gap-1.5">
         {obj.tags.map((tag) => (
           <span

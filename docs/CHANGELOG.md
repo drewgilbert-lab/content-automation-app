@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-02 — Knowledge Base Write Layer (Group B)
+
+### Added
+- `POST /api/knowledge` — create endpoint with name uniqueness enforcement (409 on conflict)
+- `PUT /api/knowledge/[id]` — update endpoint for any writable fields
+- `DELETE /api/knowledge/[id]` — delete endpoint with `GeneratedContent` reference check and confirm flow
+- `PATCH /api/knowledge/[id]` — deprecate/restore endpoint
+- `/knowledge/new` — create form page
+- `/knowledge/[id]/edit` — edit form page
+- `app/knowledge/components/knowledge-form.tsx` — adaptive form component with type-specific fields and markdown preview
+- `app/knowledge/components/detail-actions.tsx` — detail page action buttons (Edit, Delete, Deprecate/Restore)
+- `scripts/add-deprecated-field.ts` — migration script adding `deprecated: boolean` to all 5 knowledge collections
+- `KnowledgeCreateInput`, `KnowledgeUpdateInput`, `SUB_TYPES` in `lib/knowledge-types.ts`
+- `createKnowledgeObject`, `updateKnowledgeObject`, `deleteKnowledgeObject`, `checkGeneratedContentReferences`, `deprecateKnowledgeObject`, `restoreKnowledgeObject`, `NameConflictError` in `lib/knowledge.ts`
+
+### Changed
+- Knowledge Base list page: added "+ New Object" button
+- Knowledge Base detail page: added Edit/Delete/Deprecate actions and deprecated banner
+- Knowledge list component: added deprecated badge styling
+
+---
+
 ## 2026-02-25 — Knowledge Base Read Layer (Group A)
 
 ### Added

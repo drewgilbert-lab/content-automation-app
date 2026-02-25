@@ -225,7 +225,7 @@ export async function createKnowledgeObject(
     }
 
     const now = new Date().toISOString();
-    const properties: Record<string, unknown> = {
+    const properties: Record<string, string | string[] | boolean> = {
       name: input.name,
       content: input.content,
       tags: input.tags ?? [],
@@ -287,7 +287,7 @@ export async function updateKnowledgeObject(
       }
     }
 
-    const properties: Record<string, unknown> = {
+    const properties: Record<string, string | string[]> = {
       updatedAt: new Date().toISOString(),
     };
     if (input.name !== undefined) properties.name = input.name;

@@ -18,6 +18,7 @@ Each knowledge object type maps to a Weaviate collection. Collections must be cr
 | `content` | `text` | Full markdown content — vectorized for semantic search |
 | `tags` | `text[]` | Optional labels (e.g. ["gtm", "revenue"]) |
 | `sourceFile` | `text` | Original filename from seed import |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
@@ -37,6 +38,7 @@ Cross-references:
 | `employeeRange` | `text` | Employee count range |
 | `tags` | `text[]` | Optional labels |
 | `sourceFile` | `text` | Original filename from seed import |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
@@ -54,6 +56,7 @@ Cross-references:
 | `content` | `text` | Full markdown content — vectorized for semantic search |
 | `tags` | `text[]` | Optional labels |
 | `sourceFile` | `text` | Original filename from seed import |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
@@ -66,6 +69,7 @@ Cross-references:
 | `name` | `text` | ICP name |
 | `content` | `text` | Full definition — vectorized for semantic search |
 | `tags` | `text[]` | Optional labels |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
@@ -84,6 +88,7 @@ Cross-references:
 | `subType` | `text` | `"tone"`, `"constraint"`, `"instruction_template"` |
 | `tags` | `text[]` | Optional labels |
 | `sourceFile` | `text` | Original filename if seeded from file |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
@@ -223,6 +228,12 @@ A one-time script at `scripts/seed.ts` will:
 6. Report total objects created
 
 The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node.js `fs` module.
+
+### Migrations
+
+| Script | Purpose | Status |
+|---|---|---|
+| `scripts/add-deprecated-field.ts` | Adds `deprecated: boolean` property to all 5 knowledge collections (Persona, Segment, UseCase, BusinessRule, ICP) | Done |
 
 ### Seed Script Status
 

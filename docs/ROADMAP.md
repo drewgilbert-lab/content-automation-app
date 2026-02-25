@@ -31,22 +31,22 @@ Render a single object at `/knowledge/[id]`. Full `content` rendered as formatte
 
 ---
 
-### Group B — Write Layer
+### Group B — Write Layer — **Done**
 
-**B1 — Create API**
-Build `POST /api/knowledge` route. Accepts type, name, content, tags, and type-specific fields (`revenueRange`, `employeeRange` for Segments; `subType` for BusinessRules; `personaId` + `segmentId` for ICPs). Writes to the correct Weaviate collection. Enforces name uniqueness within collection.
+**B1 — Create API** — **Done**
+`POST /api/knowledge` route. Accepts type, name, content, tags, and type-specific fields. Writes to the correct Weaviate collection. Enforces name uniqueness within collection (returns 409 on conflict).
 
-**B2 — Update API**
-Build `PUT /api/knowledge/[id]` route. Accepts any writable fields. Updates the Weaviate object and increments `updatedAt`.
+**B2 — Update API** — **Done**
+`PUT /api/knowledge/[id]` route. Accepts any writable fields. Updates the Weaviate object and sets `updatedAt`.
 
-**B3 — Delete API**
-Build `DELETE /api/knowledge/[id]` route. Checks if the object is referenced by any `GeneratedContent` record and returns a warning count. Removes object from Weaviate on confirm.
+**B3 — Delete API** — **Done**
+`DELETE /api/knowledge/[id]` route. Checks `GeneratedContent` references and returns a warning count. Deletes on `?confirm=true` or zero references.
 
-**B4 — Create/Edit forms**
-UI form that adapts to the selected object type. All types: name, content (markdown editor with preview toggle), tags. Segment: `revenueRange`, `employeeRange`. BusinessRule: `subType` dropdown. ICP: Persona selector, Segment selector. Validates required fields. Sends to B1/B2 on save.
+**B4 — Create/Edit forms** — **Done**
+Adaptive form component (`knowledge-form.tsx`) with type-specific fields, markdown preview, and validation. Create page at `/knowledge/new`, edit page at `/knowledge/[id]/edit`.
 
-**B5 — Deprecation**
-Add `deprecated: boolean` field to all collections. UI "Deprecate" action on detail page sets the flag. Deprecated objects display a "Deprecated" label and are excluded from generation context retrieval. Manager or admin can restore.
+**B5 — Deprecation** — **Done**
+Added `deprecated: boolean` field to all 5 knowledge collections via migration script. `PATCH /api/knowledge/[id]` supports deprecate/restore actions. Detail page shows deprecated banner and action buttons (Edit/Delete/Deprecate). Deprecated objects display a "Deprecated" badge in the list view.
 
 ---
 
@@ -119,7 +119,7 @@ Accessible from the Queue review panel (E4) via "Merge with AI" button. Calls F1
 
 | Module | What's Left | Requirements |
 |---|---|---|
-| Knowledge Base UI | CRUD interface for all knowledge object types | See [PRD.md](./PRD.md) Module 1 |
+| Knowledge Base UI | Relationship management (Group C), health dashboard (Group D), review queue (Group E) | See [PRD.md](./PRD.md) Module 1 |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](./PRD.md) Module 2 |
 
 ### Acceptance Criteria
@@ -128,7 +128,7 @@ Phase 1 is complete when:
 
 1. Weaviate Cloud is connected and all credentials are in `.env.local` — **Done**
 2. All 24 seed knowledge objects (4 personas + 5 segments + 15 use cases) are imported into Weaviate — **Done**
-3. Knowledge Base UI allows viewing, creating, editing, and deleting objects — **Viewing done (Group A)**
+3. Knowledge Base UI allows viewing, creating, editing, and deleting objects — **Done (Groups A + B)**
 4. Generate UI produces streaming output from Claude using Weaviate-retrieved context
 5. Generated content is saved to Weaviate with metadata
 6. Dashboard shows green status for both Weaviate and Claude connections

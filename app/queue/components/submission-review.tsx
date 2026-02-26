@@ -13,6 +13,7 @@ import { getTypeLabel } from "@/lib/knowledge-types";
 import { MarkdownRenderer } from "@/app/knowledge/components/markdown-renderer";
 import { ContentDiff } from "./content-diff";
 import { MergeEditor } from "./merge-editor";
+import { ReplaceConfirm } from "./replace-confirm";
 
 const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
   pending: "bg-yellow-500/15 text-yellow-400",
@@ -60,7 +61,7 @@ interface SubmissionReviewProps {
   currentObject: KnowledgeDetail | null;
 }
 
-type ActionMode = "none" | "reject" | "defer" | "merge";
+type ActionMode = "none" | "reject" | "defer" | "merge" | "replace";
 
 export function SubmissionReview({
   submission,
@@ -248,8 +249,21 @@ export function SubmissionReview({
         />
       )}
 
-      {/* Normal view — hidden during merge */}
-      {actionMode !== "merge" && (
+      {/* Replace confirm — full-width, replaces normal content and actions */}
+      {actionMode === "replace" && (
+        <ReplaceConfirm
+          proposedContent={proposedContent.content ?? ""}
+          submissionId={submission.id}
+          onDiscard={() => setActionMode("none")}
+          onSaved={() => {
+            router.push("/queue");
+            router.refresh();
+          }}
+        />
+      )}
+
+      {/* Normal view — hidden during merge or replace */}
+      {actionMode !== "merge" && actionMode !== "replace" && (
         <>
           {/* Content preview */}
           {submission.submissionType === "new" && (
@@ -401,6 +415,15 @@ export function SubmissionReview({
                       className="rounded-lg border border-indigo-600 bg-indigo-600/10 px-5 py-2.5 text-sm font-medium text-indigo-300 hover:bg-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {submission.submissionType === "document_add" ? "Merge Document" : "Merge with AI"}
+                    </button>
+                  )}
+                  {submission.submissionType === "update" && currentObject && (
+                    <button
+                      onClick={() => setActionMode("replace")}
+                      disabled={loading}
+                      className="rounded-lg border border-amber-700 bg-amber-700/10 px-5 py-2.5 text-sm font-medium text-amber-300 hover:bg-amber-700/20 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Replace with Proposed
                     </button>
                   )}
                 </div>

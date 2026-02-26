@@ -4,6 +4,24 @@
 
 ---
 
+### AI Merge Prompt Hardening and Replace with Proposed Action — February 26, 2026
+
+**AI merge prompt hardening (`lib/merge.ts`):**
+- `buildMergePrompt` (Standard Update submissions): Replaced weak preservation clause with explicit guarantees — every section, fact, and detail present in the current version must appear in the merged result unless directly contradicted or explicitly superseded by the proposed update; Claude is now explicitly instructed not to silently drop content from the current version.
+- `buildDocumentAdditionPrompt` (Document Add submissions): Added a parallel preservation clause after the "Remove redundancies" instruction — all unaddressed existing content that is not contradicted by the supplementary document must be preserved in full.
+
+**New "Replace with Proposed" action (`app/queue/components/submission-review.tsx`, `app/queue/components/replace-confirm.tsx`):**
+- Added a "Replace with Proposed" button to the submission review page for **Update** submissions only.
+- Clicking it opens a full-page confirmation view (`ReplaceConfirm` component) showing a warning banner and a read-only preview of the proposed content.
+- On confirm: calls the existing `POST /api/submissions/[id]/merge/save` with the proposed content verbatim — the knowledge object is updated and the submission is marked accepted.
+- On cancel: returns to the normal review view with no changes.
+- `app/queue/components/replace-confirm.tsx` is a new file.
+
+**Documentation:**
+- `docs/user-guides/ai-merge.md` updated: strengthened overview and "What Claude Sees" section to reflect preservation guarantees; added "Replace with Proposed" section; updated "Starting a Merge" to mention both actions; softened and updated relevant common pitfalls.
+
+---
+
 ### Security Gap Analysis and Documentation Updates — February 26, 2026
 
 Reviewed Weaviate security best practices (authentication, RBAC, audit logging, key rotation) against the Group K External REST API plan. Identified and addressed gaps across all project documentation.

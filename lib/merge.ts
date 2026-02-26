@@ -7,7 +7,8 @@ export function buildMergePrompt(
     "Given a current version and a proposed update of a knowledge document, produce a single merged document that preserves all accurate and relevant information from both versions.",
     "If the proposed update adds new information, incorporate it.",
     "If the proposed update corrects or refines existing information, prefer the updated wording.",
-    "If the proposed update removes information that is still accurate and valuable, keep it.",
+    "Every section, fact, and detail present in the CURRENT VERSION must appear in the merged result unless it is directly contradicted or explicitly superseded by the PROPOSED UPDATE.",
+    "Do not silently drop content from the current version.",
     "Preserve the original markdown formatting style.",
     "Return only the merged document text with no commentary, preamble, or explanation.",
   ].join(" ");
@@ -39,6 +40,7 @@ export function buildDocumentAdditionPrompt(
     "Preserve the existing structure, headings, and markdown formatting.",
     "Add new information in the most logical location within the existing structure.",
     "Remove redundancies — do not repeat information that is already present.",
+    "However, do not remove any content from the existing knowledge object that is not addressed or contradicted by the supplementary document — all unaddressed existing content must be preserved in full.",
     "If the document contains information that contradicts the existing content, prefer the newer document's version.",
     "Return only the merged document text with no commentary, preamble, or explanation.",
   ].join(" ");

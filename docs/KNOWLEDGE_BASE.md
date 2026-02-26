@@ -342,7 +342,7 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 | Collections schema defined | Done (this document) |
 | `CONTENT_REPO_PATH` env var added | Done |
 | `scripts/seed.ts` created | Done |
-| Collections created in Weaviate Cloud | Done |
+| Collections created in Weaviate Cloud | Done — all 7 knowledge collections |
 | Seed script executed | Done |
 | Objects verified in Weaviate dashboard | Done |
 

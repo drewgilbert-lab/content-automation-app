@@ -58,7 +58,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Credentials in `.env.local` | Done | Weaviate connected; Claude API key pending |
 | Weaviate collections created | Done | Schema defined in KNOWLEDGE_BASE.md |
 | Seed script | Done | Imports content-automation/ files into Weaviate |
-| Knowledge Base UI | In Progress | Groups A–F done; Groups G (Bulk Upload), H (Enhanced Review), I (Skills) scoped in ROADMAP.md |
+| Knowledge Base UI | In Progress | Groups A–G done; Groups H (Enhanced Review), I (Skills) scoped in ROADMAP.md |
 | Generate UI | Pending | Content generation with context retrieval |
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Pending | After local dev is confirmed working |

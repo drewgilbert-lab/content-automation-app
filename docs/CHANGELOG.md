@@ -4,6 +4,12 @@
 
 ---
 
+### Competitor and CustomerEvidence Collections Created (February 26, 2026)
+
+**Migration executed:** The existing migration script `scripts/add-competitor-customerevidence-collections.ts` was run against the Weaviate Cloud instance. Both `Competitor` and `CustomerEvidence` collections now exist in Weaviate. Previously, only 5 of 7 expected collections existed (Persona, Segment, UseCase, BusinessRule, ICP). All 7 knowledge collections are now live. No code changes were made — only the migration script was executed. This is the root fix for the missing collection errors described in the "Bulk Upload Pipeline — Bug Fixes" entry below.
+
+---
+
 ### Bulk Upload Pipeline — Bug Fixes (February 26, 2026)
 
 **pdf-parse crash fix:** Downgraded `pdf-parse` from v2.x to v1.x — v2 requires the `DOMMatrix` browser API and crashes in Node.js, causing the "Upload & Parse" button to silently fail. Changed module-level `require("pdf-parse")` to a lazy `await import("pdf-parse")` inside `extractPdf()` so PDF library issues only affect PDF parsing. Added error handling to the upload wizard so server errors surface to the user instead of being silently swallowed.

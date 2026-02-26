@@ -21,10 +21,11 @@ const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
   rejected: "bg-red-500/15 text-red-400",
 };
 
-const SUBMISSION_TYPE_BADGE_CLASSES = {
+const SUBMISSION_TYPE_BADGE_CLASSES: Record<string, string> = {
   new: "bg-cyan-500/15 text-cyan-400",
   update: "bg-indigo-500/15 text-indigo-400",
-} as const;
+  document_add: "bg-teal-500/15 text-teal-400",
+};
 
 const TYPE_BADGE_CLASSES: Record<string, string> = {
   persona: "bg-blue-500/15 text-blue-400",
@@ -51,6 +52,7 @@ interface ProposedContentParsed {
   subType?: string;
   revenueRange?: string;
   employeeRange?: string;
+  sourceFile?: string;
 }
 
 interface SubmissionReviewProps {
@@ -328,6 +330,33 @@ export function SubmissionReview({
             </div>
           )}
 
+          {submission.submissionType === "document_add" && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+                Uploaded Document
+              </h3>
+              {proposedContent.sourceFile && (
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+                    Source: {proposedContent.sourceFile}
+                  </span>
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-300 mb-2">Document Content</p>
+                <MarkdownRenderer content={proposedContent.content ?? ""} />
+              </div>
+              {currentObject && (
+                <div className="mt-6 border-t border-gray-800 pt-6">
+                  <p className="text-sm font-medium text-gray-300 mb-2">
+                    Current Object Content
+                  </p>
+                  <MarkdownRenderer content={currentObject.content} />
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Error display */}
           {error && (
             <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
@@ -365,13 +394,13 @@ export function SubmissionReview({
                   >
                     Defer
                   </button>
-                  {submission.submissionType === "update" && currentObject && (
+                  {(submission.submissionType === "update" || submission.submissionType === "document_add") && currentObject && (
                     <button
                       onClick={() => setActionMode("merge")}
                       disabled={loading}
                       className="rounded-lg border border-indigo-600 bg-indigo-600/10 px-5 py-2.5 text-sm font-medium text-indigo-300 hover:bg-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Merge with AI
+                      {submission.submissionType === "document_add" ? "Merge Document" : "Merge with AI"}
                     </button>
                   )}
                 </div>

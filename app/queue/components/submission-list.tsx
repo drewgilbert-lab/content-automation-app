@@ -16,6 +16,7 @@ const SUBMISSION_TYPE_TABS: { label: string; value: SubmissionType | "all" }[] =
   { label: "All", value: "all" },
   { label: "New", value: "new" },
   { label: "Update", value: "update" },
+  { label: "Document Addition", value: "document_add" },
 ];
 
 const TYPE_BADGE_CLASSES: Record<KnowledgeType, string> = {
@@ -36,6 +37,7 @@ const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
 const SUBMISSION_TYPE_BADGE_CLASSES: Record<SubmissionType, string> = {
   new: "bg-cyan-500/15 text-cyan-400",
   update: "bg-indigo-500/15 text-indigo-400",
+  document_add: "bg-teal-500/15 text-teal-400",
 };
 
 export function SubmissionList({

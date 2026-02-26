@@ -209,7 +209,10 @@ export async function reviewSubmission(
         segmentId: proposed.segmentId,
       };
       objectId = await createKnowledgeObject(createInput);
-    } else if (submission.submissionType === "update" && submission.targetObjectId) {
+    } else if (
+      (submission.submissionType === "update" || submission.submissionType === "document_add") &&
+      submission.targetObjectId
+    ) {
       await updateKnowledgeObject(submission.targetObjectId, {
         name: proposed.name,
         content: proposed.content,

@@ -79,6 +79,14 @@ export function DetailActions({ id, deprecated }: DetailActionsProps) {
         >
           Edit
         </Link>
+        {!deprecated && (
+          <Link
+            href={`/knowledge/${id}/add-document`}
+            className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-blue-400 hover:border-blue-700 hover:text-blue-300 transition-colors"
+          >
+            Add Document
+          </Link>
+        )}
         <button
           onClick={handleToggleDeprecation}
           disabled={togglingDeprecation}

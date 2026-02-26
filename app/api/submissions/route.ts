@@ -95,10 +95,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (submissionType === "update" && !targetObjectId) {
+    if ((submissionType === "update" || submissionType === "document_add") && !targetObjectId) {
       return new Response(
         JSON.stringify({
-          error: "targetObjectId is required when submissionType is 'update'",
+          error: `targetObjectId is required when submissionType is '${submissionType}'`,
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );

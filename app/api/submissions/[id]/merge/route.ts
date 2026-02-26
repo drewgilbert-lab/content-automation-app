@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
-import { buildMergePrompt } from "@/lib/merge";
+import { buildMergePrompt, buildDocumentAdditionPrompt } from "@/lib/merge";
 import { streamMessage } from "@/lib/claude";
 
 export async function POST(
@@ -18,9 +18,9 @@ export async function POST(
       return Response.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    if (submission.submissionType !== "update") {
+    if (submission.submissionType !== "update" && submission.submissionType !== "document_add") {
       return Response.json(
-        { error: "Merge is only available for update submissions" },
+        { error: "Merge is only available for update and document_add submissions" },
         { status: 400 }
       );
     }
@@ -47,7 +47,7 @@ export async function POST(
       );
     }
 
-    let proposedContent: { content?: string } = {};
+    let proposedContent: { content?: string; sourceFile?: string } = {};
     try {
       proposedContent = JSON.parse(submission.proposedContent) ?? {};
     } catch {
@@ -57,10 +57,17 @@ export async function POST(
       );
     }
 
-    const { systemPrompt, userMessage } = buildMergePrompt(
-      currentObject.content,
-      proposedContent.content ?? ""
-    );
+    const { systemPrompt, userMessage } =
+      submission.submissionType === "document_add"
+        ? buildDocumentAdditionPrompt(
+            currentObject.content,
+            proposedContent.content ?? "",
+            proposedContent.sourceFile
+          )
+        : buildMergePrompt(
+            currentObject.content,
+            proposedContent.content ?? ""
+          );
 
     const stream = await streamMessage(systemPrompt, userMessage);
 

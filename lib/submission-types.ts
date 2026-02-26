@@ -1,12 +1,12 @@
 import type { KnowledgeType } from "./knowledge-types";
 
-export type SubmissionType = "new" | "update";
+export type SubmissionType = "new" | "update" | "document_add";
 
 export type SubmissionStatus = "pending" | "accepted" | "rejected" | "deferred";
 
 export type ReviewAction = "accept" | "reject" | "defer";
 
-export const VALID_SUBMISSION_TYPES: SubmissionType[] = ["new", "update"];
+export const VALID_SUBMISSION_TYPES: SubmissionType[] = ["new", "update", "document_add"];
 export const VALID_STATUSES: SubmissionStatus[] = ["pending", "accepted", "rejected", "deferred"];
 export const VALID_REVIEW_ACTIONS: ReviewAction[] = ["accept", "reject", "defer"];
 
@@ -51,7 +51,12 @@ export interface ReviewInput {
 }
 
 export function getSubmissionTypeLabel(type: SubmissionType): string {
-  return type === "new" ? "New Object" : "Update";
+  const labels: Record<SubmissionType, string> = {
+    new: "New Object",
+    update: "Update",
+    document_add: "Document Addition",
+  };
+  return labels[type];
 }
 
 export function getStatusLabel(status: SubmissionStatus): string {

@@ -26,3 +26,38 @@ export function buildMergePrompt(
 
   return { systemPrompt, userMessage };
 }
+
+export function buildDocumentAdditionPrompt(
+  existingContent: string,
+  documentContent: string,
+  documentFilename?: string
+): { systemPrompt: string; userMessage: string } {
+  const systemPrompt = [
+    "You are a knowledge base editor.",
+    "You are given an existing knowledge object and a supplementary document containing new information to integrate.",
+    "Incorporate the new document's relevant information into the existing knowledge object.",
+    "Preserve the existing structure, headings, and markdown formatting.",
+    "Add new information in the most logical location within the existing structure.",
+    "Remove redundancies — do not repeat information that is already present.",
+    "If the document contains information that contradicts the existing content, prefer the newer document's version.",
+    "Return only the merged document text with no commentary, preamble, or explanation.",
+  ].join(" ");
+
+  const docLabel = documentFilename
+    ? `## SUPPLEMENTARY DOCUMENT (${documentFilename})`
+    : "## SUPPLEMENTARY DOCUMENT";
+
+  const userMessage = [
+    "## EXISTING KNOWLEDGE OBJECT",
+    "",
+    existingContent,
+    "",
+    "---",
+    "",
+    docLabel,
+    "",
+    documentContent,
+  ].join("\n");
+
+  return { systemPrompt, userMessage };
+}

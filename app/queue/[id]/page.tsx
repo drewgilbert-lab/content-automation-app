@@ -13,9 +13,11 @@ export default async function SubmissionReviewPage({
   const submission = await getSubmission(id);
   if (!submission) notFound();
 
-  // For update submissions, fetch the current live object for diff comparison
   let currentObject = null;
-  if (submission.submissionType === "update" && submission.targetObjectId) {
+  if (
+    (submission.submissionType === "update" || submission.submissionType === "document_add") &&
+    submission.targetObjectId
+  ) {
     currentObject = await getKnowledgeObject(submission.targetObjectId);
   }
 

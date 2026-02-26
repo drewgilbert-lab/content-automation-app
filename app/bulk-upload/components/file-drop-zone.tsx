@@ -6,6 +6,7 @@ interface FileDropZoneProps {
   onFilesSelected: (files: File[]) => void;
   disabled?: boolean;
   acceptedFormats?: string;
+  multiple?: boolean;
 }
 
 const DEFAULT_ACCEPT = ".md,.pdf,.docx,.txt";
@@ -14,6 +15,7 @@ export function FileDropZone({
   onFilesSelected,
   disabled = false,
   acceptedFormats = DEFAULT_ACCEPT,
+  multiple = true,
 }: FileDropZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -72,7 +74,7 @@ export function FileDropZone({
       <input
         ref={inputRef}
         type="file"
-        multiple
+        multiple={multiple}
         accept={acceptedFormats}
         onChange={handleChange}
         disabled={disabled}

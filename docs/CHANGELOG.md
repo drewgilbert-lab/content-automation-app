@@ -4,6 +4,26 @@
 
 ---
 
+### Bulk Upload Pipeline — Bug Fixes (February 26, 2026)
+
+**pdf-parse crash fix:** Downgraded `pdf-parse` from v2.x to v1.x — v2 requires the `DOMMatrix` browser API and crashes in Node.js, causing the "Upload & Parse" button to silently fail. Changed module-level `require("pdf-parse")` to a lazy `await import("pdf-parse")` inside `extractPdf()` so PDF library issues only affect PDF parsing. Added error handling to the upload wizard so server errors surface to the user instead of being silently swallowed.
+
+**Claude model update:** Switched default model from `claude-opus-4-5` / `claude-sonnet-4-20250514` to `claude-haiku-4-5` in both `lib/claude.ts` (streaming and connection check) and `lib/classifier.ts` (document classification). Cost optimization for development.
+
+**Weaviate missing collection handling:** Wrapped `fetchCollectionObjects` calls in `listKnowledgeObjects()` with try/catch that returns `[]` for missing collections. Prevents crashes when Competitor and CustomerEvidence collections don't exist in the Weaviate instance.
+
+**Classification error UX:** Moved error rendering outside step-specific blocks so errors are visible on any wizard step. Added automatic step-back to Step 1 when classification fails fatally, allowing the user to retry instead of being stuck on a blank Step 2.
+
+**Reclassify route error handling:** Wrapped `classifyDocument()` call in `POST /api/bulk-upload/reclassify` with try/catch, returning a proper JSON error response instead of an unhandled exception.
+
+**Type label completeness:** Added missing `competitor: "Competitors"` and `customer_evidence: "Customer Evidence"` entries to `PLURAL_TYPE_LABELS` map in `lib/knowledge.ts`.
+
+**Source file provenance:** Added `sourceFile: doc.filename` to `proposedBody` in the bulk upload approve route so document provenance is preserved through the submission pipeline.
+
+**Dev mode session persistence:** Moved the in-memory `sessions` Map and cleanup timer to `globalThis` in `lib/upload-session.ts` so they survive Turbopack module re-evaluation and are shared across route handlers during development.
+
+---
+
 ### Group G3/G4/G5 — Bulk Upload Session, Review UI, and Submission Bridge (February 2026)
 
 **G3 — Upload Session Management:** In-memory session store (`lib/upload-session.ts`) with 24-hour TTL cleanup. Sessions track parsed documents, AI classifications, and user edits. Types defined in `lib/upload-session-types.ts`. Three new API routes: `POST /api/bulk-upload/parse` (accepts FormData with multiple files, parses via document parser, creates session), `GET /api/bulk-upload/session/[sessionId]` (retrieves serialized session state), `POST /api/bulk-upload/reclassify` (re-runs AI classification on a single document within a session). Updated existing `POST /api/bulk-upload/classify` to optionally accept `sessionId` and store classification results in the session.

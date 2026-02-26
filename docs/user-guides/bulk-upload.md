@@ -23,6 +23,7 @@ Navigate to `/bulk-upload` from the home page, or click the **Bulk Upload** card
 - Limits: 10 MB per file, 100 MB total, 50 files per batch
 - You can remove individual files from the list before uploading
 - Click **Upload & Parse** to begin
+- If parsing fails, an error message is displayed on-screen with details
 
 ---
 
@@ -33,6 +34,7 @@ Navigate to `/bulk-upload` from the home page, or click the **Bulk Upload** card
 - Classification includes: object type, name, tags, suggested relationships, and confidence score
 - Documents with confidence below 70% are flagged for manual review
 - This step advances automatically when all documents are processed
+- If classification fails, an error message is shown and you are returned to Step 1 to retry
 
 ---
 
@@ -89,7 +91,9 @@ An admin reviews and accepts/rejects each submission through the standard review
 
 ## Common Pitfalls
 
-**I uploaded files but the parse step failed.** Check that your files are in a supported format (.md, .pdf, .docx, .txt) and within the size limits (10 MB per file, 100 MB total, 50 files per batch).
+**I uploaded files but the parse step failed.** An error message will appear explaining what went wrong. Check that your files are in a supported format (.md, .pdf, .docx, .txt) and within the size limits (10 MB per file, 100 MB total, 50 files per batch). If the error persists, try uploading fewer files or a different file format.
+
+**Classification failed and I'm back on Step 1.** If the AI classification encounters a fatal error, you are automatically returned to Step 1 with an error message. You can retry by clicking **Upload & Parse** again. The error may be temporary (e.g., API timeout).
 
 **The AI classification seems wrong for some documents.** Use **Reclassify** to have the AI try again. You can also edit the type, name, and tags manually before approving.
 

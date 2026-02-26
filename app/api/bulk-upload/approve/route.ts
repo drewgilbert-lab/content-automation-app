@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
       name: classification.objectName,
       content: doc.content,
       tags: classification.tags ?? [],
+      sourceFile: doc.filename,
     };
 
     if (classification.objectType === "icp" && classification.suggestedRelationships?.length) {

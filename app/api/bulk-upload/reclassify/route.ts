@@ -67,7 +67,17 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const classification = await classifyDocument(doc, existingObjects);
+  let classification;
+  try {
+    classification = await classifyDocument(doc, existingObjects);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return new Response(
+      JSON.stringify({ error: `Classification failed: ${msg}` }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+
   setClassification(sessionId, documentIndex, classification);
   session.userEdits.delete(documentIndex);
 

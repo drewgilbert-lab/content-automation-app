@@ -8,9 +8,16 @@ import {
 } from "./upload-session-types";
 
 // TODO: Replace in-memory store with Redis for production persistence across deploys/restarts
-const sessions = new Map<string, UploadSession>();
+// Use globalThis so the Map survives Turbopack module re-evaluation in dev mode
+const g = globalThis as unknown as {
+  __uploadSessions?: Map<string, UploadSession>;
+  __uploadSessionCleanupTimer?: ReturnType<typeof setInterval> | null;
+};
+if (!g.__uploadSessions) g.__uploadSessions = new Map();
+const sessions = g.__uploadSessions;
 
-let cleanupTimer: ReturnType<typeof setInterval> | null = null;
+let cleanupTimer: ReturnType<typeof setInterval> | null =
+  g.__uploadSessionCleanupTimer ?? null;
 
 function ensureCleanupTimer() {
   if (cleanupTimer) return;
@@ -22,6 +29,8 @@ function ensureCleanupTimer() {
       }
     }
   }, SESSION_CLEANUP_INTERVAL_MS);
+
+  g.__uploadSessionCleanupTimer = cleanupTimer;
 
   if (typeof cleanupTimer === "object" && "unref" in cleanupTimer) {
     cleanupTimer.unref();

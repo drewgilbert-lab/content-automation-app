@@ -123,7 +123,13 @@ export async function listKnowledgeObjects(
       : [...COLLECTIONS];
 
     const results = await Promise.all(
-      collectionsToQuery.map((name) => fetchCollectionObjects(client, name))
+      collectionsToQuery.map(async (name) => {
+        try {
+          return await fetchCollectionObjects(client, name);
+        } catch {
+          return [];
+        }
+      })
     );
 
     const all = results.flat();
@@ -434,6 +440,8 @@ const PLURAL_TYPE_LABELS: Record<KnowledgeType, string> = {
   use_case: "Use Cases",
   business_rule: "Business Rules",
   icp: "ICPs",
+  competitor: "Competitors",
+  customer_evidence: "Customer Evidence",
 };
 
 export function getReverseRelationships(

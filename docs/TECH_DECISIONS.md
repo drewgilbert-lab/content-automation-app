@@ -128,7 +128,7 @@ Weaviate is used **purely as a retrieval layer**. The LLM API key is never passe
 ANTHROPIC_API_KEY=    # From console.anthropic.com
 ```
 
-**Current Model:** `claude-opus-4-5` (update in `lib/claude.ts` to change)
+**Current Model:** `claude-haiku-4-5` (update in `lib/claude.ts` and `lib/classifier.ts` to change; see ADR-013)
 
 ---
 
@@ -307,7 +307,7 @@ The bulk classification endpoint (G2) processes documents sequentially — each 
 - The existing codebase already uses `ReadableStream` for Claude token streaming (`lib/claude.ts`), so the pattern is established
 - No additional dependencies required — SSE works with native `fetch` and `EventSource` in the browser
 - Four event types provide granular feedback: `progress` (starting), `result` (classified), `error` (per-document failure), `done` (summary)
-- Classification uses `claude-sonnet-4-20250514` (not opus) to balance cost and quality for the structured JSON classification task
+- Classification originally used `claude-sonnet-4-20250514`; now uses `claude-haiku-4-5` per ADR-013
 
 ---
 
@@ -335,6 +335,85 @@ The project had no test framework. G1/G2 introduced the first test suite (57 tes
 
 ---
 
+## ADR-011: pdf-parse v1.x Downgrade
+
+**Status:** Decided
+
+**Context:**
+During bulk upload testing, the "Upload & Parse" button silently failed. The root cause: `pdf-parse` v2.x depends on `DOMMatrix`, a browser-only API unavailable in Node.js. Additionally, the library was loaded via a module-level `require()`, meaning a crash in the PDF library prevented all file types from parsing.
+
+**Decision:** Downgrade `pdf-parse` from `^2.4.5` to `^1.1.1` and change the import from a module-level `require()` to a lazy `await import()` inside `extractPdf()`.
+
+**Rationale:**
+- v1.x uses `pdf.js` APIs compatible with Node.js — no browser dependencies
+- Lazy import isolates PDF library failures to PDF parsing only; Markdown, DOCX, and TXT parsing are unaffected
+- v1.x is the most widely deployed version in the Node.js ecosystem and remains actively used
+
+**Implications:**
+- If a future `pdf-parse` v2.x release adds Node.js support, re-evaluate the upgrade
+- Any new format-specific parser libraries should follow the same lazy-import pattern
+
+---
+
+## ADR-012: `globalThis` for In-Memory Session Store in Dev Mode
+
+**Status:** Decided
+
+**Context:**
+During development with Next.js Turbopack, the in-memory upload session store (`lib/upload-session.ts`) lost all session data on every file save. Turbopack re-evaluates modules on hot reload, which re-initializes module-level variables — including the `sessions` Map and cleanup timer. This caused sessions created by one API route to be invisible to other routes after a code change.
+
+**Decision:** Move the `sessions` Map and cleanup `setInterval` timer to `globalThis` so they survive module re-evaluation.
+
+**Rationale:**
+- `globalThis` persists across Turbopack module re-evaluations in the same Node.js process
+- This is the standard pattern used by database clients (e.g., Prisma) in Next.js dev mode
+- Production is unaffected — serverless functions do not re-evaluate modules within a single invocation
+
+**Implementation:**
+```typescript
+const g = globalThis as typeof globalThis & {
+  __uploadSessions?: Map<string, UploadSession>;
+  __uploadCleanupTimer?: ReturnType<typeof setInterval>;
+};
+if (!g.__uploadSessions) g.__uploadSessions = new Map();
+if (!g.__uploadCleanupTimer) g.__uploadCleanupTimer = setInterval(cleanup, 60_000);
+```
+
+**Implications:**
+- Any future in-memory stores used across API routes in dev should follow the same `globalThis` pattern
+- This does not replace the need for Redis or a persistent store in production (see Group G risks)
+
+---
+
+## ADR-013: Claude Haiku 4.5 as Default Model (Dev)
+
+**Status:** Decided (revisit for production)
+
+**Context:**
+The project originally used `claude-opus-4-5` for streaming content generation (`lib/claude.ts`) and `claude-sonnet-4-20250514` for document classification (`lib/classifier.ts`). During active development with frequent iteration, the cost and latency of these models was disproportionate to the need.
+
+**Options Considered:**
+
+| Option | Cost | Latency | Quality |
+|---|---|---|---|
+| claude-opus-4-5 | Highest | Highest | Best |
+| claude-sonnet-4-20250514 | Medium | Medium | Strong |
+| claude-haiku-4-5 | Lowest | Fastest | Good for structured tasks |
+
+**Decision:** Switch both call sites to `claude-haiku-4-5` for development.
+
+**Rationale:**
+- Haiku 4.5 is sufficient for development-cycle tasks: testing classification prompts, validating streaming, and exercising the full pipeline
+- Significantly lower cost and faster response times during iterative development
+- Classification (structured JSON output) and connection checks do not require frontier model quality
+- The model identifier is centralized in `lib/claude.ts` and `lib/classifier.ts` — switching back for production is a one-line change per file
+
+**Implications:**
+- Before production deployment, evaluate whether Haiku quality is sufficient for end-user content generation and classification accuracy
+- Consider using environment-variable-based model selection (`CLAUDE_MODEL`) to avoid code changes between environments
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -349,6 +428,9 @@ The project had no test framework. G1/G2 introduced the first test suite (57 tes
 | ADR-008 | Document Parsing Libraries (pdf-parse, mammoth) | Feb 2026 | Decided |
 | ADR-009 | SSE Streaming for Bulk Classification Progress | Feb 2026 | Decided |
 | ADR-010 | Test Framework (Vitest) | Feb 2026 | Decided |
+| ADR-011 | pdf-parse v1.x Downgrade | Feb 2026 | Decided |
+| ADR-012 | `globalThis` for In-Memory Session Store (Dev) | Feb 2026 | Decided |
+| ADR-013 | Claude Haiku 4.5 as Default Model (Dev) | Feb 2026 | Decided |
 
 ---
 

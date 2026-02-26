@@ -107,6 +107,8 @@ export function BulkUploadWizard() {
         setClassifyProgress({ current: 0, total: 0, results: new Map() });
         setStep(3);
       }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -132,6 +134,7 @@ export function BulkUploadWizard() {
       if (!res.ok) {
         const errData = await res.json();
         setUploadError(errData.error ?? "Classification failed");
+        setStep(1);
         return;
       }
       const reader = res.body!.getReader();
@@ -367,6 +370,12 @@ export function BulkUploadWizard() {
         ))}
       </div>
 
+      {uploadError && (
+        <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
+          <p className="text-sm text-red-200">{uploadError}</p>
+        </div>
+      )}
+
       {step === 1 && (
         <div className="space-y-6">
           <FileDropZone onFilesSelected={handleFilesSelected} disabled={uploading} />
@@ -394,11 +403,6 @@ export function BulkUploadWizard() {
                 </li>
               ))}
             </ul>
-          )}
-          {uploadError && (
-            <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
-              <p className="text-sm text-red-200">{uploadError}</p>
-            </div>
           )}
           <button
             type="button"

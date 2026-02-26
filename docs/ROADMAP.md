@@ -124,6 +124,8 @@ Build `/bulk-upload` page. Step 1: drag-and-drop file upload zone with file list
 **G5 — Submission Bridge** — **Done**
 Build `POST /api/bulk-upload/approve` route. For each approved document, creates a `Submission` via the existing `createSubmission()` function with `submissionType: "new"`. The `proposedContent` JSON includes `name`, `content`, `tags`, and `relationships` (with resolved target IDs). Approved documents enter the existing admin review queue at `/queue`. Returns an array of created submission IDs with per-document error reporting for partial failures.
 
+**Bug fixes applied (February 26, 2026):** Critical fixes to make the pipeline functional end-to-end: `pdf-parse` downgraded from v2.x to v1.x (v2 crashed Node.js via `DOMMatrix`), lazy PDF import to isolate parser failures, error surfacing in upload wizard, step-back to Step 1 on classification failure, try/catch in reclassify route, missing type labels added, `sourceFile` provenance added to approve route, and `globalThis` session store for Turbopack dev mode stability. See CHANGELOG.md for full details.
+
 **Risks and Gaps:**
 
 | Risk | Impact | Mitigation |

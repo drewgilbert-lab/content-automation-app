@@ -1,6 +1,4 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse: (buf: Buffer) => Promise<{ text: string }> = require("pdf-parse");
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const mammoth: { extractRawText: (opts: { buffer: Buffer }) => Promise<{ value: string }> } = require("mammoth");
 import type {
   DocumentFormat,
@@ -46,6 +44,7 @@ async function extractMarkdown(buffer: ArrayBuffer): Promise<string> {
 }
 
 async function extractPdf(buffer: ArrayBuffer): Promise<string> {
+  const pdfParse = (await import("pdf-parse")).default;
   const buf = Buffer.from(new Uint8Array(buffer));
   const result = await pdfParse(buf);
   return result.text;

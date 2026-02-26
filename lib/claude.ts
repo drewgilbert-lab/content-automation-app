@@ -21,7 +21,7 @@ export async function streamMessage(
   const anthropic = getClient();
 
   const stream = anthropic.messages.stream({
-    model: "claude-opus-4-5",
+    model: "claude-haiku-4-5",
     max_tokens: 4096,
     system: systemPrompt,
     messages: [{ role: "user", content: userMessage }],
@@ -51,7 +51,7 @@ export async function checkClaudeConnection(): Promise<boolean> {
   try {
     const anthropic = getClient();
     await anthropic.messages.create({
-      model: "claude-opus-4-5",
+      model: "claude-haiku-4-5",
       max_tokens: 10,
       messages: [{ role: "user", content: "ping" }],
     });

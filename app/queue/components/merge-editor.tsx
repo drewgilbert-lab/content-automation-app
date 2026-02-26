@@ -1,23 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import DiffMatchPatch from "diff-match-patch";
-
-const dmp = new DiffMatchPatch();
+import { useState, useEffect, useCallback, useRef } from "react";
+import { VisualDiff } from "./visual-diff";
 
 interface MergeEditorProps {
   currentContent: string;
   submissionId: string;
   onDiscard: () => void;
   onSaved: () => void;
-}
-
-type DiffTuple = [number, string];
-
-function computeDiff(original: string, edited: string): DiffTuple[] {
-  const diffs = dmp.diff_main(original, edited);
-  dmp.diff_cleanupSemantic(diffs);
-  return diffs;
 }
 
 export function MergeEditor({
@@ -108,11 +98,6 @@ export function MergeEditor({
     }
   }, [submissionId, editedText, onSaved]);
 
-  const diffs = useMemo(() => {
-    if (!editedText) return [];
-    return computeDiff(currentContent, editedText);
-  }, [currentContent, editedText]);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -149,38 +134,15 @@ export function MergeEditor({
           <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
             Tracked Changes
           </h4>
-          <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-sm leading-relaxed">
-            {diffs.length > 0 ? (
-              diffs.map((diff, i) => {
-                const [op, text] = diff;
-                if (op === DiffMatchPatch.DIFF_INSERT) {
-                  return (
-                    <span
-                      key={i}
-                      className="bg-green-500/20 text-green-300"
-                    >
-                      {text}
-                    </span>
-                  );
-                }
-                if (op === DiffMatchPatch.DIFF_DELETE) {
-                  return (
-                    <span
-                      key={i}
-                      className="bg-red-500/20 text-red-400 line-through"
-                    >
-                      {text}
-                    </span>
-                  );
-                }
-                return <span key={i}>{text}</span>;
-              })
-            ) : (
+          {editedText ? (
+            <VisualDiff original={currentContent} modified={editedText} mode="unified" />
+          ) : (
+            <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-sm leading-relaxed">
               <span className="text-gray-500">
                 {streaming ? "Waiting for merge output..." : "No changes"}
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Right: editable textarea */}
@@ -197,22 +159,6 @@ export function MergeEditor({
             placeholder={streaming ? "Generating..." : "Merged content will appear here"}
           />
         </div>
-      </div>
-
-      {/* Legend */}
-      <div className="flex items-center gap-6 text-xs text-gray-500">
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-6 rounded bg-green-500/20" />
-          Added
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-6 rounded bg-red-500/20" />
-          Removed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-6 rounded bg-gray-800" />
-          Unchanged
-        </span>
       </div>
 
       {/* Actions */}

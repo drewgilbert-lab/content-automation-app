@@ -46,7 +46,7 @@ app/
   knowledge/components/   — KnowledgeList, KnowledgeForm, DetailActions, TypeBadge, MarkdownRenderer
   queue/page.tsx          — Review queue list page (filter tabs, show-closed toggle)
   queue/[id]/page.tsx     — Submission review page (preview, diff, actions)
-  queue/components/       — SubmissionList, SubmissionReview, ContentDiff, MergeEditor
+  queue/components/       — SubmissionList, SubmissionReview, ContentDiff, MergeEditor, VisualDiff
   components/             — RoleProvider, RoleToggle
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
@@ -74,7 +74,7 @@ docs/
   ROADMAP.md              — Phases, future modules, backlog, open questions
   CHANGELOG.md            — What was built and when
   API.md                  — API route contracts (incl. planned bulk upload, skills routes)
-  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge)
+  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review)
 ```
 
 ## Current Phase: 1
@@ -89,7 +89,7 @@ docs/
 | Knowledge Base (Review Queue) | Done (Group E) |
 | Knowledge Base (AI Merge) | Done (Group F) |
 | Knowledge Base (Bulk Upload) | Done (Group G) |
-| Knowledge Base (Enhanced Review) | Scoped (Group H) |
+| Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Scoped (Group I) |
 | Inbound MCP Server (3rd Party Write) | Scoped (Group J) |
 | External REST API (3rd Party Read) | Scoped (Group K) |

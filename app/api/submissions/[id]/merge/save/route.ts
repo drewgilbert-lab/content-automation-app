@@ -27,9 +27,9 @@ export async function POST(
       return Response.json({ error: "Submission not found" }, { status: 404 });
     }
 
-    if (submission.submissionType !== "update") {
+    if (submission.submissionType !== "update" && submission.submissionType !== "document_add") {
       return Response.json(
-        { error: "Merge save is only available for update submissions" },
+        { error: "Merge save is only available for update and document_add submissions" },
         { status: 400 }
       );
     }

@@ -4,6 +4,30 @@
 
 ---
 
+### Group H — Enhanced Change Review Workflows (H3, H4, H5) — February 26, 2026
+
+**H3 — Review Queue Integration for Document Additions**
+- Fixed merge save API (`/api/submissions/[id]/merge/save`) to accept `document_add` submissions alongside `update` submissions
+- Document addition merge workflow now works end-to-end: upload document → AI merge → admin review with tracked changes → save merged content
+
+**H4 — Visual Diff Component**
+- Built reusable `VisualDiff` component (`app/queue/components/visual-diff.tsx`)
+- Supports two display modes: unified (inline additions/deletions with collapsible unchanged sections) and side-by-side (synchronized-scroll two-panel layout)
+- Uses `diff-match-patch` with semantic cleanup for word-level diff granularity
+- Additions shown in green with underline, deletions in red with strikethrough
+- Includes legend bar (Added / Removed / Unchanged)
+- Extracted diff rendering logic from MergeEditor into this shared component
+
+**H5 — ContentDiff Upgrade**
+- Replaced plain side-by-side markdown comparison with visual diff highlighting
+- Added metadata changes section showing field-level before→after changes (name, subType, revenueRange, employeeRange) with red strikethrough → green highlighting
+- Added tag diff with added (green), removed (red strikethrough), and unchanged (gray) pill badges
+- Added unified/side-by-side view mode toggle
+- Content diff now uses the shared `VisualDiff` component for green/red diff highlighting
+- Refactored MergeEditor to use VisualDiff, removing duplicated diff logic
+
+---
+
 ### Competitor and CustomerEvidence Collections Created (February 26, 2026)
 
 **Migration executed:** The existing migration script `scripts/add-competitor-customerevidence-collections.ts` was run against the Weaviate Cloud instance. Both `Competitor` and `CustomerEvidence` collections now exist in Weaviate. Previously, only 5 of 7 expected collections existed (Persona, Segment, UseCase, BusinessRule, ICP). All 7 knowledge collections are now live. No code changes were made — only the migration script was executed. This is the root fix for the missing collection errors described in the "Bulk Upload Pipeline — Bug Fixes" entry below.

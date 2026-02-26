@@ -32,6 +32,7 @@ app/
   api/submissions/[id]/review/route.ts — POST accept/reject/defer
   api/submissions/[id]/merge/route.ts — POST stream AI merge
   api/submissions/[id]/merge/save/route.ts — POST save merged content
+  api/bulk-upload/classify/route.ts — POST classify documents via AI (SSE stream)
   knowledge/page.tsx      — Knowledge Base list page (filter tabs, search)
   knowledge/[id]/page.tsx — Knowledge Base detail page (markdown, sidebar, actions)
   knowledge/new/page.tsx  — Create form page
@@ -52,6 +53,10 @@ lib/
   submissions.ts          — Submission CRUD: create, list, get, review, countPending
   submission-types.ts     — Submission types, status enums, utilities
   merge.ts                — buildMergePrompt() for AI merge workflow
+  document-parser.ts      — File parsing: md, pdf, docx, txt (G1)
+  document-parser-types.ts — ParsedDocument, ParseOptions, ParseResult types
+  classifier.ts           — AI document classification via Claude (G2)
+  classification-types.ts — ClassificationResult, SuggestedRelationship types
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
@@ -75,7 +80,7 @@ docs/
 | Knowledge Base (Health Dashboard) | Done (Group D) |
 | Knowledge Base (Review Queue) | Done (Group E) |
 | Knowledge Base (AI Merge) | Done (Group F) |
-| Knowledge Base (Bulk Upload) | Scoped (Group G) |
+| Knowledge Base (Bulk Upload) | G1-G2 Done, G3-G5 Scoped (Group G) |
 | Knowledge Base (Enhanced Review) | Scoped (Group H) |
 | Skills Module | Scoped (Group I) |
 | Inbound MCP Server (3rd Party Write) | Scoped (Group J) |

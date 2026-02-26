@@ -859,6 +859,70 @@ Activates, deactivates, deprecates, or restores a skill.
 
 ---
 
+## POST /api/bulk-upload/classify
+
+Classifies parsed documents into knowledge object types using AI. Streams progress and results via Server-Sent Events.
+
+**Runtime:** `nodejs`
+
+**Request:**
+```json
+{
+  "documents": [
+    {
+      "filename": "string (required)",
+      "format": "md | pdf | docx | txt (optional, defaults to txt)",
+      "content": "string (required — extracted text content)",
+      "wordCount": "number (optional)",
+      "errors": ["string (optional — parse errors from G1)"]
+    }
+  ]
+}
+```
+
+**Limits:** Maximum 50 documents per request.
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `text/event-stream`
+- Body: SSE stream with the following event types:
+
+```
+event: progress
+data: {"index": 0, "total": 5, "filename": "doc.md", "status": "classifying"}
+
+event: result
+data: {"index": 0, "filename": "doc.md", "classification": {
+  "filename": "doc.md",
+  "objectType": "persona",
+  "objectName": "Sales Engineer",
+  "tags": ["sales", "technical"],
+  "suggestedRelationships": [
+    {"targetId": "uuid", "targetName": "Enterprise", "targetType": "segment", "relationshipType": "hasSegments"}
+  ],
+  "confidence": 0.85,
+  "needsReview": false
+}}
+
+event: error
+data: {"index": 2, "filename": "doc3.pdf", "error": "Classification failed: ..."}
+
+event: done
+data: {"total": 5, "classified": 4, "failed": 1}
+```
+
+**Response (validation error):**
+- Status: `400`
+- Body: `{ "error": "string" }`
+
+**Response (server error):**
+- Status: `500`
+- Body: `{ "error": "Failed to fetch existing knowledge objects" }`
+
+**Implementation:** `app/api/bulk-upload/classify/route.ts` → `lib/classifier.ts` (classifyDocument) → Claude `claude-sonnet-4-20250514` → `lib/knowledge.ts` (listKnowledgeObjects for relationship resolution)
+
+---
+
 ## Planned: External REST API (Group K)
 
 > Versioned read-only REST API for 3rd party applications. Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group K.

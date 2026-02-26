@@ -109,10 +109,10 @@ Character-level diff computed client-side via `diff-match-patch`. Added text in 
 > Scope: Upload multiple documents at once, classify each into the correct knowledge object type using AI, review classifications, then route to the admin review queue.
 > Dependencies: Groups A–F (existing submission/review queue infrastructure). Shares document parser with Group H.
 
-**G1 — Document Parser**
+**G1 — Document Parser** — **Done**
 Build `lib/document-parser.ts` supporting four file formats: Markdown (`.md`), PDF (`.pdf`), DOCX (`.docx`), and plain text (`.txt`). PDF extraction via `pdf-parse`; DOCX conversion via `mammoth`. Returns a `ParsedDocument` containing extracted text content, filename, original format, word count, and any parse errors. Enforces configurable limits: 10 MB per file, 100 MB per batch, 50 files per batch. Validates MIME types server-side.
 
-**G2 — AI Classification API**
+**G2 — AI Classification API** — **Done**
 Build `POST /api/bulk-upload/classify` route. For each parsed document, calls Claude with the document content plus a summary of all existing knowledge objects in the system. Claude returns a JSON classification: `objectType`, `objectName`, `tags`, `suggestedRelationships` (with target names resolved to IDs via Weaviate lookup), and a `confidence` score (0.0–1.0). Items below 0.7 confidence are flagged for manual review. Processing is sequential to avoid rate limits, with progress reported via Server-Sent Events.
 
 **G3 — Upload Session Management**

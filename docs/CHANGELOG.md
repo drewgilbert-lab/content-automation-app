@@ -4,6 +4,16 @@
 
 ---
 
+### Group G1/G2 — Document Parser and AI Classification (February 2026)
+
+**G1 — Document Parser (`lib/document-parser.ts`):** Server-side file parser supporting four formats: Markdown (.md), PDF (.pdf), DOCX (.docx), and plain text (.txt). PDF extraction via `pdf-parse`; DOCX extraction via `mammoth` (both added as new dependencies). Returns `ParsedDocument` with extracted text, filename, original format, word count, and per-document parse errors. Enforces configurable limits: 10 MB per file, 100 MB per batch, 50 files per batch. MIME type validation with extension fallback. Types defined in `lib/document-parser-types.ts`.
+
+**G2 — AI Classification API (`app/api/bulk-upload/classify/route.ts`):** SSE-streaming endpoint that classifies parsed documents into knowledge object types using Claude (`claude-sonnet-4-20250514`). For each document, builds a classification prompt including the full knowledge type taxonomy and an inventory of all existing non-deprecated objects. Claude returns a JSON classification with `objectType`, `objectName`, `tags`, `suggestedRelationships`, and `confidence` (0.0–1.0). Relationships are resolved to real Weaviate object IDs by name+type matching. Items below 0.7 confidence are flagged with `needsReview: true`. Classification logic in `lib/classifier.ts`; types in `lib/classification-types.ts`. Progress, result, error, and done events streamed via SSE for real-time UI updates.
+
+**Test infrastructure:** Vitest added as dev dependency with `vitest.config.ts`. Test scripts: `npm test` (single run), `npm run test:watch` (watch mode). 57 tests across 3 test files: document parser unit tests (23), classifier unit tests (23), API route integration tests (11).
+
+---
+
 ### New Object Types — Competitor and CustomerEvidence (February 2026)
 
 **Migration script:** `scripts/add-competitor-customerevidence-collections.ts` creates the two new Weaviate collections (`Competitor` and `CustomerEvidence`) with their full property schemas. Run this script against an existing Weaviate instance before using the new types.

@@ -257,6 +257,84 @@ Upstash Redis + `@upstash/ratelimit` for serverless-compatible rate limiting. 10
 
 ---
 
+## ADR-008: Document Parsing Libraries (pdf-parse, mammoth)
+
+**Status:** Decided
+
+**Context:**
+Group G (Bulk Upload) requires extracting text content from uploaded files in four formats: Markdown, plain text, PDF, and DOCX. We need server-side libraries that work in the Node.js runtime (Next.js API routes on Vercel).
+
+**Options Considered:**
+
+| Option | Format | Notes |
+|---|---|---|
+| `pdf-parse` | PDF | Wraps Mozilla's `pdf.js`; pure JS, no native dependencies; extracts text only (no OCR) |
+| `pdf-lib` | PDF | Focused on PDF creation/modification, not text extraction |
+| `pdfjs-dist` | PDF | Mozilla's PDF.js directly; more control but more setup |
+| `mammoth` | DOCX | Converts DOCX to text or HTML; ships own types; lightweight |
+| `docx4js` | DOCX | Lower-level DOCX parser; more complex API |
+
+**Decision:** `pdf-parse` for PDF, `mammoth` for DOCX. Markdown and plain text use native `TextDecoder`.
+
+**Rationale:**
+- `pdf-parse` is the most widely used PDF text extraction library in Node.js, zero native dependencies, works in serverless environments
+- `mammoth` is purpose-built for DOCX-to-text conversion with a simple `extractRawText()` API
+- Both are pure JavaScript — no compiled binaries that would complicate Vercel deployment
+- Known limitation: `pdf-parse` cannot OCR scanned/image-based PDFs. This is documented and flagged to users when extraction returns empty text.
+
+---
+
+## ADR-009: SSE Streaming for Bulk Classification Progress
+
+**Status:** Decided
+
+**Context:**
+The bulk classification endpoint (G2) processes documents sequentially — each document requires a Claude API call taking 2-10 seconds. For a batch of 50 documents, the total processing time could exceed 5 minutes. The UI needs real-time progress feedback.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Server-Sent Events (SSE) | Unidirectional server→client stream; native browser `EventSource` API; simple implementation |
+| WebSockets | Bidirectional; overkill for one-way progress updates; requires ws library |
+| Polling | Client polls a status endpoint; higher latency; more requests; requires session storage |
+| Long polling | Simpler than WebSockets but more complex than SSE for this use case |
+
+**Decision:** SSE via `ReadableStream` in the Next.js route handler
+
+**Rationale:**
+- SSE is the simplest protocol for server→client streaming — exactly what progress reporting needs
+- The existing codebase already uses `ReadableStream` for Claude token streaming (`lib/claude.ts`), so the pattern is established
+- No additional dependencies required — SSE works with native `fetch` and `EventSource` in the browser
+- Four event types provide granular feedback: `progress` (starting), `result` (classified), `error` (per-document failure), `done` (summary)
+- Classification uses `claude-sonnet-4-20250514` (not opus) to balance cost and quality for the structured JSON classification task
+
+---
+
+## ADR-010: Test Framework (Vitest)
+
+**Status:** Decided
+
+**Context:**
+The project had no test framework. G1/G2 introduced the first test suite (57 tests). Need a fast, TypeScript-native test runner compatible with the existing ESM + path alias (`@/`) setup.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Vitest | Vite-native, fast, TypeScript out of the box, ESM-first, compatible with `@/` aliases |
+| Jest | Widely used but requires `ts-jest` or `@swc/jest` for TypeScript, CJS-first |
+
+**Decision:** Vitest
+
+**Rationale:**
+- Zero-config TypeScript support with path alias resolution via `vitest.config.ts`
+- Sub-second test runs (57 tests in ~1s)
+- API compatible with Jest (`describe`, `it`, `expect`, `vi.mock`) for familiarity
+- ESM-native — matches the project's module system
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -268,6 +346,9 @@ Upstash Redis + `@upstash/ratelimit` for serverless-compatible rate limiting. 10
 | ADR-005 | Tailwind CSS v4 | Feb 2026 | Decided |
 | ADR-006 | Consolidated MCP Server (standalone Node.js) | Feb 2026 | Pending implementation |
 | ADR-007 | REST API Gateway (`/api/v1/`) | Feb 2026 | Pending implementation |
+| ADR-008 | Document Parsing Libraries (pdf-parse, mammoth) | Feb 2026 | Decided |
+| ADR-009 | SSE Streaming for Bulk Classification Progress | Feb 2026 | Decided |
+| ADR-010 | Test Framework (Vitest) | Feb 2026 | Decided |
 
 ---
 

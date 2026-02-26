@@ -51,7 +51,7 @@ Skills and business rules both influence AI generation, but they serve different
 
 Skills must still respect business rules. In the assembled prompt, skills appear before business rules so the AI receives task-specific instructions first, then constraints that apply universally.
 
-Current state: Two `BusinessRule` objects with `subType: "instruction_template"` (Campaign Brief Generator, Ops Configuration Guide) are actually skills and will be migrated to the `Skill` collection. See [ROADMAP.md](./ROADMAP.md) Group I for the migration plan.
+Current state: Two `BusinessRule` objects with `subType: "instruction_template"` (Campaign Brief Generator, Ops Configuration Guide) were migrated to the `Skill` collection as part of Group I. See [ROADMAP.md](./ROADMAP.md) Group I.
 
 ---
 
@@ -111,7 +111,7 @@ You are a B2B content writer creating [CONTENT_TYPE] for [COMPANY_NAME].
 Use the above context to write content that is accurate, on-brand, and directly relevant to the persona's real pain points and goals.
 ```
 
-Updated template (with skills — planned, Group I):
+Updated template (with skills — implemented, Group I):
 
 ```
 You are a B2B content writer creating [CONTENT_TYPE] for [COMPANY_NAME].
@@ -143,7 +143,7 @@ Skill selection logic:
 3. **Hybrid** (recommended): Auto-select by content type, user can add/remove before generating
 4. **Limit**: Max 3–5 active skills per generation to manage context window size
 
-Implementation: `lib/context-assembly.ts` (planned) will replace the inline prompt construction in the generation route.
+Implementation: `lib/context-assembly.ts` provides the `assembleContext()` function.
 
 ---
 
@@ -228,16 +228,16 @@ Workflow states and planned business rules are defined in [ROADMAP.md](./ROADMAP
 
 ---
 
-## Instruction Templates (Migrating to Skills)
+## Instruction Templates (Migrated to Skills)
 
-Two instruction templates exist in `content-automation/content_transformation/` and are currently stored as `business_rule` objects with `subType: "instruction_template"`. These are procedural instructions, not passive constraints, and will be migrated to the new `Skill` collection as part of Group I.
+Two instruction templates from `content-automation/content_transformation/` were stored as `business_rule` objects with `subType: "instruction_template"`. These were procedural instructions, not passive constraints, and have been migrated to the `Skill` collection as part of Group I.
 
-| Template | File | Current Location | Migration Target |
+| Template | File | Previous Location | Current Location |
 |---|---|---|---|
 | Campaign Brief Generator | `campaign_brief_instructions.md` | `BusinessRule` (`subType: "instruction_template"`) | `Skill` (`contentType: ["internal_doc"]`) |
 | Ops Configuration Guide | `ops_guide_instructions.md` | `BusinessRule` (`subType: "instruction_template"`) | `Skill` (`contentType: ["internal_doc"]`) |
 
-After migration, the `instruction_template` subType will be removed from the `BusinessRule` collection. Business rules will only contain passive constraints (`subType: "tone"` or `"constraint"`). See [ROADMAP.md](./ROADMAP.md) Group I for the full migration plan and [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) for the `Skill` collection schema.
+After migration, the `instruction_template` subType was removed from the `BusinessRule` collection. Business rules only contain passive constraints (`subType: "tone"` or `"constraint"`). See [ROADMAP.md](./ROADMAP.md) Group I and [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) for the `Skill` collection schema.
 
 ---
 

@@ -47,6 +47,13 @@ app/
   queue/page.tsx          — Review queue list page (filter tabs, show-closed toggle)
   queue/[id]/page.tsx     — Submission review page (preview, diff, actions)
   queue/components/       — SubmissionList, SubmissionReview, ContentDiff, MergeEditor, VisualDiff
+  api/skills/route.ts     — GET list, POST create skills
+  api/skills/[id]/route.ts — GET detail, PUT update, DELETE, PATCH activate/deactivate/deprecate/restore
+  skills/page.tsx         — Skills Library list page (filter tabs, search)
+  skills/[id]/page.tsx    — Skill detail page (markdown, sidebar, actions)
+  skills/new/page.tsx     — Create skill form page
+  skills/[id]/edit/page.tsx — Edit skill form page
+  skills/components/      — SkillList, SkillForm, SkillDetailActions
   components/             — RoleProvider, RoleToggle
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
@@ -65,6 +72,9 @@ lib/
   classification-types.ts — ClassificationResult, SuggestedRelationship types
   upload-session.ts       — In-memory upload session store with 24h TTL (G3)
   upload-session-types.ts — UploadSession, UploadSessionState types (G3)
+  skills.ts               — Skill CRUD operations: list, get, create, update, delete, activate/deactivate, deprecate/restore
+  skill-types.ts          — Skill types, content type constants, category constants, utilities
+  context-assembly.ts     — assembleContext() for building generation system prompts with skills + knowledge + rules
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
@@ -90,7 +100,7 @@ docs/
 | Knowledge Base (AI Merge) | Done (Group F) |
 | Knowledge Base (Bulk Upload) | Done (Group G) |
 | Knowledge Base (Enhanced Review) | Done (Group H) |
-| Skills Module | Scoped (Group I) |
+| Skills Module | Done (Group I) |
 | Inbound MCP Server (3rd Party Write) | Scoped (Group J) |
 | External REST API (3rd Party Read) | Scoped (Group K) |
 | LLM MCP Server (RAG Read Access) | Scoped (Group L) |

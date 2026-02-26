@@ -331,7 +331,8 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 |---|---|---|
 | `scripts/add-deprecated-field.ts` | Adds `deprecated: boolean` property to all 5 knowledge collections (Persona, Segment, UseCase, BusinessRule, ICP) | Done |
 | `scripts/add-submission-collection.ts` | Creates the `Submission` collection for the review queue | Done |
-| `scripts/migrate-instruction-templates.ts` | Migrates `BusinessRule` objects with `subType: "instruction_template"` to the new `Skill` collection | Planned (Group I5) |
+| `scripts/migrate-instruction-templates.ts` | Migrates `BusinessRule` objects with `subType: "instruction_template"` to the new `Skill` collection | Done |
+| `scripts/add-skill-collection.ts` | Creates the Skill Weaviate collection | Done |
 | `scripts/add-competitor-customerevidence-collections.ts` | Creates the `Competitor` and `CustomerEvidence` Weaviate collections | Done |
 | `scripts/add-submission-source-fields.ts` | Adds `sourceChannel`, `sourceAppId`, `sourceDescription` properties to the `Submission` collection | Planned (Group J4) |
 

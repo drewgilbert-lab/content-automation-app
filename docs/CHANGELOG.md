@@ -4,6 +4,36 @@
 
 ---
 
+### Group I — Skills Module — February 26, 2026
+
+**I1 — Skill Collection Schema**
+- Created `scripts/add-skill-collection.ts` migration script that creates the `Skill` Weaviate collection with full property schema (name, description, content, active, contentType, triggerConditions, parameters, outputFormat, version, previousVersionId, tags, category, author, sourceFile, deprecated, createdAt, updatedAt)
+
+**I2 — Skill CRUD API**
+- Created `lib/skill-types.ts` — TypeScript types: `SkillListItem`, `SkillDetail`, `SkillCreateInput`, `SkillUpdateInput`, `SkillParameter`, content type/category constants, and utility functions
+- Created `lib/skills.ts` — CRUD functions: `listSkills`, `getSkill`, `createSkill`, `updateSkill`, `deleteSkill`, `checkSkillReferences`, `activateSkill`, `deactivateSkill`, `deprecateSkill`, `restoreSkill`, plus `SkillNameConflictError`
+- Created `app/api/skills/route.ts` — `GET` (list with filters: contentType, active, category) and `POST` (create)
+- Created `app/api/skills/[id]/route.ts` — `GET` (detail), `PUT` (update), `DELETE` (with reference check), `PATCH` (activate/deactivate/deprecate/restore)
+
+**I3 — Skills Library UI**
+- Created `app/skills/page.tsx` — Skills Library list page with filter tabs (All/Active/Inactive/Deprecated), content type filter, category filter, and search
+- Created `app/skills/[id]/page.tsx` — Skill detail page with markdown content, metadata sidebar, and activation toggle
+- Created `app/skills/new/page.tsx` — Create skill form page
+- Created `app/skills/[id]/edit/page.tsx` — Edit skill form page with version bump (patch/minor/major)
+- Created `app/skills/components/skill-list.tsx`, `skill-form.tsx`, `skill-detail-actions.tsx` — UI components
+
+**I4 — Context Assembly Integration**
+- Created `lib/context-assembly.ts` — `assembleContext()` function for building system prompts with active skills (matched by content type), knowledge objects, and business rules
+
+**I5 — Migration Script**
+- Created `scripts/migrate-instruction-templates.ts` — migrates `BusinessRule` objects with `subType: "instruction_template"` to the `Skill` collection, preserving name, content, tags, and sourceFile; sets `active: true`, `version: "1.0.0"`; deprecates originals; supports `--dry-run` flag
+- Ran migration: 2 instruction templates (Campaign Brief Generator, Ops Configuration Guide Generator) migrated to Skills and originals deprecated
+
+**Other changes:**
+- Modified `app/page.tsx` — added "Skills Library" navigation card to home page
+
+---
+
 ### Group H — Enhanced Change Review Workflows (H3, H4, H5) — February 26, 2026
 
 **H3 — Review Queue Integration for Document Additions**

@@ -682,9 +682,11 @@ Uploads a document to supplement an existing knowledge object. Parses the file a
 
 ---
 
-## Planned: Skills CRUD Routes (Group I)
+## Skills CRUD Routes (Group I)
 
-> Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group I.
+**Status: Implemented**
+
+**Implementation files:** `app/api/skills/route.ts`, `app/api/skills/[id]/route.ts`
 
 ### GET /api/skills
 

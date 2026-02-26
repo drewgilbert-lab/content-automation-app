@@ -64,6 +64,13 @@ const navItems = [
     available: true,
   },
   {
+    title: "Skills Library",
+    description: "Manage procedural AI instructions for content generation tasks.",
+    href: "/skills",
+    icon: "◉",
+    available: true,
+  },
+  {
     title: "Content",
     description: "Browse, create, and manage generated content across all formats.",
     href: "/content",

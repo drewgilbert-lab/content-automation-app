@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: February 2026
+> Last updated: February 26, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -425,13 +425,46 @@ Group K introduces a REST API gateway that wraps Weaviate with the Content Engin
 
 Matches existing patterns, right level of abstraction, runs natively on Vercel, versioned from day one.
 
+**Weaviate Multi-User Access Control (Defense-in-Depth):**
+
+A single `WEAVIATE_API_KEY` with full admin access is currently used for all operations. This creates a blast radius problem: if any access channel is compromised, the attacker has admin access to every Weaviate collection. Weaviate Cloud supports user management and RBAC (v1.30+), allowing multiple API keys with scoped permissions.
+
+Create distinct Weaviate users via the Weaviate Cloud console or API:
+
+| Weaviate User | Custom Role | Permissions | Used By |
+|---|---|---|---|
+| `content-engine-admin` | `admin` | Full CRUD on all collections | Next.js admin UI, review queue, bulk upload |
+| `content-engine-api-reader` | `api_reader` | Read-only on Persona, Segment, UseCase, BusinessRule, ICP, Skill | External REST API (`/api/v1/`) via `lib/knowledge.ts` |
+| `content-engine-mcp` | `mcp_access` | Read on knowledge collections + create on Submission | MCP server (Groups J/L) |
+
+Environment variables per user:
+
+```
+WEAVIATE_URL=               # Shared across all users
+WEAVIATE_API_KEY=           # content-engine-admin (existing, used by Next.js app)
+WEAVIATE_READER_API_KEY=    # content-engine-api-reader (new, used by /api/v1/ routes)
+WEAVIATE_MCP_API_KEY=       # content-engine-mcp (new, used by MCP server)
+```
+
+The `withWeaviate` helper in `lib/weaviate.ts` accepts an optional key parameter to select which Weaviate user to connect as. External API routes pass `WEAVIATE_READER_API_KEY`, so even if the application-level `X-API-Key` auth is bypassed, the Weaviate user can only read — it cannot delete or modify objects. See ADR-014 in [TECH_DECISIONS.md](./TECH_DECISIONS.md).
+
+**API Response Security:**
+
+All `/api/v1/` responses include standard security headers: `X-Content-Type-Options: nosniff`, `Cache-Control: no-store`, `X-Frame-Options: DENY`. These are applied by the `withApiAuth()` middleware in `lib/api-middleware.ts`.
+
+CORS is denied by default on `/api/v1/` routes (`Access-Control-Allow-Origin` is not set). If a browser-based consumer needs access, configure `ALLOWED_ORIGINS` as a comma-separated list of permitted origins. The middleware reads this env var and sets CORS headers accordingly. Server-to-server consumers (the primary use case) are unaffected by CORS.
+
 #### Phase 1 — Read API and Connected Systems Management
 
 **K1 — ConnectedSystem Collection Schema**
 Create a `ConnectedSystem` Weaviate collection. Properties: `name` (text — human-readable system name), `description` (text — what this system does), `apiKeyHash` (text — SHA-256 hash of the API key), `apiKeyPrefix` (text — first 8 chars of the key for UI display), `permissions` (text[] — `["read"]` for Phase 1), `subscribedTypes` (text[] — which object types this key can access, e.g. `["persona", "segment"]` or `["*"]` for all), `rateLimitTier` (text — `"standard"` or `"elevated"`), `active` (boolean — master toggle; inactive keys are rejected), `createdAt` (date), `updatedAt` (date). Implementation in `lib/connection-types.ts` (types, input types, constants), `lib/connections.ts` (CRUD: list, get, create, update, delete, activate/deactivate), and `scripts/create-connected-system-collection.ts` (schema creation/migration script).
 
-**K2 — API Key Generation and Validation Middleware**
-Generate cryptographically secure API keys on system creation. `crypto.randomBytes(32).toString('hex')` produces a 64-char key shown once to the admin at creation time. Stored as `SHA-256(key)` in the `apiKeyHash` field. Validation flow: `X-API-Key` request header → SHA-256 hash → lookup in in-memory `globalThis` cache (refreshed every 5 minutes, same pattern as ADR-012) → return `ConnectedSystem` record or `401 Unauthorized`. Constant-time comparison via `crypto.timingSafeEqual` to prevent timing attacks. Build `lib/api-auth.ts` with `generateApiKey()`, `hashApiKey()`, `validateApiKey()`, and cache management. Build `lib/api-middleware.ts` with a `withApiAuth(handler)` higher-order function wrapping all `/api/v1/` route handlers. Injects the authenticated `ConnectedSystem` into the request context. Checks `active` status.
+**K2 — API Key Generation, Rotation, and Validation Middleware**
+Generate cryptographically secure API keys on system creation. `crypto.randomBytes(32).toString('hex')` produces a 64-char key shown once to the admin at creation time. Stored as `SHA-256(key)` in the `apiKeyHash` field. Validation flow: `X-API-Key` request header → SHA-256 hash → lookup in in-memory `globalThis` cache (refreshed every 5 minutes, same pattern as ADR-012) → return `ConnectedSystem` record or `401 Unauthorized`. Constant-time comparison via `crypto.timingSafeEqual` to prevent timing attacks. Build `lib/api-auth.ts` with `generateApiKey()`, `hashApiKey()`, `validateApiKey()`, `rotateApiKey()`, and cache management. Build `lib/api-middleware.ts` with a `withApiAuth(handler)` higher-order function wrapping all `/api/v1/` route handlers. Injects the authenticated `ConnectedSystem` into the request context. Checks `active` status. Applies security headers (`X-Content-Type-Options`, `Cache-Control`, `X-Frame-Options`) and CORS policy to every response.
+
+Key rotation: `POST /api/connections/[id]/rotate-key` generates a new API key, updates the `apiKeyHash` and `apiKeyPrefix` on the `ConnectedSystem`, forces an immediate cache refresh, and returns the new plaintext key once. The old key is invalidated immediately. This avoids the need to delete and recreate a connected system when a key is compromised, preserving the system's configuration, push settings, and push log history.
+
+Request logging: Every `/api/v1/` request is logged to stdout (captured by Vercel) with: `{ timestamp, apiKeyPrefix, endpoint, method, statusCode, durationMs }`. This provides the minimum audit trail needed for external API access without the overhead of a full event logging system. See Deferred: Event Logging & Audit Trails for the broader audit trail plan.
 
 **K3 — Read API Endpoints**
 Versioned read-only endpoints at `/api/v1/`. All require `X-API-Key` auth via K2 middleware except the health endpoint. Responses follow `{ "data": ..., "meta": ... }` shape. Deprecated objects excluded by default.
@@ -456,10 +489,10 @@ Admin interface at `/connections` for creating, managing, and monitoring connect
 Pages:
 - `/connections` — list all systems. Columns: name, key prefix, active status badge, subscribed types, created date. Active/inactive filter tabs. Search by name.
 - `/connections/new` — create form. Fields: name, description, subscribed types (multi-select with "All" option), rate limit tier (dropdown). On submit, displays the generated API key once with a copy button and a warning that it cannot be shown again.
-- `/connections/[id]` — detail page. Shows: name, description, key prefix, permissions, subscribed types, rate limit tier, active status, timestamps. Action bar: Edit, Activate/Deactivate, Delete (with confirmation). Phase 2 adds push configuration and sync status sections here.
+- `/connections/[id]` — detail page. Shows: name, description, key prefix, permissions, subscribed types, rate limit tier, active status, timestamps. Action bar: Edit, Rotate Key (with confirmation — shows new key once), Activate/Deactivate, Delete (with confirmation). Phase 2 adds push configuration and sync status sections here.
 - `/connections/[id]/edit` — edit form. All fields except API key are editable. Phase 2 adds push configuration fields.
 
-Internal API routes (used by admin UI, not versioned, no external key auth): `GET /api/connections` (list), `POST /api/connections` (create — returns plaintext key in response), `GET /api/connections/[id]` (detail), `PUT /api/connections/[id]` (update), `DELETE /api/connections/[id]` (delete), `PATCH /api/connections/[id]` (activate/deactivate).
+Internal API routes (used by admin UI, not versioned, no external key auth): `GET /api/connections` (list), `POST /api/connections` (create — returns plaintext key in response), `GET /api/connections/[id]` (detail), `PUT /api/connections/[id]` (update), `DELETE /api/connections/[id]` (delete), `PATCH /api/connections/[id]` (activate/deactivate), `POST /api/connections/[id]/rotate-key` (generate new key — returns plaintext key once, invalidates old key immediately).
 
 Components: `app/connections/components/connection-list.tsx`, `app/connections/components/connection-form.tsx`, `app/connections/components/connection-detail-actions.tsx`.
 
@@ -490,7 +523,7 @@ Unit tests for `lib/api-auth.ts` (key generation, hashing, validation, cache beh
 Extend the `ConnectedSystem` collection with push-related properties: `webhookUrl` (text — where to POST change events), `webhookSecret` (text — HMAC-SHA256 secret for signing payloads), `pushEnabled` (boolean — toggle push independently of read access), `pushDelayMinutes` (int — debounce window, default 60), `lastSyncedAt` (date — high-water mark for successful pushes). Create a `PushLog` Weaviate collection for tracking delivery attempts. Properties: `objectId` (text — knowledge object or skill UUID), `objectType` (text — collection type), `systemId` (text — ConnectedSystem UUID), `systemName` (text — denormalized for display), `eventType` (text — `"created"`, `"updated"`, `"deprecated"`, `"deleted"`), `status` (text — `"delivered"`, `"failed"`), `failureReason` (text — HTTP status, error message), `attemptCount` (int — 1 or 2, max 1 retry), `objectUpdatedAt` (date — the `updatedAt` that triggered the push), `createdAt` (date). Implementation: extend `lib/connection-types.ts` with push fields, new `lib/push-types.ts` for PushLog types, update schema migration script, new `scripts/create-push-log-collection.ts`.
 
 **K8 — Webhook Delivery Engine**
-Build `lib/push-sync.ts` with the core push logic. The webhook delivery sends a signed JSON payload to the connected system's `webhookUrl`. Full object included — receiving systems get everything in one call including resolved cross-reference names and types. Payload shape: `{ "event": "knowledge.updated", "timestamp": "ISO-8601", "object": { id, type, name, content, tags, crossReferences, deprecated, createdAt, updatedAt } }`. Event types: `knowledge.created`, `knowledge.updated`, `knowledge.deprecated`, `skill.created`, `skill.updated`, `skill.deprecated`. Signing: HMAC-SHA256 of the raw JSON body using the system's `webhookSecret`, sent in `X-Content-Engine-Signature` header. Receiving system verifies by recomputing the HMAC. Retry: 1 retry on failure (HTTP non-2xx or network error) with 5-second delay between attempts. After 2 total attempts, log as failed in PushLog. Implementation: `pushToSystem()`, `buildWebhookPayload()`, `signPayload()`, `executePushCycle()`.
+Build `lib/push-sync.ts` with the core push logic. The webhook delivery sends a signed JSON payload to the connected system's `webhookUrl`. Full object included — receiving systems get everything in one call including resolved cross-reference names and types. Payload shape: `{ "event": "knowledge.updated", "timestamp": "ISO-8601", "object": { id, type, name, content, tags, crossReferences, deprecated, createdAt, updatedAt } }`. Event types: `knowledge.created`, `knowledge.updated`, `knowledge.deprecated`, `skill.created`, `skill.updated`, `skill.deprecated`. Signing: HMAC-SHA256 of the raw JSON body using the system's `webhookSecret`, sent in `X-Content-Engine-Signature` header. The `timestamp` field is included inside the signed body; receiving systems must verify `abs(now - payload.timestamp) < 5 minutes` to reject replay attacks. Receiving system verifies by recomputing the HMAC and checking the timestamp window. Retry: 1 retry on failure (HTTP non-2xx or network error) with 5-second delay between attempts. After 2 total attempts, log as failed in PushLog. Implementation: `pushToSystem()`, `buildWebhookPayload()`, `signPayload()`, `executePushCycle()`.
 
 **K9 — Daily Push Cron Job**
 Build the Vercel Cron endpoint that runs the push cycle once per day. Flow: (1) query all ConnectedSystems where `active=true` AND `pushEnabled=true`, (2) for each system find knowledge objects + skills where `updatedAt > system.lastSyncedAt` AND `updatedAt < (now - pushDelayMinutes)`, (3) for each object check PushLog for a failed entry with `attemptCount >= 2` for this object+system pair — skip if found (permanent failure, requires admin action), (4) call `pushToSystem()` for each eligible object, (5) log results to PushLog (delivered or failed), (6) update `system.lastSyncedAt` = max `updatedAt` of successfully delivered objects. Deprecation handling: when an object is deprecated, its `updatedAt` changes, so the cron picks it up with event type `"knowledge.deprecated"`. Hard deletes are not synced — deprecation is the recommended workflow for connected system awareness. Vercel Cron config in `vercel.json`: `{ "crons": [{ "path": "/api/sync/push", "schedule": "0 6 * * *" }] }`. Runs daily at 6 AM UTC. Free plan supports one daily cron. Implementation: `app/api/sync/push/route.ts` calling `executePushCycle()` from `lib/push-sync.ts`.
@@ -521,13 +554,18 @@ Unit tests for `lib/push-sync.ts` (payload building, HMAC signing, retry logic, 
 | Schema changes break consumers | Renaming a Weaviate property changes the API response | Version the API (`/v1/`); external response schemas defined in TypeScript types, not derived directly from Weaviate |
 | Semantic search quality depends on query phrasing | Poorly phrased queries return low-relevance results | Return `score` with every search result; document recommended `certainty` thresholds |
 
+**Resolved Decisions:**
+
+| Decision | Resolution |
+|---|---|
+| `subscribedTypes` restricts read API access or only push? | **Full read access for all keys in Phase 1.** The `subscribedTypes` field is stored on `ConnectedSystem` and used for Phase 2 push filtering only. All authenticated keys can read all knowledge types and skills via `/api/v1/`. Type-scoped read access may be added as a future enhancement if needed. |
+| Key rotation workflow? | **Included in Phase 1 (K2).** `POST /api/connections/[id]/rotate-key` generates a new key, invalidates the old one, and preserves all system configuration. |
+| Webhook payload cross-references? | Include resolved names and types (not full content) in cross-references. Keeps payloads self-contained without bloating size. |
+
 **Open Questions:**
 
 | Question | Context |
 |---|---|
-| Should `subscribedTypes` restrict read API access or only push? | Phase 1 could scope read access per-key (persona-only key) or give all keys full read access. Recommend: full read access for all keys in Phase 1; add type-scoping as a future enhancement if needed. |
-| Key rotation workflow? | Current design: delete old system, create new one. Future: add a "rotate key" action that generates a new key while keeping the system config. Not needed for Phase 1. |
-| Should the push payload include resolved cross-reference content or just IDs? | Full cross-ref content makes payloads larger but self-contained. IDs require the receiver to call the read API. Recommend: include resolved names and types (not full content) in cross-references. |
 | How to handle the 10s timeout for push cycles? | Pushing many objects to many systems may exceed 10s. Options: process N objects per cron run and rely on daily repetition to catch up; batch webhook calls; or upgrade to Vercel Pro. |
 | Certainty threshold for semantic search? | Default 0.7 based on Weaviate docs. Allow consumers to override via `certainty` param. Monitor actual score distributions after launch. |
 
@@ -730,9 +768,23 @@ When Groups J and L are implemented, they should extend the existing `ConnectedS
 
 **Build order:** Group K first (establishes `ConnectedSystem` schema, key management, and `lib/knowledge.ts` query functions). Groups J and L second (consume the same infrastructure). MCP implementation is deferred until the REST API is fully built and tested.
 
-#### No RBAC Dependency
+#### Weaviate-Level Access Control (Defense-in-Depth)
 
-All three groups are designed to work without user authentication or role-based access. The review queue is the authorization layer for writes (Groups J, L Phase 2). Read access (Groups K, L) is protected only by API keys. This is appropriate for the current single-company internal tool. When Auth/RBAC is added (Phase 3+), all three groups should integrate with the auth system for per-user or per-team scoping.
+All three groups leverage Weaviate's built-in RBAC (v1.30+) as a defense-in-depth layer beneath application-level API key auth. Each access channel connects to Weaviate with a scoped user (`content-engine-admin`, `content-engine-api-reader`, `content-engine-mcp`) so that even if application-level authentication is bypassed, the Weaviate user limits the blast radius. See Group K Architecture Decisions for the full user mapping.
+
+#### No User Authentication Dependency
+
+All three groups are designed to work without end-user authentication or role-based access at the application level. The review queue is the authorization layer for writes (Groups J, L Phase 2). Read access (Groups K, L) is protected by application-level API keys and Weaviate-level read-only users. This is appropriate for the current single-company internal tool. When user Auth/RBAC is added (Phase 3+), all three groups should integrate with the auth system for per-user or per-team scoping. See Phase 3+ backlog for the OIDC/SSO upgrade path.
+
+#### OIDC/SSO Upgrade Path
+
+The current API key authentication model (Group K `ConnectedSystem`, Groups J/L API keys) is designed to be replaceable when user authentication is added. The upgrade path:
+
+1. **Phase 1 (current):** Application-level API keys per connected system + Weaviate-level RBAC per access channel. No end-user authentication.
+2. **Phase 3+:** Add OIDC integration (Okta, Auth0, Azure AD, or Keycloak) for the web UI. Internal routes (`/api/knowledge`, `/api/skills`, etc.) are protected by session-based auth. External API keys (`/api/v1/`) continue working alongside OIDC — connected systems use API keys, human users use OIDC tokens.
+3. **Future:** Extend OIDC groups to Weaviate RBAC for end-to-end identity propagation. A user's OIDC group membership determines their Weaviate role, enabling per-team access scoping across all channels.
+
+No implementation is needed now. The key design constraint is that `lib/api-auth.ts` and `lib/api-middleware.ts` should accept both API keys and Bearer tokens, so the auth layer can be extended without rewriting route handlers.
 
 
 ---
@@ -944,11 +996,12 @@ The following `business_rule` objects are planned but not yet created. They will
 | Item | Notes |
 |---|---|
 | Vercel deployment | Infrastructure is ready; deployment is a pending step after local dev is confirmed |
-| Auth / RBAC | User authentication and role-based access — not needed for single-user internal tool in Phase 1. Groups J, K, L use API keys independently; integrate with RBAC when added. |
+| Auth / RBAC | User authentication and role-based access for the web UI and internal API routes. Not needed for single-user internal tool in Phase 1. Planned approach: OIDC integration (Okta, Auth0, Azure AD, or Keycloak) for session-based auth on internal routes. External API keys (Group K) and MCP keys (Groups J/L) continue working alongside OIDC. Weaviate-level RBAC users (Group K) provide defense-in-depth. See Cross-Cutting Notes: OIDC/SSO Upgrade Path. |
+| Internal API route protection | All internal routes (`/api/knowledge`, `/api/skills`, `/api/submissions`, `/api/dashboard`, `/api/connections`, `/api/bulk-upload`) currently have zero authentication. Accepted risk for the current single-user internal tool. Must be protected when Auth/RBAC is added. |
 | External integrations | CRM, MAP, social platforms — future consideration. Groups J and K provide the programmatic access layer for building these integrations. |
 | Databricks sync | Canonical account/segment data may already exist in Databricks; a sync pipeline (Databricks → Weaviate) could replace manual entry |
 | MCP server hosting | Groups J and L require a long-running Node.js process (standalone from Vercel). Options: Railway, Fly.io, dedicated Vercel Fluid Compute. Decision needed before implementation. |
-| API key management | Groups J, K, L all need API key auth. Phase 1: env vars. Future: shared `ApiKey` collection or external auth service. See Cross-Cutting Notes in Module 1 Build Plan. |
+| API key management | Groups J, K, L all need API key auth. Group K implements the `ConnectedSystem` collection with per-system keys, hashing, caching, and admin UI. Groups J/L extend the same model with additional permission scopes. See Cross-Cutting Notes: API Key Strategy. |
 | Rate limiting infrastructure | Group K needs Upstash Redis or Vercel KV for serverless-compatible rate limiting. MCP server (J, L) implements in-process rate limiting. |
 
 ---

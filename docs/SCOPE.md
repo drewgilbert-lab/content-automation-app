@@ -1,6 +1,6 @@
 # Content Engine — Project Overview
 
-> Last updated: February 2026
+> Last updated: February 26, 2026
 
 ## What This Is
 
@@ -21,7 +21,7 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 
 ### Out of Scope (Current Phase)
 
-- User authentication and role-based access
+- User authentication and role-based access (internal API routes are unprotected; accepted risk for single-user internal tool — see Phase 3+ backlog in [ROADMAP.md](./ROADMAP.md))
 - Content approval and publishing workflows (defined in [ROADMAP.md](./ROADMAP.md), not yet implemented)
 - Vercel production deployment (infrastructure is ready; deployment is a pending step)
 - Integration with external systems (CRM, MAP, social platforms)
@@ -64,6 +64,6 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Vercel deployment | Pending | After local dev is confirmed working |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
 | Inbound MCP server | Scoped | 3rd party apps push content via MCP, routed through review queue; see ROADMAP.md Group J |
-| External REST API | Scoped | Read-only `/api/v1/` endpoints with API key auth for 3rd party read access; see ROADMAP.md Group K |
+| External REST API | Scoped | Read-only `/api/v1/` endpoints; Group K external API key auth and Weaviate RBAC scoped; see ROADMAP.md Group K |
 | LLM MCP server (RAG) | Scoped | MCP server for Claude/Gemini/ChatGPT read access to knowledge base; see ROADMAP.md Group L |
 | Approval workflows | Future | Defined in ROADMAP.md |

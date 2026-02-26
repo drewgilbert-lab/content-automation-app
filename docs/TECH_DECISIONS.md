@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: February 2026
+> Last updated: February 26, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.
@@ -244,15 +244,21 @@ External internal tools need programmatic read access to knowledge objects. Thre
 - GraphQL can be layered on top later if flexible nested queries become needed
 
 **Authentication:**
-`X-API-Key` header with constant-time comparison (`crypto.timingSafeEqual`). Phase 1: single key in `CONTENT_ENGINE_API_KEY` environment variable. Future: multi-key model with per-consumer metadata.
+`X-API-Key` header with constant-time comparison (`crypto.timingSafeEqual`). Per-system API keys managed via the `ConnectedSystem` Weaviate collection with SHA-256 hashed storage, 8-character prefix for admin identification, and an in-memory `globalThis` cache (refreshed every 5 minutes). Key rotation supported via `POST /api/connections/[id]/rotate-key`. All external API requests are logged to stdout: `{ timestamp, apiKeyPrefix, endpoint, method, statusCode, durationMs }`.
+
+**Response Security:**
+All `/api/v1/` responses include: `X-Content-Type-Options: nosniff`, `Cache-Control: no-store`, `X-Frame-Options: DENY`. CORS denied by default; configurable via `ALLOWED_ORIGINS` env var for browser-based consumers.
 
 **Rate Limiting:**
-Upstash Redis + `@upstash/ratelimit` for serverless-compatible rate limiting. 100 req/min global, 20 req/min for semantic search.
+Upstash Redis + `@upstash/ratelimit` for serverless-compatible rate limiting. Per-key limits: 100 req/min standard tier, 300 req/min elevated tier, 20 req/min semantic search (all tiers). Sliding window algorithm. Response headers: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`.
 
 **Implications:**
 - New routes under `app/api/v1/` — separate from internal routes at `app/api/`
-- `lib/api-auth.ts` and `lib/api-middleware.ts` for auth and rate limiting wrappers
-- New environment variables: `CONTENT_ENGINE_API_KEY`, optionally `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`
+- `lib/api-auth.ts` for key generation, hashing, validation, rotation, and cache management
+- `lib/api-middleware.ts` for `withApiAuth()` wrapper applying auth, rate limiting, security headers, CORS, and request logging
+- `ConnectedSystem` Weaviate collection for per-system key management with admin UI at `/connections`
+- New environment variables: `WEAVIATE_READER_API_KEY` (Weaviate read-only user for external API), `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, optionally `ALLOWED_ORIGINS`
+- Weaviate-level defense-in-depth: external API routes connect to Weaviate as `content-engine-api-reader` (read-only) rather than the admin user — see ADR-014
 - OpenAPI spec at `public/openapi.json` (stretch goal) for consumer documentation
 
 ---
@@ -414,6 +420,47 @@ The project originally used `claude-opus-4-5` for streaming content generation (
 
 ---
 
+## ADR-014: Weaviate Multi-User Access Control (Defense-in-Depth)
+
+**Status:** Decided (pending implementation with Group K)
+
+**Context:**
+The application currently uses a single `WEAVIATE_API_KEY` (admin-level) for all Weaviate operations across all access channels: the Next.js admin UI, internal API routes, and the planned external REST API and MCP server. If any channel is compromised, the attacker has full admin access to every Weaviate collection. Weaviate Cloud supports user management and RBAC (v1.30+), allowing multiple API keys with scoped permissions per collection.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Single admin key (current) | Simplest; all channels share full access; highest blast radius |
+| Multiple Weaviate users with scoped roles | Each channel gets a dedicated key with least-privilege permissions; requires managing multiple env vars |
+| Application-level auth only (no Weaviate RBAC) | Simpler env setup; relies entirely on application code for access control; no defense-in-depth |
+
+**Decision:** Create distinct Weaviate users with scoped custom roles for each access channel.
+
+**Rationale:**
+- Defense-in-depth: even if application-level API key auth is bypassed, the Weaviate user limits what an attacker can do
+- Principle of least privilege: the external REST API only needs read access; the MCP server only needs read + submission creation
+- Weaviate Cloud supports this natively via user management API (v1.30+) at no additional cost
+- The `withWeaviate` helper already accepts connection parameters — adding an optional key parameter is minimal effort
+- Aligns with Weaviate's own security recommendations for production deployments
+
+**User Mapping:**
+
+| Weaviate User | Role | Permissions | Used By | Env Var |
+|---|---|---|---|---|
+| `content-engine-admin` | `admin` | Full CRUD on all collections | Next.js admin UI, review queue | `WEAVIATE_API_KEY` (existing) |
+| `content-engine-api-reader` | `api_reader` | Read-only on Persona, Segment, UseCase, BusinessRule, ICP, Skill | External REST API (`/api/v1/`) | `WEAVIATE_READER_API_KEY` (new) |
+| `content-engine-mcp` | `mcp_access` | Read on knowledge + create on Submission | MCP server (Groups J/L) | `WEAVIATE_MCP_API_KEY` (new) |
+
+**Implications:**
+- Two new environment variables: `WEAVIATE_READER_API_KEY`, `WEAVIATE_MCP_API_KEY`
+- `lib/weaviate.ts` `withWeaviate` helper accepts an optional `apiKey` parameter to select the Weaviate user
+- Weaviate users and roles must be created via the Weaviate Cloud console or API before deployment
+- Internal collections (`Submission`, `GeneratedContent`, `ConnectedSystem`, `PushLog`) are never exposed to the `api_reader` role
+- When user Auth/RBAC is added (Phase 3+), OIDC groups can be mapped to Weaviate roles for end-to-end identity propagation
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -431,6 +478,7 @@ The project originally used `claude-opus-4-5` for streaming content generation (
 | ADR-011 | pdf-parse v1.x Downgrade | Feb 2026 | Decided |
 | ADR-012 | `globalThis` for In-Memory Session Store (Dev) | Feb 2026 | Decided |
 | ADR-013 | Claude Haiku 4.5 as Default Model (Dev) | Feb 2026 | Decided |
+| ADR-014 | Weaviate Multi-User Access Control | Feb 2026 | Pending implementation |
 
 ---
 

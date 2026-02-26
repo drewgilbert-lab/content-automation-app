@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: February 2026
+> Last updated: February 26, 2026
 
 ---
 
@@ -954,6 +954,14 @@ data: {"total": 5, "classified": 4, "failed": 1}
 
 All `/api/v1/` routes require `X-API-Key` header authentication (except health). Responses follow the shape `{ "data": ..., "meta": ... }`. Deprecated objects are excluded by default.
 
+**Security model:**
+- Application-level: per-system API keys managed via `ConnectedSystem` collection. Keys are SHA-256 hashed, validated with constant-time comparison, cached in-memory (5-min refresh).
+- Weaviate-level: external API routes connect as `content-engine-api-reader` (read-only Weaviate user) for defense-in-depth.
+- Response headers: `X-Content-Type-Options: nosniff`, `Cache-Control: no-store`, `X-Frame-Options: DENY`.
+- CORS: denied by default. Configure `ALLOWED_ORIGINS` env var for browser-based consumers.
+- Request logging: every request logged to stdout with `{ timestamp, apiKeyPrefix, endpoint, method, statusCode, durationMs }`.
+- Key rotation: `POST /api/connections/[id]/rotate-key` generates a new key without recreating the connected system.
+
 ### GET /api/v1/knowledge
 
 Lists all non-deprecated knowledge objects across all collections.
@@ -1072,6 +1080,30 @@ Health check for monitoring. Does not require API key authentication.
 - Body: `{ "status": "ok" | "degraded", "version": "1", "weaviate": { "connected": boolean }, "collections": { "persona": number, ... }, "timestamp": string }`
 
 **Implementation:** `app/api/v1/health/route.ts` → calls `checkWeaviateConnection()` from `lib/weaviate.ts`
+
+---
+
+### POST /api/connections/[id]/rotate-key
+
+Rotates the API key for a connected system. Generates a new key, invalidates the old one immediately, and returns the new plaintext key once. Preserves all system configuration.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ConnectedSystem UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "apiKey": "string (shown once)", "apiKeyPrefix": "string (first 8 chars)" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Connected system not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to rotate key" }` | Server error |
+
+**Implementation:** `app/api/connections/[id]/rotate-key/route.ts` → calls `rotateApiKey()` from `lib/api-auth.ts`
 
 ---
 

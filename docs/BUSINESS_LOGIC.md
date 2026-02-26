@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: February 2026
+> Last updated: February 26, 2026
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -247,11 +247,11 @@ The knowledge base is accessible through three channels. Each channel has differ
 
 ### Access Channels
 
-| Channel | Protocol | Direction | Auth | Hosted |
-|---|---|---|---|---|
-| Web UI | HTTP (Next.js) | Read + Write (via review queue) | None (internal tool) | Vercel |
-| External REST API (Group K) | REST over HTTP (`/api/v1/`) | Read-only | `X-API-Key` header | Vercel (same app) |
-| MCP Server (Groups J + L) | MCP over stdio / SSE | Read + Write-to-submission | API key (SSE) / local (stdio) | Standalone (Railway/Fly.io) |
+| Channel | Protocol | Direction | App-Level Auth | Weaviate User | Hosted |
+|---|---|---|---|---|---|
+| Web UI | HTTP (Next.js) | Read + Write (via review queue) | None (internal tool, Phase 3+ OIDC) | `content-engine-admin` (full CRUD) | Vercel |
+| External REST API (Group K) | REST over HTTP (`/api/v1/`) | Read-only | `X-API-Key` header per connected system | `content-engine-api-reader` (read-only) | Vercel (same app) |
+| MCP Server (Groups J + L) | MCP over stdio / SSE | Read + Write-to-submission | API key (SSE) / local (stdio) | `content-engine-mcp` (read + create Submission) | Standalone (Railway/Fly.io) |
 
 ### Write Path: All Channels Converge on the Review Queue
 
@@ -282,6 +282,8 @@ The review queue is the **universal authorization layer** for writes. No externa
 - The admin always has final control over what enters the live knowledge base
 - Source provenance is tracked on every submission (`sourceChannel`, `sourceAppId`, `sourceDescription`)
 - The same merge, diff, and review UI works for all submission sources
+
+Each access channel connects to Weaviate with a dedicated user whose permissions match only what that channel needs (defense-in-depth). Even if application-level auth is bypassed, the Weaviate user limits the blast radius. See [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-014 and [ROADMAP.md](./ROADMAP.md) Group K Architecture Decisions.
 
 ### Read Path: Protocol-Specific but Shared Implementation
 

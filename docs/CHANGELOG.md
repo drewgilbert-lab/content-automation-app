@@ -1,6 +1,41 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: February 2026
+> Newest entries first. Last updated: February 26, 2026
+
+---
+
+### Security Gap Analysis and Documentation Updates — February 26, 2026
+
+Reviewed Weaviate security best practices (authentication, RBAC, audit logging, key rotation) against the Group K External REST API plan. Identified and addressed gaps across all project documentation.
+
+**ROADMAP.md updates:**
+- Added Weaviate multi-user access control (defense-in-depth) architecture with three scoped Weaviate users: `content-engine-admin`, `content-engine-api-reader`, `content-engine-mcp`
+- Promoted API key rotation from open question to Phase 1 requirement (K2) with `POST /api/connections/[id]/rotate-key`
+- Added request logging specification for `/api/v1/` routes (stdout-based audit trail)
+- Added API response security headers (`X-Content-Type-Options`, `Cache-Control`, `X-Frame-Options`) and CORS policy
+- Resolved three open questions: `subscribedTypes` (full read for Phase 1), key rotation (Phase 1), webhook cross-references (resolved names and types)
+- Updated K8 webhook spec to explicitly include timestamp in signed payload for replay attack prevention
+- Added OIDC/SSO upgrade path in Cross-Cutting Notes (Phase 3+ migration from API keys to OIDC)
+- Added internal API route protection as Phase 3+ backlog item (accepted risk for single-user tool)
+
+**TECH_DECISIONS.md updates:**
+- Added ADR-014: Weaviate Multi-User Access Control (defense-in-depth via scoped Weaviate users per access channel)
+- Extended ADR-007: added security headers, CORS, request logging, key rotation, ConnectedSystem collection, and `WEAVIATE_READER_API_KEY` env var
+
+**BUSINESS_LOGIC.md updates:**
+- Added Weaviate User column to External Access Patterns table showing which Weaviate user backs each channel
+- Added defense-in-depth paragraph with ADR-014 reference
+
+**API.md updates:**
+- Added security model summary to Group K section (app-level auth, Weaviate defense-in-depth, headers, CORS, logging)
+- Added `POST /api/connections/[id]/rotate-key` endpoint documentation
+
+**SCOPE.md updates:**
+- Updated "Out of Scope" to note internal API routes are unprotected (accepted risk with Phase 3+ backlog reference)
+
+**New files:**
+- Created `.env.example` with all current and planned environment variables
+- Created `docs/user-guides/external-api.md` — draft user guide for the External REST API
 
 ---
 

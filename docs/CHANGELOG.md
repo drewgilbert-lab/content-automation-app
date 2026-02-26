@@ -4,6 +4,18 @@
 
 ---
 
+### Group G3/G4/G5 — Bulk Upload Session, Review UI, and Submission Bridge (February 2026)
+
+**G3 — Upload Session Management:** In-memory session store (`lib/upload-session.ts`) with 24-hour TTL cleanup. Sessions track parsed documents, AI classifications, and user edits. Types defined in `lib/upload-session-types.ts`. Three new API routes: `POST /api/bulk-upload/parse` (accepts FormData with multiple files, parses via document parser, creates session), `GET /api/bulk-upload/session/[sessionId]` (retrieves serialized session state), `POST /api/bulk-upload/reclassify` (re-runs AI classification on a single document within a session). Updated existing `POST /api/bulk-upload/classify` to optionally accept `sessionId` and store classification results in the session.
+
+**G4 — Uploader Review UI:** Multi-step bulk upload page at `/bulk-upload`. Step 1: drag-and-drop file upload with file list preview (FileDropZone component). Step 2: real-time classification progress via SSE streaming (ClassificationProgress component). Step 3: review and edit AI classifications with inline editing of type, name, and tags per document (DocumentReviewCard, TagEditor, ConfidenceBadge components). Low-confidence items (below 0.7) highlighted with amber border. Bulk actions: Select All, Approve Selected, Reclassify Selected, Remove Selected. Expandable content preview per document. Navigation card added to home page.
+
+**G5 — Submission Bridge:** `POST /api/bulk-upload/approve` route creates one Submission per approved document via the existing `createSubmission()` function. Builds `proposedContent` JSON (name, content, tags, ICP-specific fields) matching the format expected by the review queue. Supports user overrides applied on top of AI classifications. Handles partial failures — continues processing remaining documents when individual submissions fail. Approved documents enter the existing admin review queue at `/queue`.
+
+**Tests:** 50 new tests across 6 test files: session store unit tests (21), session types unit tests (8), parse route tests (5), reclassify route tests (6), approve route tests (8), session retrieval route tests (2). All 107 project tests pass.
+
+---
+
 ### Group G1/G2 — Document Parser and AI Classification (February 2026)
 
 **G1 — Document Parser (`lib/document-parser.ts`):** Server-side file parser supporting four formats: Markdown (.md), PDF (.pdf), DOCX (.docx), and plain text (.txt). PDF extraction via `pdf-parse`; DOCX extraction via `mammoth` (both added as new dependencies). Returns `ParsedDocument` with extracted text, filename, original format, word count, and per-document parse errors. Enforces configurable limits: 10 MB per file, 100 MB per batch, 50 files per batch. MIME type validation with extension fallback. Types defined in `lib/document-parser-types.ts`.

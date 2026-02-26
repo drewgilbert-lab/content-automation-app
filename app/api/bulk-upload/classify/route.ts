@@ -1,6 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
+import { getSession, setClassification, updateSessionStatus } from "@/lib/upload-session";
 import { listKnowledgeObjects } from "@/lib/knowledge";
 import { classifyDocument } from "@/lib/classifier";
 import type { ParsedDocument } from "@/lib/document-parser-types";
@@ -77,6 +78,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const sessionId =
+    typeof body.sessionId === "string" ? body.sessionId : null;
+  const session = sessionId ? getSession(sessionId) : null;
+
   let existingObjects;
   try {
     existingObjects = await listKnowledgeObjects();
@@ -95,6 +100,10 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       let classified = 0;
       let failed = 0;
+
+      if (session && sessionId) {
+        updateSessionStatus(sessionId, "classifying");
+      }
 
       for (let i = 0; i < documents.length; i++) {
         const doc = documents[i];
@@ -120,6 +129,9 @@ export async function POST(req: NextRequest) {
 
         try {
           const classification = await classifyDocument(doc, existingObjects);
+          if (session && sessionId) {
+            setClassification(sessionId, i, classification);
+          }
           const result: ClassificationResultEvent = {
             index: i,
             filename: doc.filename,
@@ -137,6 +149,10 @@ export async function POST(req: NextRequest) {
           controller.enqueue(encoder.encode(sseEncode("error", errorEvent)));
           failed++;
         }
+      }
+
+      if (session && sessionId) {
+        updateSessionStatus(sessionId, "reviewing");
       }
 
       const done: ClassificationDoneEvent = { total, classified, failed };

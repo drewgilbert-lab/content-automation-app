@@ -115,13 +115,13 @@ Build `lib/document-parser.ts` supporting four file formats: Markdown (`.md`), P
 **G2 — AI Classification API** — **Done**
 Build `POST /api/bulk-upload/classify` route. For each parsed document, calls Claude with the document content plus a summary of all existing knowledge objects in the system. Claude returns a JSON classification: `objectType`, `objectName`, `tags`, `suggestedRelationships` (with target names resolved to IDs via Weaviate lookup), and a `confidence` score (0.0–1.0). Items below 0.7 confidence are flagged for manual review. Processing is sequential to avoid rate limits, with progress reported via Server-Sent Events.
 
-**G3 — Upload Session Management**
+**G3 — Upload Session Management** — **Done**
 Build `POST /api/bulk-upload/parse` route accepting `FormData` with multiple files. Parses all files via G1, creates a transient upload session stored server-side (in-memory with optional Redis persistence). Each session stores parsed documents, classification results, and user edits. Sessions expire after 24 hours. `GET /api/bulk-upload/session/[sessionId]` retrieves session state. `POST /api/bulk-upload/reclassify` re-runs classification on a single document within a session.
 
-**G4 — Uploader Review UI**
+**G4 — Uploader Review UI** — **Done**
 Build `/bulk-upload` page. Step 1: drag-and-drop file upload zone with file list preview (name, size, format). Step 2: classification progress indicator ("Classifying document 3 of 10...") with per-document status. Step 3: review list where the uploader can verify and edit the AI-assigned type (dropdown), name (text input), tags (tag editor), and suggested relationships (expandable panel with add/remove) for each document. Confidence scores displayed per item; low-confidence items highlighted. Expandable document preview shows parsed content. Bulk actions: "Accept All", "Accept Selected", "Reclassify Selected". Individual actions: edit, remove from batch, view original.
 
-**G5 — Submission Bridge**
+**G5 — Submission Bridge** — **Done**
 Build `POST /api/bulk-upload/approve` route. For each approved document, creates a `Submission` via the existing `createSubmission()` function with `submissionType: "new"`. The `proposedContent` JSON includes `name`, `content`, `tags`, and `relationships` (with resolved target IDs). Approved documents enter the existing admin review queue at `/queue`. Returns an array of created submission IDs with per-document error reporting for partial failures.
 
 **Risks and Gaps:**

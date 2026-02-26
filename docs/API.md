@@ -463,27 +463,26 @@ Saves the reviewer-edited merged content to the target knowledge object and clos
 
 ### POST /api/bulk-upload/parse
 
-Parses uploaded files and creates an upload session.
+Parses uploaded files and creates an upload session. Returns document metadata (without full content) and a session ID for subsequent classification and approval.
 
 **Runtime:** `nodejs`
 
 **Request:**
 - Content-Type: `multipart/form-data`
-- Fields: multiple `file` entries (Markdown, PDF, DOCX, TXT)
-- Limits: 10 MB per file, 100 MB total, 50 files max
+- Field: `files` (multiple File entries — `.md`, `.pdf`, `.docx`, `.txt`)
+- Limits: 10 MB per file, 100 MB total batch size, 50 files per batch
 
 **Response (success):**
 - Status: `200`
 - Body:
 ```json
 {
-  "sessionId": "string",
+  "sessionId": "uuid",
   "documents": [
     {
-      "id": "string",
+      "index": 0,
       "filename": "string",
-      "originalFormat": "markdown | pdf | docx | txt",
-      "content": "string",
+      "format": "md | pdf | docx | txt",
       "wordCount": 0,
       "parseErrors": ["string"]
     }
@@ -496,10 +495,12 @@ Parses uploaded files and creates an upload session.
 
 | Status | Body | Condition |
 |---|---|---|
-| 400 | `{ "error": "..." }` | No files, unsupported format, or size limit exceeded |
-| 500 | `{ "error": "Failed to parse documents" }` | Server/parsing error |
+| 400 | `{ "error": "No files provided" }` | FormData contains no files |
+| 400 | `{ "error": "Batch contains N files, exceeding the limit of 50" }` | Too many files |
+| 400 | `{ "error": "Batch total size N MB exceeds the limit of 100 MB" }` | Batch too large |
+| 400 | `{ "error": "Invalid form data" }` | Request body is not valid FormData |
 
-**Implementation:** `app/api/bulk-upload/parse/route.ts` → calls `parseDocument()` from `lib/document-parser.ts`
+**Implementation:** `app/api/bulk-upload/parse/route.ts` → calls `parseDocuments()` from `lib/document-parser.ts`, `createSession()` from `lib/upload-session.ts`
 
 ---
 
@@ -512,12 +513,14 @@ Classifies parsed documents using Claude AI. Returns classifications via Server-
 **Request:**
 ```json
 {
-  "sessionId": "string (required)",
+  "sessionId": "string (optional — when provided, classification results are stored in the session)",
   "documents": [
     {
-      "id": "string",
-      "content": "string",
-      "filename": "string"
+      "filename": "string (required)",
+      "format": "string (optional, default 'txt')",
+      "content": "string (required)",
+      "wordCount": 0,
+      "errors": ["string"]
     }
   ]
 }
@@ -540,7 +543,7 @@ Classifies parsed documents using Claude AI. Returns classifications via Server-
 | 404 | `{ "error": "Session not found" }` | Invalid or expired sessionId |
 | 500 | `{ "error": "Failed to classify documents" }` | Server/Claude error |
 
-**Implementation:** `app/api/bulk-upload/classify/route.ts` → calls `classifyDocument()` from `lib/bulk-classify.ts` and `streamMessage()` from `lib/claude.ts`
+**Implementation:** `app/api/bulk-upload/classify/route.ts` → calls `classifyDocument()` from `lib/classifier.ts`. When `sessionId` is provided, stores results in the session via `lib/upload-session.ts`.
 
 ---
 
@@ -552,13 +555,26 @@ Retrieves the current state of an upload session.
 
 **Response (success):**
 - Status: `200`
-- Body: `{ "sessionId": "string", "documents": ParsedDocument[], "classifications": ClassificationResult[], "userEdits": object, "status": "pending | approved | expired", "createdAt": "string" }`
+- Body:
+```json
+{
+  "id": "uuid",
+  "documents": [{ "index": 0, "filename": "string", "format": "string", "content": "string", "wordCount": 0, "parseErrors": [] }],
+  "classifications": [{ "index": 0, "classification": { "filename": "string", "objectType": "string", "objectName": "string", "tags": [], "suggestedRelationships": [], "confidence": 0.0, "needsReview": false } }],
+  "userEdits": [{ "index": 0, "edits": {} }],
+  "status": "parsing | classifying | reviewing | approved",
+  "createdAt": "ISO string",
+  "expiresAt": "ISO string"
+}
+```
 
 **Response (error):**
 
 | Status | Body | Condition |
 |---|---|---|
 | 404 | `{ "error": "Session not found or expired" }` | Invalid or expired sessionId |
+
+**Implementation:** `app/api/bulk-upload/session/[sessionId]/route.ts` → calls `getSerializedSession()` from `lib/upload-session.ts`
 
 ---
 
@@ -572,7 +588,7 @@ Re-runs AI classification on a single document within a session.
 ```json
 {
   "sessionId": "string (required)",
-  "documentId": "string (required)"
+  "documentIndex": "integer (required, 0-based index into session documents)"
 }
 ```
 
@@ -584,8 +600,11 @@ Re-runs AI classification on a single document within a session.
 
 | Status | Body | Condition |
 |---|---|---|
+| 400 | `{ "error": "Document has no extractable content" }` | Document content is empty |
 | 404 | `{ "error": "..." }` | Session or document not found |
 | 500 | `{ "error": "Failed to reclassify document" }` | Server/Claude error |
+
+**Implementation:** `app/api/bulk-upload/reclassify/route.ts` → calls `classifyDocument()` from `lib/classifier.ts`, updates session via `lib/upload-session.ts`
 
 ---
 
@@ -599,18 +618,22 @@ Approves selected documents and creates submissions in the review queue.
 ```json
 {
   "sessionId": "string (required)",
-  "documentIds": ["string (required)"],
-  "submitter": "string (required)"
+  "documentIndexes": [0, 1, 2],
+  "submitter": "string (required)",
+  "overrides": {
+    "0": { "objectType": "persona", "objectName": "Updated Name", "tags": ["new-tag"] }
+  }
 }
 ```
+Note: `overrides` is optional — allows applying user edits to classifications before creating submissions.
 
 **Response (success):**
 - Status: `201`
 - Body:
 ```json
 {
-  "submissions": [{ "documentId": "string", "submissionId": "string" }],
-  "errors": [{ "documentId": "string", "error": "string" }]
+  "submissions": [{ "documentIndex": 0, "submissionId": "uuid" }],
+  "errors": [{ "documentIndex": 0, "error": "string" }]
 }
 ```
 

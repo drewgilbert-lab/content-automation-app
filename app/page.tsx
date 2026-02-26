@@ -57,6 +57,13 @@ const navItems = [
     available: true,
   },
   {
+    title: "Bulk Upload",
+    description: "Upload and classify multiple documents at once.",
+    href: "/bulk-upload",
+    icon: "◫",
+    available: true,
+  },
+  {
     title: "Content",
     description: "Browse, create, and manage generated content across all formats.",
     href: "/content",

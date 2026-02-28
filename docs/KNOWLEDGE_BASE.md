@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: February 2026
+> Last updated: February 28, 2026
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -181,6 +181,27 @@ Cross-references:
 - `usedUseCases` → `UseCase[]` (which use cases were used as context)
 - `usedBusinessRules` → `BusinessRule[]` (which rules were applied)
 - `usedSkills` → `Skill[]` (which skills were applied — added by Group I)
+
+---
+
+### Collection: `ConnectedSystem`
+
+Stores external system registrations and their API key metadata for the External REST API (Group K). Not vectorized.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Human-readable system name (e.g. "AirOps", "BI Dashboard") |
+| `description` | `text` | What this system does / why it connects |
+| `apiKeyHash` | `text` | SHA-256 hash of the API key (plaintext never stored) |
+| `apiKeyPrefix` | `text` | First 8 characters of the key for admin identification |
+| `permissions` | `text[]` | Access scopes — `["read"]` for Phase 1 |
+| `subscribedTypes` | `text[]` | Object types this key can access (e.g. `["persona", "segment"]` or `["*"]` for all) — used for Phase 2 push filtering |
+| `rateLimitTier` | `text` | `"standard"` (100 req/min) or `"elevated"` (300 req/min) |
+| `active` | `boolean` | Master toggle; inactive keys are rejected at the middleware layer |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+No cross-references.
 
 ---
 

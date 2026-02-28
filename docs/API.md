@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: February 26, 2026
+> Last updated: February 28, 2026
 
 ---
 
@@ -948,9 +948,208 @@ data: {"total": 5, "classified": 4, "failed": 1}
 
 ---
 
+## Connected Systems Admin Routes (Group K)
+
+> Internal admin routes for managing connected systems and API keys. Not versioned, not key-protected — consumed by the admin UI. Implemented in K1–K2.
+
+### GET /api/connections
+
+Returns all connected systems.
+
+**Runtime:** `nodejs`
+
+**Query Parameters:**
+- `active` (optional): `true` or `false` to filter by active status
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "systems": ConnectedSystemListItem[] }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 500 | `{ "error": "Failed to fetch connected systems" }` | Server error |
+
+**Implementation:** `app/api/connections/route.ts` → calls `listConnectedSystems()` from `lib/connections.ts`
+
+---
+
+### POST /api/connections
+
+Creates a new connected system with a generated API key. The plaintext key is returned once and cannot be retrieved again.
+
+**Runtime:** `nodejs`
+
+**Request:**
+```json
+{
+  "name": "string (required)",
+  "description": "string (required)",
+  "subscribedTypes": ["string"] (optional, defaults to ["*"]),
+  "rateLimitTier": "string (optional, defaults to \"standard\")"
+}
+```
+
+**Response (success):**
+- Status: `201`
+- Body: `{ "id": "uuid", "name": "string", "apiKey": "string (shown once)" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing required fields |
+| 409 | `{ "error": "A connected system named \"...\" already exists" }` | Name conflict |
+| 500 | `{ "error": "Failed to create connected system" }` | Server error |
+
+**Implementation:** `app/api/connections/route.ts` → calls `createConnectedSystem()` from `lib/connections.ts`
+
+---
+
+### GET /api/connections/[id]
+
+Returns a single connected system by UUID.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ConnectedSystem UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `ConnectedSystemDetail` (id, name, description, apiKeyPrefix, permissions, subscribedTypes, rateLimitTier, active, createdAt, updatedAt)
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Connected system not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to fetch connected system" }` | Server error |
+
+**Implementation:** `app/api/connections/[id]/route.ts` → calls `getConnectedSystem()` from `lib/connections.ts`
+
+---
+
+### PUT /api/connections/[id]
+
+Updates a connected system. All fields optional. Cannot modify API key (use rotate-key instead).
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ConnectedSystem UUID
+
+**Request:**
+```json
+{
+  "name": "string (optional)",
+  "description": "string (optional)",
+  "subscribedTypes": ["string"] (optional),
+  "rateLimitTier": "string (optional)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `ConnectedSystemDetail`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "name cannot be empty" }` | Empty name |
+| 404 | `{ "error": "Connected system not found" }` | UUID not found |
+| 409 | `{ "error": "A connected system named \"...\" already exists" }` | Name conflict |
+| 500 | `{ "error": "Failed to update connected system" }` | Server error |
+
+**Implementation:** `app/api/connections/[id]/route.ts` → calls `updateConnectedSystem()` from `lib/connections.ts`
+
+---
+
+### DELETE /api/connections/[id]
+
+Deletes a connected system permanently.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ConnectedSystem UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "deleted": true }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Connected system not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to delete connected system" }` | Server error |
+
+**Implementation:** `app/api/connections/[id]/route.ts` → calls `deleteConnectedSystem()` from `lib/connections.ts`
+
+---
+
+### PATCH /api/connections/[id]
+
+Activates or deactivates a connected system.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ConnectedSystem UUID
+
+**Request:**
+```json
+{
+  "action": "activate" | "deactivate"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "uuid", "active": boolean }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "action must be one of: activate, deactivate" }` | Invalid action |
+| 404 | `{ "error": "Connected system not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to update connected system" }` | Server error |
+
+**Implementation:** `app/api/connections/[id]/route.ts` → calls `activateConnectedSystem()` / `deactivateConnectedSystem()` from `lib/connections.ts`
+
+---
+
+### POST /api/connections/[id]/rotate-key
+
+Rotates the API key for a connected system. Generates a new key, invalidates the old one immediately, and returns the new plaintext key once.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ConnectedSystem UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "uuid", "name": "string", "apiKey": "string (shown once)", "apiKeyPrefix": "string (first 8 chars)" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Connected system not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to rotate API key" }` | Server error |
+
+**Implementation:** `app/api/connections/[id]/rotate-key/route.ts` → calls `generateApiKey()` from `lib/api-auth.ts`
+
+---
+
 ## Planned: External REST API (Group K)
 
-> Versioned read-only REST API for 3rd party applications. Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group K.
+> Versioned read-only REST API for 3rd party applications. Scoped but not yet implemented (K3–K6 pending). K1 (ConnectedSystem schema) and K2 (API key auth middleware) are implemented. See [ROADMAP.md](./ROADMAP.md) Group K.
 
 All `/api/v1/` routes require `X-API-Key` header authentication (except health). Responses follow the shape `{ "data": ..., "meta": ... }`. Deprecated objects are excluded by default.
 
@@ -1080,30 +1279,6 @@ Health check for monitoring. Does not require API key authentication.
 - Body: `{ "status": "ok" | "degraded", "version": "1", "weaviate": { "connected": boolean }, "collections": { "persona": number, ... }, "timestamp": string }`
 
 **Implementation:** `app/api/v1/health/route.ts` → calls `checkWeaviateConnection()` from `lib/weaviate.ts`
-
----
-
-### POST /api/connections/[id]/rotate-key
-
-Rotates the API key for a connected system. Generates a new key, invalidates the old one immediately, and returns the new plaintext key once. Preserves all system configuration.
-
-**Runtime:** `nodejs`
-
-**Path Parameters:**
-- `id` (required): ConnectedSystem UUID
-
-**Response (success):**
-- Status: `200`
-- Body: `{ "apiKey": "string (shown once)", "apiKeyPrefix": "string (first 8 chars)" }`
-
-**Response (error):**
-
-| Status | Body | Condition |
-|---|---|---|
-| 404 | `{ "error": "Connected system not found" }` | UUID not found |
-| 500 | `{ "error": "Failed to rotate key" }` | Server error |
-
-**Implementation:** `app/api/connections/[id]/rotate-key/route.ts` → calls `rotateApiKey()` from `lib/api-auth.ts`
 
 ---
 

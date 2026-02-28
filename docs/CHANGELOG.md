@@ -1,6 +1,22 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: February 26, 2026
+> Newest entries first. Last updated: February 28, 2026
+
+---
+
+### Group K Phase 1: ConnectedSystem Schema and API Key Auth (K1–K2) — February 28, 2026
+
+**K1 — ConnectedSystem Collection Schema:**
+- Created `lib/connection-types.ts`: type definitions (`ConnectedSystemListItem`, `ConnectedSystemDetail`, `ConnectedSystemCreateInput`, `ConnectedSystemUpdateInput`), constants (`RATE_LIMIT_TIERS`, `PERMISSIONS`), and `getRateLimitTierLabel()` utility. `apiKeyHash` is never exposed in client-facing types.
+- Created `lib/connections.ts`: full CRUD operations — `listConnectedSystems`, `getConnectedSystem`, `createConnectedSystem` (generates API key, returns plaintext once), `updateConnectedSystem` (with name uniqueness check), `deleteConnectedSystem`, `activateConnectedSystem`, `deactivateConnectedSystem`. All follow the `withWeaviate` pattern from `lib/skills.ts`.
+- Created `scripts/create-connected-system-collection.ts`: idempotent schema migration script creating the `ConnectedSystem` Weaviate collection with 10 properties (`name`, `description`, `apiKeyHash`, `apiKeyPrefix`, `permissions`, `subscribedTypes`, `rateLimitTier`, `active`, `createdAt`, `updatedAt`).
+
+**K2 — API Key Generation, Rotation, and Validation Middleware:**
+- Created `lib/api-auth.ts`: `generateApiKey()` (64-char hex via `crypto.randomBytes`), `hashApiKey()` (SHA-256), `validateApiKey()` (constant-time comparison via `crypto.timingSafeEqual` across all cache entries), `invalidateApiKeyCache()`, and `refreshApiKeyCache()` (loads all ConnectedSystems into a `globalThis` cache with 5-minute TTL per ADR-012 pattern).
+- Created `lib/api-middleware.ts`: `withApiAuth()` higher-order function — validates `X-API-Key` header, checks active status (401 for invalid, 403 for deactivated), applies security headers (`X-Content-Type-Options: nosniff`, `Cache-Control: no-store`, `X-Frame-Options: DENY`), handles CORS via `ALLOWED_ORIGINS` env var, logs each request to stdout as JSON.
+- Created `app/api/connections/route.ts`: `GET` (list with optional active filter), `POST` (create + return plaintext API key once).
+- Created `app/api/connections/[id]/route.ts`: `GET` (detail), `PUT` (update), `DELETE`, `PATCH` (activate/deactivate).
+- Created `app/api/connections/[id]/rotate-key/route.ts`: `POST` (generates new key, invalidates old one immediately, returns new plaintext key once).
 
 ---
 

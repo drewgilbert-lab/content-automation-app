@@ -123,9 +123,8 @@ docs/
 | Knowledge Base (Bulk Upload) | Done (Group G) |
 | Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Done (Group I) |
-| Inbound MCP Server (3rd Party Write) | Scoped (Group J) |
+| MCP Server (Read + Write) | Scoped (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
-| LLM MCP Server (RAG Read Access) | Scoped (Group L) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |

@@ -271,18 +271,24 @@ Build `/skills/[id]/test` page where a user can run a skill against sample input
 ---
 
 
-### Group J — Inbound MCP Server for 3rd Party Write Access
+### Group J — MCP Server
 
-> Scope: Expose a Model Context Protocol (MCP) server that allows external applications (n8n, Zapier, Slack bots, custom scripts, AI agents) to push knowledge content into the Content Engine. All inbound content routes through the existing Submission system and review queue — nothing writes directly to Weaviate.
-> Dependencies: Groups A–F (knowledge CRUD, submission/review queue, AI merge). Optionally benefits from Group I (Skills) for skill-type submissions. Group L (LLM MCP server) shares infrastructure — see Cross-Cutting Notes below.
+> Scope: A single MCP server that exposes the Content Engine's knowledge base to any MCP-compatible client — LLMs (Claude Desktop, Claude Code, Cursor, Gemini), automation workflows (n8n, Zapier), Slack bots, and custom scripts. Phase 1 provides read access (RAG interface for LLMs). Phase 2 adds write access where external tools propose knowledge changes routed through the existing review queue. Phase 3 hardens the server for production use.
+> Dependencies: Groups A–F (knowledge CRUD, submission/review queue, AI merge), Group K (ConnectedSystem model, API key patterns). Optionally benefits from Group I (Skills) — exposed if the Skill collection exists.
 
 #### Why This Matters
 
-The Content Engine currently accepts knowledge contributions only through its own web UI. External automation workflows (n8n, Zapier), AI agents (Slack bots, browser extensions, internal copilots), and custom scripts cannot push content into the system without manual copy-paste. Group J adds a programmatic inbound channel where external tools connect as MCP clients, propose new or updated knowledge objects, and those proposals enter the same admin review queue used by the web UI. The admin retains full control — the review queue is the universal gatekeeper regardless of content source.
+The Content Engine is currently accessible only through its own web UI and the REST API (Group K). Users working in AI tools must context-switch to the web app to look up personas, use cases, or segments. External automation workflows cannot push content into the system without manual copy-paste.
+
+Group J addresses both needs with a single MCP server:
+
+- **LLM read access (RAG):** A user working in Claude Desktop types *"What personas do we have and what are their key pain points?"* Claude calls the MCP server's `list_objects` tool, receives the full content, and answers grounded in the company's actual knowledge base. A user in Cursor asks *"Find use cases related to predictive scoring"* and the MCP server runs a semantic search, returning the most relevant objects ranked by vector similarity. This eliminates context switching, unlocks semantic search from any LLM conversation, and enables AI assistants to ground responses in approved company knowledge.
+
+- **Inbound write access:** External automation workflows (n8n, Zapier), AI agents (Slack bots, browser extensions, internal copilots), and custom scripts connect as MCP clients, propose new or updated knowledge objects, and those proposals enter the same admin review queue used by the web UI. The admin retains full control — the review queue is the universal gatekeeper regardless of content source. The knowledge base becomes a platform, not just an app.
 
 #### Architecture
 
-The MCP server is a **standalone Node.js process** using the `@modelcontextprotocol/sdk` TypeScript SDK, separate from the Next.js app. MCP servers are long-running processes that maintain persistent connections, which conflicts with Vercel's stateless serverless model. The server uses the **Streamable HTTP** transport (the stateless HTTP-based transport defined in the MCP spec), suitable for remotely-accessible servers behind reverse proxies or load balancers.
+The MCP server is a **standalone Node.js process** using the `@modelcontextprotocol/sdk` TypeScript SDK, separate from the Next.js app. MCP servers are long-running processes that maintain persistent connections, which conflicts with Vercel's stateless serverless model.
 
 The server imports the same `lib/submissions.ts`, `lib/knowledge.ts`, and `lib/knowledge-types.ts` modules used by the Next.js API routes. This avoids duplicating business logic — the MCP server is a thin transport layer that translates MCP tool calls into the same function calls the API routes make.
 
@@ -294,37 +300,129 @@ The server imports the same `lib/submissions.ts`, `lib/knowledge.ts`, and `lib/k
 
 **Recommendation:** Standalone process deployed on Railway or Fly.io, separate URL from the Next.js app (e.g. `mcp.content-engine.example.com`).
 
+**Transport:** Two modes. Primary: **stdio** (standard input/output), used by Claude Desktop, Claude Code, and Cursor — the LLM spawns the MCP server as a child process. Secondary: **Streamable HTTP** (the stateless HTTP-based transport defined in the MCP spec) for remote connections from cloud-hosted LLMs, web tools, automation workflows, or adapter layers. Transport selected via CLI flag (`--transport stdio` or `--transport http --port 3100`). Both transports use the same tool and resource handlers.
+
+**Authentication:** Extends the existing `ConnectedSystem` model from Group K. The `permissions` field on `ConnectedSystem` (currently `["read"]` for REST API access) is extended with `"mcp-read"` and `"mcp-write"` scopes to control which tool sets are available per client. The same `apiKeyHash` validation and `globalThis` caching pattern from `lib/api-auth.ts` is reused by the MCP server's authentication layer. stdio transport (local) does not require API key auth by default. Streamable HTTP transport (network-accessible) requires API key auth.
+
 ```
 mcp-server/
-  index.ts           — Entry point, creates MCP server, registers tools, starts HTTP transport
-  auth.ts            — API key validation middleware
-  tools/
-    create-object.ts — create_knowledge_object tool handler
-    update-object.ts — update_knowledge_object tool handler
-    list-types.ts    — list_knowledge_types tool handler
-    get-schema.ts    — get_object_schema tool handler
-    search-objects.ts — search_knowledge_objects tool handler
-    get-object.ts    — get_knowledge_object tool handler
-    list-objects.ts  — list_knowledge_objects tool handler
-  types.ts           — MCP-specific type definitions
+  src/
+    index.ts              — Entry point, server initialization, transport selection
+    auth.ts               — API key validation middleware (extends lib/api-auth.ts patterns)
+    weaviate.ts           — Persistent Weaviate client with reconnection
+    schema.ts             — Collection metadata, cross-ref config
+    formatters.ts         — Response formatting for LLM consumption
+    tools/                — MCP tool handlers (one file per tool)
+      list-collections.ts
+      list-objects.ts
+      get-object.ts
+      search-objects.ts
+      get-relationships.ts
+      get-dashboard-health.ts
+      get-collection-schema.ts
+      create-object.ts    — Phase 2
+      update-object.ts    — Phase 2
+      check-status.ts     — Phase 2
+    resources/            — MCP resource handlers
+  package.json
+  tsconfig.json
+  README.md               — Setup instructions for Claude Desktop, Claude Code, Cursor
 ```
 
-**J1 — MCP Server Process**
-Build the MCP server as a standalone Node.js process using `@modelcontextprotocol/sdk`. Configure the Streamable HTTP transport. The server registers all tools (J2, J3), starts the HTTP listener, and validates the Weaviate connection on startup. Entry point at `mcp-server/index.ts`. Imports shared `lib/` modules for knowledge operations and submission creation.
+#### Phase 1: Foundation + Read Access (RAG)
 
-**J2 — Read-Only Discovery Tools**
-Expose tools that allow MCP clients to understand the knowledge base schema and find existing objects before proposing changes. These do not create submissions.
+The highest-value deliverable — give LLMs direct read access to the knowledge base.
+
+**J1 — Project Scaffolding**
+Initialize `mcp-server/` with `package.json`, `tsconfig.json`, and dependencies (`@modelcontextprotocol/sdk`, `weaviate-client`, `dotenv`, `zod`). Build script (TypeScript → JavaScript via `tsc`), dev script with watch mode. Update root `README.md` with pointer to `mcp-server/README.md`.
+
+**J2 — Server Process + Transport Layer**
+Build the MCP server as a standalone Node.js process using `@modelcontextprotocol/sdk`. Implement two transport modes: stdio (primary, for Claude Desktop/Code/Cursor) and Streamable HTTP (secondary, for remote access). Transport selected via CLI flag. The server registers all tools, starts the listener, and validates the Weaviate connection on startup. Entry point at `mcp-server/src/index.ts`.
+
+**J3 — Weaviate Connection Management**
+Build `mcp-server/src/weaviate.ts` with a **persistent** Weaviate client (differs from the Next.js `withWeaviate` per-request pattern). Creates a single `WeaviateClient` at startup and reuses for all tool calls. Exposes `getClient()` and `reconnect()` functions. Validates connection via `client.isReady()` on startup with exponential backoff retry (1s, 2s, 4s, 8s, max 30s) on failure.
+
+**J4 — Authentication**
+Extend the `ConnectedSystem` model from Group K with `"mcp-read"` and `"mcp-write"` permission scopes. Reuse `apiKeyHash` validation and `globalThis` caching patterns from `lib/api-auth.ts`. stdio transport does not require API key auth by default (local-only). Streamable HTTP transport requires API key in `Authorization: Bearer <key>` header. Permission scope controls which tools are available per connection.
+
+**J5 — Read Tools**
+Expose tools that allow MCP clients to explore the knowledge base. These are the core RAG interface.
 
 | Tool | Description | Input | Returns |
 |---|---|---|---|
-| `list_knowledge_types` | All supported knowledge object types with descriptions and required/optional fields | None | Array of `{ type, label, description, requiredFields, optionalFields, typeSpecificFields }` |
-| `get_object_schema` | Full field schema for a specific knowledge type including constraints and examples | `objectType` (string) | Field-level schema with types, required flags, and example values |
-| `search_knowledge_objects` | Semantic search to find existing content related to a query | `query` (string), `objectType?`, `limit?` (max 20) | Array of `{ id, name, type, tags, score, snippet }` sorted by relevance |
-| `get_knowledge_object` | Full detail of a single object by ID | `objectId` (string) | Full `KnowledgeDetail` including content, cross-references, metadata |
-| `list_knowledge_objects` | List objects with optional type filter | `objectType?`, `limit?` (max 200) | Array of `KnowledgeListItem` objects |
+| `list_collections` | All knowledge base collections with object counts and descriptions | None | `{ name, type, description, objectCount, crossReferences }` per collection |
+| `list_objects` | List objects with optional type filtering and pagination | `type?`, `includeDeprecated?`, `limit?` (default 50, max 200), `offset?` | `{ id, name, type, tags, deprecated, createdAt, updatedAt }` per object |
+| `get_object` | Full detail of a single object by ID | `id` (string) | Full detail including markdown content, metadata, `crossReferences` grouped by label |
+| `search_objects` | Semantic search using Weaviate `nearText` (core RAG capability) | `query` (string), `type?`, `limit?` (default 10, max 25), `certaintyThreshold?` (default 0.5) | Results ranked by vector similarity: `{ id, name, type, content (500-char snippet), tags, score }` |
+| `get_relationships` | All outbound and inbound relationships for an object | `id` (string) | `{ objectId, objectName, objectType, outbound: Record<string, {id, name, type}[]>, inbound: ... }` |
+| `get_dashboard_health` | Knowledge base health metrics (counts, stale, gaps) | None | Aggregated counts (compact for LLM context windows) |
+| `get_collection_schema` | Schema definition for collections | `type?` | Property names, data types, descriptions, cross-reference definitions. Static from `schema.ts` |
 
-**J3 — Write Tools (Submission Creators)**
-Expose tools that create Submission records entering the review queue. These never write directly to Weaviate knowledge collections.
+Collection descriptions and cross-reference metadata hardcoded in `schema.ts` (mirroring `KNOWLEDGE_BASE.md`). Multi-collection search runs `nearText` against each target collection in parallel, merges results, sorts by certainty. Response formatting optimized for LLM consumption: structured JSON with clear field names, content snippets truncated to 500 characters to prevent context window overflow. The LLM calls `get_object` for full content when needed.
+
+**J6 — MCP Resources**
+Static and dynamic resources that help LLMs understand the knowledge base before querying.
+
+| Resource | URI | Description |
+|---|---|---|
+| Knowledge Base Overview | `knowledge://overview` | Static markdown: what the Content Engine is, what each collection stores, how objects relate |
+| Relationship Map | `knowledge://relationships` | Text representation of the cross-reference graph (all directional relationships) |
+| Collection Summaries | `knowledge://collections/{type}` | Dynamic: count, list of names, common tags for a collection. Updated on each read |
+
+**J7 — Semantic Search Design**
+
+1. LLM calls `search_objects` with natural language `query` (e.g. "territory planning for enterprise accounts")
+2. MCP server sends query to Weaviate as `nearText` search across specified collections (or all if unfiltered)
+3. Weaviate vectorizes the query and compares against stored content vectors
+4. Results returned ranked by certainty score (cosine similarity)
+5. MCP server formats results with `id`, `name`, `type`, `score`, and content snippet
+6. LLM receives results and can call `get_object` on any result for full content
+
+**J8 — LLM Client Configuration**
+Document integration in `mcp-server/README.md` with setup instructions for each supported client.
+
+| LLM Client | Transport | Support | Notes |
+|---|---|---|---|
+| Claude Desktop | stdio | Native | Add to `claude_desktop_config.json` |
+| Claude Code | stdio | Native | Same stdio mechanism |
+| Cursor | stdio | Native | Add to `.cursor/mcp.json` |
+| Gemini | Streamable HTTP | Supported via adapter | HTTP transport mode is compatible |
+| ChatGPT | HTTP | Adapter required | Does not natively support MCP; defer adapter to Phase 3 |
+
+Example `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "content-engine": {
+      "command": "node",
+      "args": ["<path>/mcp-server/dist/index.js"],
+      "env": {
+        "WEAVIATE_URL": "<url>",
+        "WEAVIATE_API_KEY": "<key>"
+      }
+    }
+  }
+}
+```
+
+Phase 1 priority: stdio for Claude Desktop / Claude Code / Cursor, plus Streamable HTTP for Gemini and general HTTP access.
+
+#### Phase 1 Example Interactions
+
+**Exploring personas:** User asks *"Show me all our personas and their key pain points."* → LLM calls `list_objects({ type: "persona" })`, then `get_object` for each → synthesizes pain points from content.
+
+**Semantic search:** User asks *"Find knowledge objects related to territory planning."* → LLM calls `search_objects({ query: "territory planning" })` → receives ranked results across UseCases, Personas, Segments with relevance scores.
+
+**Relationship exploration:** User asks *"What segments are linked to the Sales persona?"* → LLM calls `list_objects({ type: "persona" })` to find Sales ID, then `get_relationships({ id })` → returns linked segments and use cases.
+
+**Health check:** User asks *"Give me a summary of our knowledge base health."* → LLM calls `get_dashboard_health()` → returns total counts, stale items, gaps, missing objects.
+
+#### Phase 2: Write Access (Inbound Submissions)
+
+Add the inbound write channel — external tools push content through the review queue. All writes create Submission records; nothing writes directly to Weaviate knowledge collections.
+
+**J9 — Write Tools**
+Expose tools that create Submission records entering the review queue.
 
 | Tool | Description | Key Input | Returns |
 |---|---|---|---|
@@ -334,8 +432,8 @@ Expose tools that create Submission records entering the review queue. These nev
 
 Write tool flow: validate input → serialize proposed fields into `proposedContent` JSON → call `createSubmission()` with `sourceChannel: "mcp"` and `sourceAppId` from the authenticated API key → return submission ID.
 
-**J4 — Submission Metadata Extension**
-Extend the `Submission` Weaviate collection schema and `SubmissionCreateInput` type to track MCP-specific provenance:
+**J10 — Submission Metadata Extension**
+Extend the `Submission` Weaviate collection schema and `SubmissionCreateInput` type to track provenance:
 
 | Property | Type | Description |
 |---|---|---|
@@ -343,36 +441,53 @@ Extend the `Submission` Weaviate collection schema and `SubmissionCreateInput` t
 | `sourceAppId` | text | Identifier for the external application (from API key record) |
 | `sourceDescription` | text | Free-text describing where the content came from (provided by MCP client) |
 
-All existing submissions default to `sourceChannel: "ui"`. The `createSubmission()` function accepts optional source parameters — existing callers continue working without changes. The queue UI at `/queue` displays a source badge on each item and adds a filter by source channel.
+All existing submissions default to `sourceChannel: "ui"`. The `createSubmission()` function accepts optional source parameters — existing callers continue working without changes.
 
-**J5 — API Key Authentication**
-Implement lightweight API key authentication for MCP connections. Phase 1 uses environment variables:
+**J11 — Queue UI Updates**
+The queue UI at `/queue` displays a source badge on each item and adds a filter by source channel. `sourceChannel: "mcp"` submissions show the `sourceAppId` for traceability.
 
-```
-MCP_API_KEYS=key1:n8n-competitive-intel:Competitive intelligence workflow,key2:slack-knowledge-bot:Slack bot for meeting notes
-```
+**J12 — Tool Access Control**
+Permission scoping per API key (`mcp-read` vs `mcp-write`) controls which tools are available per connection. A configuration flag or API key scope controls whether a client can access write tools. LLM clients (Claude Desktop, Cursor) may start with read-only access in Phase 1 and gain write tools in Phase 2. Automation clients (n8n, Zapier) get both read and write tools.
 
-Format: `key:appId:description`, comma-separated. The `appId` becomes the `sourceAppId` on submissions. Authentication flow: MCP client includes key in HTTP `Authorization: Bearer <api-key>` header → server validates → extracts `appId` → attaches to request context. All valid keys have the same permissions (read + write-to-submission). The review queue is the authorization layer.
+#### Phase 2 Example Use Cases
 
-**Example Use Cases:**
-
-- **n8n workflow:** Monitors competitor websites and news feeds. On detection, calls `search_knowledge_objects` to check for related objects, then `create_knowledge_object` or `update_knowledge_object` with the new intel. Submission enters queue with `sourceAppId: "n8n-competitive-intel"`.
+- **n8n workflow:** Monitors competitor websites and news feeds. On detection, calls `search_objects` to check for related objects, then `create_knowledge_object` or `update_knowledge_object` with the new intel. Submission enters queue with `sourceAppId: "n8n-competitive-intel"`.
 - **Slack bot:** Extracts insights from meeting transcription tools. User types `/capture-insight`, bot formats as knowledge object and submits. Admin sees `sourceAppId: "slack-knowledge-bot"`.
-- **CRM sync script:** Scheduled script reads updated segment data from Salesforce, compares with existing segments via `search_knowledge_objects`, and proposes updates when firmographic data changes.
-- **AI agent:** A research assistant running in Claude Desktop discovers information relevant to an existing use case, reads current content via `get_knowledge_object`, proposes additions via `update_knowledge_object`.
+- **CRM sync script:** Scheduled script reads updated segment data from Salesforce, compares with existing segments via `search_objects`, and proposes updates when firmographic data changes.
+- **AI agent:** A research assistant running in Claude Desktop discovers information relevant to an existing use case, reads current content via `get_object`, proposes additions via `update_knowledge_object`.
 
-**Risks and Gaps:**
+#### Phase 3: Hardening
+
+**J13 — Rate Limiting**
+Per-key rate limits (60 req/min). Circuit breaker that pauses keys exceeding thresholds. Admin can deactivate a key via the Connected Systems UI. Runaway LLM loops or misconfigured automation workflows cannot hammer Weaviate or flood the review queue.
+
+**J14 — Input Validation**
+Content size limits (100KB per submission) to prevent abuse. Input sanitization for content fields to prevent XSS in the review queue UI. MIME type enforcement on any file-related fields. Enforce max `limit` and `offset` on all list/search tools.
+
+**J15 — Duplicate Detection**
+Add `nearText` similarity check in write tools before creating a submission. Warn if a similar pending submission or live object already exists. Configurable similarity threshold. Reduces noise from external tools submitting the same content repeatedly.
+
+**J16 — Streamable HTTP Auth Hardening**
+API key auth on the Streamable HTTP transport for network-accessible deployments. Key validation via `ConnectedSystem` lookup. Rate limiting per key. Security headers on all HTTP responses. stdio remains local-only with no auth required.
+
+#### Risks and Gaps
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| MCP server requires separate hosting from Vercel | Additional infrastructure to manage; separate deploy pipeline | Use Railway or Fly.io for a single Node.js process; document deploy steps; evaluate consolidation with Group L server |
-| No rate limiting on MCP endpoints | Misconfigured workflow could flood the review queue | Per-key rate limiting (60 req/min); circuit breaker that pauses keys exceeding thresholds; admin can deactivate a key |
-| API key leakage | Unauthorized content pushed into review queue | All content still requires admin approval; hash keys at rest (Phase 2); key rotation endpoint |
-| No input sanitization for content field | Malicious markdown/HTML could XSS the review queue UI | Sanitize `proposedContent` before rendering; enforce max content length (100KB) in MCP validation |
+| MCP server requires separate hosting from Vercel | Additional infrastructure to manage; separate deploy pipeline | Use Railway or Fly.io for a single Node.js process; document deploy steps |
 | MCP spec is evolving | Transport or protocol changes may require SDK upgrades | Pin `@modelcontextprotocol/sdk` version; monitor spec releases; Streamable HTTP is the recommended stable transport |
-| Submission queue overwhelm from automated sources | Admin cannot keep up with high-volume MCP submissions | Source channel filter in queue UI; batch review actions; per-source submission count on dashboard; configurable auto-defer |
-| No duplicate detection | External tools may submit the same content repeatedly | Add `nearText` similarity check in write tools before creating submission; warn if similar pending submission or live object exists |
 | Shared lib imports between Next.js and MCP server | Build/bundling complexity if modules have Next.js-specific imports | Keep shared libs framework-agnostic; no `next/` imports in shared code; verify with MCP server's own `tsconfig.json` |
+| Context window overflow from large responses | LLM truncates or loses important context | Return 500-char snippets in search/list; require `get_object` for full content; enforce `limit` and `max` on all tools |
+| Data exposure via network-accessible Streamable HTTP transport | Sensitive business knowledge accessible to anyone with HTTP access | stdio is local-only by default; Streamable HTTP requires explicit opt-in; add API key auth (J16) |
+| Semantic search quality depends on Weaviate vectorizer | Poor embeddings → irrelevant results → bad LLM responses | Expose `certaintyThreshold` parameter; monitor quality; consider vectorizer upgrade per Open Questions |
+| Weaviate connection stability in long-running process | Connection drops cause all tool calls to fail | Reconnection logic with exponential backoff (J3); health check on every tool call; log connection events |
+| Stale schema mirror diverges from Weaviate | Tools return incorrect schema information | Startup validation comparing `schema.ts` against live Weaviate schema; log warnings on mismatch |
+| No rate limiting on MCP endpoints (until Phase 3) | Misconfigured workflow could flood the review queue | Per-key rate limiting in Phase 3 (J13); circuit breaker; admin can deactivate a key |
+| API key leakage | Unauthorized content pushed into review queue | All content still requires admin approval; hash keys at rest; key rotation via Connected Systems UI |
+| Submission queue overwhelm from automated sources | Admin cannot keep up with high-volume MCP submissions | Source channel filter in queue UI (J11); batch review actions; per-source submission count on dashboard; configurable auto-defer |
+| No duplicate detection (until Phase 3) | External tools may submit the same content repeatedly | `nearText` similarity check in Phase 3 (J15); warn if similar pending submission or live object exists |
+| Duplicated logic between MCP server and Next.js app | Schema definitions and query patterns maintained in two places | Accept duplication for Phase 1; consider extracting shared `@content-engine/core` package if maintenance burden grows |
+| ChatGPT lacks native MCP support | Users on ChatGPT cannot connect without adapter | Document limitation; Streamable HTTP transport covers Gemini and HTTP clients; defer ChatGPT adapter |
 
 **Open Questions:**
 
@@ -380,9 +495,14 @@ Format: `key:appId:description`, comma-separated. The `appId` becomes the `sourc
 |---|---|
 | Where to host the MCP server? | Railway, Fly.io, and dedicated Vercel Functions (Fluid Compute) are all viable. Decision depends on existing infra preferences and cost. |
 | Should write tools validate content quality before creating submissions? | A lightweight Claude call could check if proposed content meets minimum quality standards. Adds latency and cost but reduces low-quality submissions. |
-| Should the MCP server support `skill` as an object type from day one? | Group I is scoped but not built. Could support the type in definitions but return an error until the Skill collection exists. |
-| Consolidate with Group L MCP server? | Both are MCP servers connecting to Weaviate. Could be a single process with separate tool namespaces. Decide during implementation. |
+| Should the MCP server support `skill` as an object type from day one? | Group I is complete. Could dynamically detect available collections at startup. Recommendation: dynamic detection. |
 | Maximum content size per MCP submission? | Need to define a limit (e.g. 100KB) to prevent abuse. |
+| Shared package vs. duplicated logic? | MCP server mirrors collection schemas and query patterns from Next.js app. Extract `@content-engine/core` (npm workspace) or accept duplication? Recommendation: accept duplication in Phase 1; revisit if MCP server grows. |
+| Streamable HTTP authentication? | stdio is inherently local. Streamable HTTP is network-accessible. Use static API key (simplest) or JWT? Recommendation: static API key matching existing `ConnectedSystem` pattern. |
+| Content truncation strategy? | 500-char snippet in search/list, full in `get_object`. Should this be configurable per request? |
+| Deployment model for Streamable HTTP mode? | Alongside Next.js on Vercel, separate always-on server, or Docker container? Recommendation: separate always-on service for HTTP; stdio runs locally. |
+| Use official Weaviate MCP server? | ADR-002 notes the official server. Build custom for domain-specific value (health dashboard, formatted responses, knowledge-type awareness); evaluate integrating official server capabilities later. |
+| Response format? | JSON (structured) or markdown (human-readable)? Recommendation: JSON with `formattedSummary` field containing markdown version. |
 
 ---
 
@@ -435,7 +555,7 @@ Create distinct Weaviate users via the Weaviate Cloud console or API:
 |---|---|---|---|
 | `content-engine-admin` | `admin` | Full CRUD on all collections | Next.js admin UI, review queue, bulk upload |
 | `content-engine-api-reader` | `api_reader` | Read-only on Persona, Segment, UseCase, BusinessRule, ICP, Skill | External REST API (`/api/v1/`) via `lib/knowledge.ts` |
-| `content-engine-mcp` | `mcp_access` | Read on knowledge collections + create on Submission | MCP server (Groups J/L) |
+| `content-engine-mcp` | `mcp_access` | Read on knowledge collections + create on Submission | MCP server (Group J) |
 
 Environment variables per user:
 
@@ -571,179 +691,6 @@ Unit tests for `lib/push-sync.ts` (payload building, HMAC signing, retry logic, 
 
 ---
 
-### Group L — MCP Server for LLM Read Access (RAG Interface)
-
-> Scope: Build an MCP server that gives any MCP-compatible LLM — Claude Desktop, Claude Code, Cursor, Gemini, and (via adapter) ChatGPT — direct read access to the Weaviate knowledge base. The LLM can list objects, retrieve details, perform semantic search, and explore relationships, effectively using the knowledge store as a RAG system accessible from any AI conversation. Phase 2 (future) adds write access routed through the review queue.
-> Dependencies: Groups A–D (read layer, relationships, health dashboard). Group I (Skills) is optional — exposed if the collection exists. Group J (Inbound MCP) shares infrastructure — see Cross-Cutting Notes below.
-
-#### Why This Matters
-
-A user working in Claude Desktop types: *"What personas do we have and what are their key pain points?"* Claude calls the MCP server's `list_objects` tool, receives the full content, and answers grounded in the company's actual knowledge base. A user in Claude Code asks *"Find use cases related to predictive scoring"* and the MCP server runs a semantic search, returning the most relevant objects ranked by vector similarity.
-
-This eliminates context switching — users get knowledge base answers inside the tool they're already working in. It unlocks semantic search from any LLM conversation, enables AI assistants to ground responses in approved company knowledge, and provides the foundation for agentic workflows (Phase 2) where LLMs can propose knowledge base changes. The knowledge base becomes a platform, not just an app.
-
-#### Architecture
-
-**L1 — Standalone MCP Server Process**
-Build the MCP server as a standalone Node.js/TypeScript process in a new `mcp-server/` directory at the repo root. Uses the official `@modelcontextprotocol/sdk` package. Separate from the Next.js app — MCP servers are long-running processes with persistent connections, incompatible with Vercel's serverless model. Environment variables (`WEAVIATE_URL`, `WEAVIATE_API_KEY`) read from the project's `.env.local` or a dedicated `.env` in `mcp-server/`. Includes a health check validating the Weaviate connection on startup with automatic reconnection on failure.
-
-```
-mcp-server/
-  src/
-    index.ts              — Entry point, server initialization
-    tools/                — MCP tool handlers (one file per tool)
-    resources/            — MCP resource handlers
-    weaviate.ts           — Persistent Weaviate client
-    schema.ts             — Collection metadata, cross-ref config
-    formatters.ts         — Response formatting for LLM consumption
-  package.json
-  tsconfig.json
-  README.md               — Setup instructions for Claude Desktop, Claude Code, Cursor
-```
-
-**L2 — Transport Layer: stdio + SSE**
-Implement two transport modes. Primary: **stdio** (standard input/output), used by Claude Desktop, Claude Code, and Cursor — the LLM spawns the MCP server as a child process. Secondary: **SSE (Server-Sent Events) over HTTP** for remote connections from cloud-hosted LLMs, web tools, or adapter layers. Transport selected via CLI flag (`--transport stdio` or `--transport sse --port 3100`). Both transports use the same tool and resource handlers.
-
-**L3 — Weaviate Connection Management**
-Build `mcp-server/src/weaviate.ts` with a **persistent** Weaviate client (differs from the Next.js `withWeaviate` per-request pattern). Creates a single `WeaviateClient` at startup and reuses for all tool calls. Exposes `getClient()` and `reconnect()` functions. Validates connection via `client.isReady()` on startup with exponential backoff retry (1s, 2s, 4s, 8s, max 30s) on failure.
-
-#### MCP Tools
-
-**L4 — `list_collections`**
-Lists all knowledge base collections with object counts and descriptions. No parameters. Returns `{ name, type, description, objectCount, crossReferences }` for each collection. Collection descriptions and cross-reference metadata hardcoded in `schema.ts` (mirroring `KNOWLEDGE_BASE.md`).
-
-**L5 — `list_objects`**
-Lists objects with optional type filtering and pagination. Input: `type?`, `includeDeprecated?`, `limit?` (default 50, max 200), `offset?`. Returns `{ id, name, type, tags, deprecated, createdAt, updatedAt }`. Excludes deprecated by default.
-
-**L6 — `get_object`**
-Retrieves a single object by ID with full content and resolved cross-references. Input: `id` (string). Returns full detail including markdown content body, metadata, and `crossReferences` grouped by relationship label with resolved names and types.
-
-**L7 — `search_objects` (Core RAG Capability)**
-Semantic search using Weaviate `nearText`. Input: `query` (string), `type?`, `limit?` (default 10, max 25), `certaintyThreshold?` (default 0.5). Returns results ranked by vector similarity with `id`, `name`, `type`, `content` (snippet, first 500 chars), `tags`, `score`. Multi-collection search runs `nearText` against each target collection in parallel, merges results, sorts by certainty. The LLM calls `get_object` for full content when needed.
-
-**L8 — `get_relationships`**
-Returns all outbound and inbound relationships for an object. Input: `id` (string). Returns `{ objectId, objectName, objectType, outbound: Record<string, {id, name, type}[]>, inbound: Record<string, {id, name, type}[]> }`. Combines cross-reference resolution with reverse-lookup scanning.
-
-**L9 — `get_dashboard_health`**
-Knowledge base health metrics — counts, stale objects, never-reviewed, relationship gaps. No parameters. Returns aggregated counts (not full object lists) to keep responses compact for LLM context windows. The LLM follows up with `list_objects` or `get_object` for details.
-
-**L10 — `get_collection_schema`**
-Schema definition for collections. Input: `type?`. Returns property names, data types, descriptions, and cross-reference definitions. Static reference from `schema.ts` — does not query Weaviate at runtime.
-
-#### MCP Resources
-
-**L11 — Static and Dynamic Resources**
-
-| Resource | URI | Description |
-|---|---|---|
-| Knowledge Base Overview | `knowledge://overview` | Static markdown: what the Content Engine is, what each collection stores, how objects relate. Helps the LLM understand the domain before querying. |
-| Relationship Map | `knowledge://relationships` | Text representation of the cross-reference graph (all directional relationships). |
-| Collection Summaries | `knowledge://collections/{type}` | Dynamic: count, list of names, common tags for a collection. Updated on each read. |
-
-#### Semantic Search Design
-
-**L12 — Semantic Search Flow**
-
-1. LLM calls `search_objects` with natural language `query` (e.g. "territory planning for enterprise accounts")
-2. MCP server sends query to Weaviate as `nearText` search across specified collections (or all if unfiltered)
-3. Weaviate vectorizes the query and compares against stored content vectors
-4. Results returned ranked by certainty score (cosine similarity)
-5. MCP server formats results with `id`, `name`, `type`, `score`, and content snippet
-6. LLM receives results and can call `get_object` on any result for full content
-
-Response formatting optimized for LLM consumption: structured JSON with clear field names, content snippets truncated to 500 characters to prevent context window overflow.
-
-#### Cross-LLM Compatibility
-
-**L13 — Compatibility Strategy**
-
-| LLM Client | Transport | Support | Notes |
-|---|---|---|---|
-| Claude Desktop | stdio | Native | Add to `claude_desktop_config.json` |
-| Claude Code | stdio | Native | Same stdio mechanism |
-| Cursor | stdio | Native | Add to `.cursor/mcp.json` |
-| Gemini | SSE/HTTP | Supported via adapter | SSE transport mode (L2) is compatible |
-| ChatGPT | HTTP | Adapter required | Does not natively support MCP; wrap SSE with OpenAPI-compatible layer. Phase 2 concern. |
-
-Phase 1 priority: stdio for Claude Desktop / Claude Code / Cursor, plus SSE for Gemini and general HTTP access. ChatGPT adapter documented but deferred.
-
-#### Example Interactions
-
-**Exploring personas:** User asks *"Show me all our personas and their key pain points."* → LLM calls `list_objects({ type: "persona" })`, then `get_object` for each → synthesizes pain points from content.
-
-**Semantic search:** User asks *"Find knowledge objects related to territory planning."* → LLM calls `search_objects({ query: "territory planning" })` → receives ranked results across UseCases, Personas, Segments with relevance scores.
-
-**Relationship exploration:** User asks *"What segments are linked to the Sales persona?"* → LLM calls `list_objects({ type: "persona" })` to find Sales ID, then `get_relationships({ id })` → returns linked segments and use cases.
-
-**Health check:** User asks *"Give me a summary of our knowledge base health."* → LLM calls `get_dashboard_health()` → returns total counts, stale items, gaps, missing objects.
-
-#### Phase 2 Vision: Write Access (Future)
-
-Phase 2 extends the MCP server with write tools that route through the existing review queue.
-
-| Tool | Description |
-|---|---|
-| `create_object` | Creates a Submission with `submissionType: "new"` from LLM conversation |
-| `update_object` | Creates a Submission with `submissionType: "update"` for an existing object |
-| `suggest_relationship` | Proposes a cross-reference (new submission type or special-case update) |
-
-Workflow: LLM calls write tool → MCP server creates Submission → enters review queue at `/queue` → admin reviews via existing UI (Groups E/F).
-
-Challenges to resolve: structured data from natural language, submitter attribution (require `submitter` param or use MCP client identity), validation (same rules as web UI), conflict detection (check for existing pending submissions on same object).
-
-#### Project Setup
-
-**L14 — Project Scaffolding**
-Initialize `mcp-server/` with `package.json`, `tsconfig.json`, and dependencies (`@modelcontextprotocol/sdk`, `weaviate-client`, `dotenv`, `zod`). Build script (TypeScript → JavaScript via `tsc`), dev script with watch mode. Update root `README.md` with pointer to `mcp-server/README.md`.
-
-**L15 — Claude Desktop Configuration**
-Document integration in `mcp-server/README.md`:
-
-```json
-{
-  "mcpServers": {
-    "content-engine": {
-      "command": "node",
-      "args": ["<path>/mcp-server/dist/index.js"],
-      "env": {
-        "WEAVIATE_URL": "<url>",
-        "WEAVIATE_API_KEY": "<key>"
-      }
-    }
-  }
-}
-```
-
-Include setup instructions for Claude Code and Cursor as well.
-
-**Risks and Gaps:**
-
-| Risk | Impact | Mitigation |
-|---|---|---|
-| Context window overflow from large responses | LLM truncates or loses important context | Return 500-char snippets in search/list; require `get_object` for full content; enforce `limit` and `max` on all tools |
-| Data exposure via network-accessible SSE transport | Sensitive business knowledge accessible to anyone with SSE access | stdio is local-only by default; SSE requires explicit opt-in; add API key auth to SSE transport |
-| Semantic search quality depends on Weaviate vectorizer | Poor embeddings → irrelevant results → bad LLM responses | Expose `certaintyThreshold` parameter; monitor quality; consider vectorizer upgrade per ROADMAP.md open question |
-| MCP protocol evolution | Breaking changes may require server updates | Pin SDK version; follow changelog; add new tools rather than modify existing |
-| Weaviate connection stability in long-running process | Connection drops cause all tool calls to fail | Reconnection logic with exponential backoff; health check on every tool call; log connection events |
-| ChatGPT lacks native MCP support | Users on ChatGPT cannot connect without adapter | Document limitation; SSE transport covers Gemini and HTTP clients; defer ChatGPT adapter to Phase 2 |
-| Stale schema mirror diverges from Weaviate | Tools return incorrect schema information | Startup validation comparing `schema.ts` against live Weaviate schema; log warnings on mismatch |
-| Duplicated logic between MCP server and Next.js app | Schema definitions and query patterns maintained in two places | Accept duplication for Phase 1; consider extracting shared `@content-engine/core` package if maintenance burden grows |
-| No rate limiting on tool calls | Runaway LLM loop could hammer Weaviate | Per-minute rate limits (60 tool calls/min); log all invocations; alert on unusual patterns |
-
-**Open Questions:**
-
-| Question | Context |
-|---|---|
-| Shared package vs. duplicated logic? | MCP server mirrors collection schemas and query patterns from Next.js app. Extract `@content-engine/core` (npm workspace) or accept duplication? Recommendation: accept duplication in Phase 1; revisit if MCP server grows. |
-| SSE authentication? | stdio is inherently local. SSE is network-accessible. Use static API key (simplest) or JWT? Recommendation: static API key matching existing pattern. |
-| Content truncation strategy? | 500-char snippet in search/list, full in `get_object`. Should this be configurable per request? |
-| Dynamic collection detection? | Should the MCP server hard-code Skill support or dynamically detect available collections at startup? Recommendation: dynamic detection. |
-| Deployment model for SSE mode? | Alongside Next.js on Vercel, separate always-on server, or Docker container? Recommendation: separate always-on service for SSE; stdio runs locally. |
-| Use official Weaviate MCP server? | ADR-002 notes the official server. Build custom for domain-specific value (health dashboard, formatted responses, knowledge-type awareness); evaluate integrating official server capabilities later. |
-| Response format? | JSON (structured) or markdown (human-readable)? Recommendation: JSON with `formattedSummary` field containing markdown version. |
-
----
-
 ### Group M — Knowledge-Linked Skills
 
 > Scope: Allow skills to declare which knowledge objects they depend on. When a knowledge object is updated and accepted, the system evaluates whether the change is significant enough to generate a skill refresh suggestion. If significant, a system-generated submission enters the review queue for admin review using the same AI merge infrastructure as Groups E–F.
@@ -868,41 +815,33 @@ When an external system pushes a knowledge object update via MCP (Group J) and t
 
 ---
 
-### Cross-Cutting Notes: Groups J, K, L
+### Cross-Cutting Notes: Groups J and K
 
-#### J + L Consolidation Opportunity
+#### K + J Data Overlap
 
-Groups J and L are both MCP servers connecting to Weaviate. They could be a **single MCP server process** with different tool namespaces — read tools for LLMs (Group L) alongside write-to-submission tools for automation (Group J). This reduces infrastructure (one server to deploy and monitor instead of two) and shares the Weaviate connection, transport layer, and authentication logic.
+Group K (REST API) and Group J (MCP server read tools) expose the same underlying data through different protocols — REST for HTTP clients and MCP for LLMs. Both should use the same `lib/knowledge.ts` functions as their implementation layer. Neither should duplicate query logic or maintain separate data-shaping code.
 
-**Trade-off:** A combined server exposes write tools to LLM users and read tools to automation clients. This may be desirable (LLMs get read + write in Phase 2 anyway) or may create confusion (automation clients don't need `get_dashboard_health`). A configuration flag or tool namespace could control which tools are available per connection.
-
-**Recommendation:** Build as a single `mcp-server/` project with all tools. Use a configuration flag or API key scope to control which tool sets are available per client. Revisit if the two use cases diverge significantly.
-
-#### K + L Data Overlap
-
-Group K (REST API) and Group L (MCP read tools) expose the same underlying data through different protocols — REST for HTTP clients and MCP for LLMs. Both should use the same `lib/knowledge.ts` functions as their implementation layer. Neither should duplicate query logic or maintain separate data-shaping code.
-
-Group K is fully scoped and will be built first. When Group L is implemented, it should reuse the same query functions (`listKnowledgeObjects()`, `getKnowledgeObject()`, `semanticSearchKnowledge()`, `listSkills()`, `getSkill()`) established during K3. If a consumer can use MCP (e.g. an AI agent), they should use Group L. If they need a standard HTTP API (e.g. a BI tool, CRM sync, or non-MCP application), they should use Group K.
+Group K is fully built. When Group J is implemented, it should reuse the same query functions (`listKnowledgeObjects()`, `getKnowledgeObject()`, `semanticSearchKnowledge()`, `listSkills()`, `getSkill()`) established during K3. If a consumer can use MCP (e.g. an AI agent), they should use Group J. If they need a standard HTTP API (e.g. a BI tool, CRM sync, or non-MCP application), they should use Group K.
 
 #### API Key Strategy
 
-Group K now implements the `ConnectedSystem` Weaviate collection with per-system API keys, including key generation, hashing, in-memory caching, and an admin UI for managing connected systems. This establishes the key management pattern for the project.
+Group K implements the `ConnectedSystem` Weaviate collection with per-system API keys, including key generation, hashing, in-memory caching, and an admin UI for managing connected systems. This establishes the key management pattern for the project.
 
-When Groups J and L are implemented, they should extend the existing `ConnectedSystem` model rather than building a separate key system. The `permissions` field on `ConnectedSystem` (currently `["read"]` for REST API access) can be extended with additional scopes (e.g. `"mcp-read"`, `"mcp-write"`) to control which tool sets are available per client. The same `apiKeyHash` validation and `globalThis` caching pattern from `lib/api-auth.ts` should be reused by the MCP server's authentication layer.
+When Group J is implemented, it should extend the existing `ConnectedSystem` model rather than building a separate key system. The `permissions` field on `ConnectedSystem` (currently `["read"]` for REST API access) is extended with additional scopes (`"mcp-read"`, `"mcp-write"`) to control which tool sets are available per client. The same `apiKeyHash` validation and `globalThis` caching pattern from `lib/api-auth.ts` is reused by the MCP server's authentication layer.
 
-**Build order:** Group K first (establishes `ConnectedSystem` schema, key management, and `lib/knowledge.ts` query functions). Groups J and L second (consume the same infrastructure). MCP implementation is deferred until the REST API is fully built and tested.
+**Build order:** Group K first (establishes `ConnectedSystem` schema, key management, and `lib/knowledge.ts` query functions) — **Done**. Group J second (consumes the same infrastructure).
 
 #### Weaviate-Level Access Control (Defense-in-Depth)
 
-All three groups leverage Weaviate's built-in RBAC (v1.30+) as a defense-in-depth layer beneath application-level API key auth. Each access channel connects to Weaviate with a scoped user (`content-engine-admin`, `content-engine-api-reader`, `content-engine-mcp`) so that even if application-level authentication is bypassed, the Weaviate user limits the blast radius. See Group K Architecture Decisions for the full user mapping.
+Both groups leverage Weaviate's built-in RBAC (v1.30+) as a defense-in-depth layer beneath application-level API key auth. Each access channel connects to Weaviate with a scoped user (`content-engine-admin`, `content-engine-api-reader`, `content-engine-mcp`) so that even if application-level authentication is bypassed, the Weaviate user limits the blast radius. See Group K Architecture Decisions for the full user mapping.
 
 #### No User Authentication Dependency
 
-All three groups are designed to work without end-user authentication or role-based access at the application level. The review queue is the authorization layer for writes (Groups J, L Phase 2). Read access (Groups K, L) is protected by application-level API keys and Weaviate-level read-only users. This is appropriate for the current single-company internal tool. When user Auth/RBAC is added (Phase 3+), all three groups should integrate with the auth system for per-user or per-team scoping. See Phase 3+ backlog for the OIDC/SSO upgrade path.
+Both groups are designed to work without end-user authentication or role-based access at the application level. The review queue is the authorization layer for writes (Group J Phase 2). Read access (Groups K, J) is protected by application-level API keys and Weaviate-level read-only users. This is appropriate for the current single-company internal tool. When user Auth/RBAC is added (Phase 3+), both groups should integrate with the auth system for per-user or per-team scoping. See Phase 3+ backlog for the OIDC/SSO upgrade path.
 
 #### OIDC/SSO Upgrade Path
 
-The current API key authentication model (Group K `ConnectedSystem`, Groups J/L API keys) is designed to be replaceable when user authentication is added. The upgrade path:
+The current API key authentication model (Group K `ConnectedSystem`, Group J API keys) is designed to be replaceable when user authentication is added. The upgrade path:
 
 1. **Phase 1 (current):** Application-level API keys per connected system + Weaviate-level RBAC per access channel. No end-user authentication.
 2. **Phase 3+:** Add OIDC integration (Okta, Auth0, Azure AD, or Keycloak) for the web UI. Internal routes (`/api/knowledge`, `/api/skills`, etc.) are protected by session-based auth. External API keys (`/api/v1/`) continue working alongside OIDC — connected systems use API keys, human users use OIDC tokens.
@@ -1121,13 +1060,13 @@ The following `business_rule` objects are planned but not yet created. They will
 | Item | Notes |
 |---|---|
 | Vercel deployment | Infrastructure is ready; deployment is a pending step after local dev is confirmed |
-| Auth / RBAC | User authentication and role-based access for the web UI and internal API routes. Not needed for single-user internal tool in Phase 1. Planned approach: OIDC integration (Okta, Auth0, Azure AD, or Keycloak) for session-based auth on internal routes. External API keys (Group K) and MCP keys (Groups J/L) continue working alongside OIDC. Weaviate-level RBAC users (Group K) provide defense-in-depth. See Cross-Cutting Notes: OIDC/SSO Upgrade Path. |
+| Auth / RBAC | User authentication and role-based access for the web UI and internal API routes. Not needed for single-user internal tool in Phase 1. Planned approach: OIDC integration (Okta, Auth0, Azure AD, or Keycloak) for session-based auth on internal routes. External API keys (Group K) and MCP keys (Group J) continue working alongside OIDC. Weaviate-level RBAC users (Group K) provide defense-in-depth. See Cross-Cutting Notes: OIDC/SSO Upgrade Path. |
 | Internal API route protection | All internal routes (`/api/knowledge`, `/api/skills`, `/api/submissions`, `/api/dashboard`, `/api/connections`, `/api/bulk-upload`) currently have zero authentication. Accepted risk for the current single-user internal tool. Must be protected when Auth/RBAC is added. |
 | External integrations | CRM, MAP, social platforms — future consideration. Groups J and K provide the programmatic access layer for building these integrations. |
 | Databricks sync | Canonical account/segment data may already exist in Databricks; a sync pipeline (Databricks → Weaviate) could replace manual entry |
-| MCP server hosting | Groups J and L require a long-running Node.js process (standalone from Vercel). Options: Railway, Fly.io, dedicated Vercel Fluid Compute. Decision needed before implementation. |
-| API key management | Groups J, K, L all need API key auth. Group K implements the `ConnectedSystem` collection with per-system keys, hashing, caching, and admin UI. Groups J/L extend the same model with additional permission scopes. See Cross-Cutting Notes: API Key Strategy. |
-| Rate limiting infrastructure | Group K needs Upstash Redis or Vercel KV for serverless-compatible rate limiting. MCP server (J, L) implements in-process rate limiting. |
+| MCP server hosting | Group J requires a long-running Node.js process (standalone from Vercel). Options: Railway, Fly.io, dedicated Vercel Fluid Compute. Decision needed before implementation. |
+| API key management | Groups J and K need API key auth. Group K implements the `ConnectedSystem` collection with per-system keys, hashing, caching, and admin UI. Group J extends the same model with additional permission scopes (`mcp-read`, `mcp-write`). See Cross-Cutting Notes: API Key Strategy. |
+| Rate limiting infrastructure | Group K needs Upstash Redis or Vercel KV for serverless-compatible rate limiting. MCP server (Group J) implements in-process rate limiting. |
 
 ---
 

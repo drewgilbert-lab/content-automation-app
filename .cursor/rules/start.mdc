@@ -52,6 +52,18 @@ app/
   api/connections/route.ts — GET list, POST create (returns plaintext API key once)
   api/connections/[id]/route.ts — GET detail, PUT update, DELETE, PATCH activate/deactivate
   api/connections/[id]/rotate-key/route.ts — POST rotate API key
+  api/v1/knowledge/route.ts — GET list (paginated, filtered, auth required)
+  api/v1/knowledge/[id]/route.ts — GET detail (auth required)
+  api/v1/knowledge/search/route.ts — GET semantic search (auth required)
+  api/v1/knowledge/types/route.ts — GET types with counts (auth required)
+  api/v1/skills/route.ts — GET list (auth required)
+  api/v1/skills/[id]/route.ts — GET detail (auth required)
+  api/v1/health/route.ts — GET health check (no auth)
+  connections/page.tsx    — Connected Systems list page
+  connections/[id]/page.tsx — Connected System detail page
+  connections/new/page.tsx — Create connection form page
+  connections/[id]/edit/page.tsx — Edit connection form page
+  connections/components/ — ConnectionList, ConnectionForm, ConnectionDetailActions
   skills/page.tsx         — Skills Library list page (filter tabs, search)
   skills/[id]/page.tsx    — Skill detail page (markdown, sidebar, actions)
   skills/new/page.tsx     — Create skill form page
@@ -81,6 +93,7 @@ lib/
   upload-session-types.ts — UploadSession, UploadSessionState types (G3)
   skills.ts               — Skill CRUD operations: list, get, create, update, delete, activate/deactivate, deprecate/restore
   skill-types.ts          — Skill types, content type constants, category constants, utilities
+  rate-limit.ts           — checkRateLimit(), Upstash Redis sliding window, graceful degradation
   context-assembly.ts     — assembleContext() for building generation system prompts with skills + knowledge + rules
 docs/
   PRD.md                  — Functional requirements and user stories
@@ -91,7 +104,8 @@ docs/
   ROADMAP.md              — Phases, future modules, backlog, open questions
   CHANGELOG.md            — What was built and when
   API.md                  — API route contracts (incl. planned bulk upload, skills routes)
-  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api [draft])
+  EXTERNAL_API.md         — Developer guide for the versioned REST API at /api/v1/
+  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api)
 .env.example              — Environment variable template (current + planned vars)
 ```
 
@@ -110,8 +124,7 @@ docs/
 | Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Done (Group I) |
 | Inbound MCP Server (3rd Party Write) | Scoped (Group J) |
-| External REST API (K1-K2) | Done |
-| External REST API (K3-K6) | Pending |
+| External REST API (K1-K6) | Done (Phase 1) |
 | LLM MCP Server (RAG Read Access) | Scoped (Group L) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
@@ -121,6 +134,7 @@ docs/
 
 - Weaviate schema, seed inventory, connection pattern: `docs/KNOWLEDGE_BASE.md`
 - API contracts: `docs/API.md`
+- External REST API developer guide: `docs/EXTERNAL_API.md`
 - Content types, context assembly, skills vs rules: `docs/BUSINESS_LOGIC.md`
 - Tech decisions and rationale: `docs/TECH_DECISIONS.md`
 - Full requirements and user stories: `docs/PRD.md`

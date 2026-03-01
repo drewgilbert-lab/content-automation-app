@@ -1,7 +1,5 @@
 # External API
 
-> **Status: Draft** — This guide describes planned functionality (Group K). The external API is scoped but not yet implemented.
-
 The External API gives third-party applications read-only access to the Content Engine's knowledge base. Any HTTP client — dashboards, CRM integrations, content platforms, automation workflows — can query personas, segments, use cases, business rules, and skills programmatically.
 
 ---
@@ -26,7 +24,7 @@ The API is available at `/api/v1/` and requires an API key for authentication. E
 
 ### 1. Request an API Key
 
-An admin creates a connected system for your application in the Content Engine UI at `/connections`. You will receive:
+An admin creates a connected system for your application in the Content Engine admin UI at `/connections`. You will receive:
 - A **64-character API key** (shown once — copy it immediately)
 - An **8-character key prefix** for identification
 
@@ -202,6 +200,7 @@ This feature is planned but not yet available.
 
 ## See Also
 
+- [Developer API Guide](../EXTERNAL_API.md) — Full developer reference with curl examples
 - [API Reference](../API.md) — Full endpoint contracts
 - [Knowledge Base Guide](./knowledge-base.md) — Understanding knowledge objects
 - [Getting Started](./getting-started.md) — Content Engine overview

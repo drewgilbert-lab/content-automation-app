@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: February 26, 2026
+> Last updated: February 28, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -456,17 +456,17 @@ CORS is denied by default on `/api/v1/` routes (`Access-Control-Allow-Origin` is
 
 #### Phase 1 — Read API and Connected Systems Management
 
-**K1 — ConnectedSystem Collection Schema**
+**K1 — ConnectedSystem Collection Schema** ✅ Done (February 28, 2026)
 Create a `ConnectedSystem` Weaviate collection. Properties: `name` (text — human-readable system name), `description` (text — what this system does), `apiKeyHash` (text — SHA-256 hash of the API key), `apiKeyPrefix` (text — first 8 chars of the key for UI display), `permissions` (text[] — `["read"]` for Phase 1), `subscribedTypes` (text[] — which object types this key can access, e.g. `["persona", "segment"]` or `["*"]` for all), `rateLimitTier` (text — `"standard"` or `"elevated"`), `active` (boolean — master toggle; inactive keys are rejected), `createdAt` (date), `updatedAt` (date). Implementation in `lib/connection-types.ts` (types, input types, constants), `lib/connections.ts` (CRUD: list, get, create, update, delete, activate/deactivate), and `scripts/create-connected-system-collection.ts` (schema creation/migration script).
 
-**K2 — API Key Generation, Rotation, and Validation Middleware**
+**K2 — API Key Generation, Rotation, and Validation Middleware** ✅ Done (February 28, 2026)
 Generate cryptographically secure API keys on system creation. `crypto.randomBytes(32).toString('hex')` produces a 64-char key shown once to the admin at creation time. Stored as `SHA-256(key)` in the `apiKeyHash` field. Validation flow: `X-API-Key` request header → SHA-256 hash → lookup in in-memory `globalThis` cache (refreshed every 5 minutes, same pattern as ADR-012) → return `ConnectedSystem` record or `401 Unauthorized`. Constant-time comparison via `crypto.timingSafeEqual` to prevent timing attacks. Build `lib/api-auth.ts` with `generateApiKey()`, `hashApiKey()`, `validateApiKey()`, `rotateApiKey()`, and cache management. Build `lib/api-middleware.ts` with a `withApiAuth(handler)` higher-order function wrapping all `/api/v1/` route handlers. Injects the authenticated `ConnectedSystem` into the request context. Checks `active` status. Applies security headers (`X-Content-Type-Options`, `Cache-Control`, `X-Frame-Options`) and CORS policy to every response.
 
 Key rotation: `POST /api/connections/[id]/rotate-key` generates a new API key, updates the `apiKeyHash` and `apiKeyPrefix` on the `ConnectedSystem`, forces an immediate cache refresh, and returns the new plaintext key once. The old key is invalidated immediately. This avoids the need to delete and recreate a connected system when a key is compromised, preserving the system's configuration, push settings, and push log history.
 
 Request logging: Every `/api/v1/` request is logged to stdout (captured by Vercel) with: `{ timestamp, apiKeyPrefix, endpoint, method, statusCode, durationMs }`. This provides the minimum audit trail needed for external API access without the overhead of a full event logging system. See Deferred: Event Logging & Audit Trails for the broader audit trail plan.
 
-**K3 — Read API Endpoints**
+**K3 — Read API Endpoints** ✅ Done (February 28, 2026)
 Versioned read-only endpoints at `/api/v1/`. All require `X-API-Key` auth via K2 middleware except the health endpoint. Responses follow `{ "data": ..., "meta": ... }` shape. Deprecated objects excluded by default.
 
 | Endpoint | Description | Key Parameters | Reuses |
@@ -483,7 +483,7 @@ Search results include `score` (float 0.0–1.0) and `snippet` (first 500 charac
 
 Implementation files: `app/api/v1/knowledge/route.ts`, `app/api/v1/knowledge/[id]/route.ts`, `app/api/v1/knowledge/search/route.ts`, `app/api/v1/knowledge/types/route.ts`, `app/api/v1/skills/route.ts`, `app/api/v1/skills/[id]/route.ts`, `app/api/v1/health/route.ts`.
 
-**K4 — Connected Systems Admin UI**
+**K4 — Connected Systems Admin UI** ✅ Done (February 28, 2026)
 Admin interface at `/connections` for creating, managing, and monitoring connected systems. Follows the established UI patterns from `/knowledge` and `/skills`.
 
 Pages:
@@ -498,7 +498,7 @@ Components: `app/connections/components/connection-list.tsx`, `app/connections/c
 
 Home page: Add "Connected Systems" nav card to `app/page.tsx` navItems array.
 
-**K5 — Rate Limiting**
+**K5 — Rate Limiting** ✅ Done (February 28, 2026)
 Per-key rate limiting using Upstash Redis + `@upstash/ratelimit`.
 
 | Parameter | Value |
@@ -511,7 +511,7 @@ Per-key rate limiting using Upstash Redis + `@upstash/ratelimit`.
 
 Response headers on every request: `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`. Implementation in `lib/rate-limit.ts` integrated into `withApiAuth()`. New environment variables: `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`.
 
-**K6 — Phase 1 Testing and API Documentation**
+**K6 — Phase 1 Testing and API Documentation** ✅ Done (February 28, 2026)
 Unit tests for `lib/api-auth.ts` (key generation, hashing, validation, cache behavior) and `lib/connections.ts` (CRUD operations). Integration tests for all `/api/v1/` endpoints (auth required, correct responses, error cases, pagination, deprecated filtering). Rate limiting tests (verify 429 responses, header values). Update `docs/API.md` with all `/api/v1/` endpoint contracts. Create `docs/EXTERNAL_API.md` with base URL, auth instructions, endpoint reference with curl examples, rate limit policy, and error codes. Update `docs/TECH_DECISIONS.md` to revise ADR-007 with Connected Systems architecture.
 
 #### Phase 2 — Outbound Push Sync

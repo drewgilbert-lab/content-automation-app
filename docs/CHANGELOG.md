@@ -4,6 +4,28 @@
 
 ---
 
+### Group K Phase 1: Read API, Admin UI, Rate Limiting, Tests (K3–K6) — February 28, 2026
+
+**K3 — Read API Endpoints:**
+- Created 7 versioned read-only endpoints at `/api/v1/`: knowledge list (with pagination, type/tags/deprecated filtering), knowledge detail, semantic search, knowledge types, skills list, skill detail, and health check.
+- Added `semanticSearchKnowledge()` and `listKnowledgeObjectsPaginated()` to `lib/knowledge.ts`. Added `SearchResult` and `KnowledgeListParams` types to `lib/knowledge-types.ts`.
+- All endpoints except health wrapped with `withApiAuth()` middleware. Responses follow `{ "data": ..., "meta": ... }` shape.
+
+**K4 — Connected Systems Admin UI:**
+- Created 4 pages at `/connections`: list, create, detail, edit. Three components: `connection-list.tsx` (tabs, search), `connection-form.tsx` (create/edit with API key display), `connection-detail-actions.tsx` (edit, rotate key, activate/deactivate, delete).
+- Added "Connected Systems" nav card to the home page.
+
+**K5 — Rate Limiting:**
+- Created `lib/rate-limit.ts` using `@upstash/ratelimit` and `@upstash/redis`. Standard tier: 100 req/min, elevated: 300 req/min, semantic search: 20 req/min (sliding window).
+- Integrated rate limiting into `withApiAuth()` middleware. Added `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` headers to all responses. Returns 429 with `retryAfter` when exceeded.
+- Graceful degradation: rate limiting is skipped if Upstash env vars are not configured.
+
+**K6 — Testing and Documentation:**
+- 42 new Vitest tests across 10 files: unit tests for `lib/api-auth.ts` (7), `lib/connections.ts` (9), `lib/rate-limit.ts` (4); integration tests for all `/api/v1/` endpoints (22).
+- Created `docs/EXTERNAL_API.md` (developer API guide) and updated `docs/user-guides/external-api.md` (end-user integration guide).
+
+---
+
 ### Group K Phase 1: ConnectedSystem Schema and API Key Auth (K1–K2) — February 28, 2026
 
 **K1 — ConnectedSystem Collection Schema:**

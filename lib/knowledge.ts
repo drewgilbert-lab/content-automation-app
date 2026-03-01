@@ -9,6 +9,8 @@ import type {
   KnowledgeUpdateInput,
   CrossReference,
   RelationshipConfig,
+  SearchResult,
+  KnowledgeListParams,
 } from "./knowledge-types";
 
 export type {
@@ -19,6 +21,8 @@ export type {
   KnowledgeUpdateInput,
   CrossReference,
   RelationshipConfig,
+  SearchResult,
+  KnowledgeListParams,
 };
 export { VALID_TYPES, getTypeLabel } from "./knowledge-types";
 
@@ -219,6 +223,116 @@ export async function getKnowledgeObject(
       }
     }
     return null;
+  });
+}
+
+// ─── K3: Paginated list ────────────────────────────────────────────────────────
+
+export async function listKnowledgeObjectsPaginated(
+  params: KnowledgeListParams = {}
+): Promise<{ items: KnowledgeListItem[]; total: number }> {
+  const {
+    type,
+    tags,
+    limit = 100,
+    offset = 0,
+    includeDeprecated = false,
+  } = params;
+
+  return withWeaviate(async (client) => {
+    const collectionsToQuery = type
+      ? [TYPE_TO_COLLECTION[type]]
+      : [...COLLECTIONS];
+
+    const results = await Promise.all(
+      collectionsToQuery.map(async (name) => {
+        try {
+          return await fetchCollectionObjects(client, name);
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    let all = results.flat();
+
+    if (!includeDeprecated) {
+      all = all.filter((obj) => !obj.deprecated);
+    }
+
+    if (tags && tags.length > 0) {
+      const lowerTags = tags.map((t) => t.toLowerCase());
+      all = all.filter((obj) =>
+        obj.tags.some((t) => lowerTags.includes(t.toLowerCase()))
+      );
+    }
+
+    all.sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    );
+
+    const total = all.length;
+    const clampedLimit = Math.min(Math.max(limit, 1), 500);
+    const clampedOffset = Math.max(offset, 0);
+    const items = all.slice(clampedOffset, clampedOffset + clampedLimit);
+
+    return { items, total };
+  });
+}
+
+// ─── K3: Semantic search ───────────────────────────────────────────────────────
+
+export async function semanticSearchKnowledge(params: {
+  q: string;
+  type?: KnowledgeType;
+  limit?: number;
+  certainty?: number;
+}): Promise<SearchResult[]> {
+  const { q, type, limit = 10, certainty = 0.7 } = params;
+  const clampedLimit = Math.min(Math.max(limit, 1), 50);
+
+  return withWeaviate(async (client) => {
+    const collectionsToQuery = type
+      ? [TYPE_TO_COLLECTION[type]]
+      : [...COLLECTIONS];
+
+    const results = await Promise.all(
+      collectionsToQuery.map(async (collectionName) => {
+        try {
+          const collection = client.collections.use(collectionName);
+          const knowledgeType = COLLECTION_TO_TYPE[collectionName];
+
+          const result = await collection.query.nearText(q, {
+            limit: clampedLimit,
+            certainty,
+            returnMetadata: ["certainty"],
+          });
+
+          return result.objects.map((obj) => {
+            const content = String(obj.properties.content ?? "");
+            return {
+              id: obj.uuid,
+              name: String(obj.properties.name ?? ""),
+              type: knowledgeType,
+              tags: (obj.properties.tags as string[]) ?? [],
+              score: obj.metadata?.certainty ?? 0,
+              snippet: content.slice(0, 500),
+            };
+          });
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const merged = results
+      .flat()
+      .filter((r) => r.score >= certainty)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, clampedLimit);
+
+    return merged;
   });
 }
 

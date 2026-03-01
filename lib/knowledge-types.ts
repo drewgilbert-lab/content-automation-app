@@ -91,6 +91,23 @@ export const SUB_TYPES = ["tone", "constraint", "instruction_template"] as const
 
 export const CUSTOMER_EVIDENCE_SUB_TYPES = ["proof_point", "reference"] as const;
 
+export interface SearchResult {
+  id: string;
+  name: string;
+  type: KnowledgeType;
+  tags: string[];
+  score: number;
+  snippet: string;
+}
+
+export interface KnowledgeListParams {
+  type?: KnowledgeType;
+  tags?: string[];
+  limit?: number;
+  offset?: number;
+  includeDeprecated?: boolean;
+}
+
 export function getTypeLabel(type: KnowledgeType): string {
   const labels: Record<KnowledgeType, string> = {
     persona: "Persona",

@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: February 28, 2026
+> Last updated: February 28, 2026 (K3–K6 implemented)
 
 ---
 
@@ -1147,11 +1147,11 @@ Rotates the API key for a connected system. Generates a new key, invalidates the
 
 ---
 
-## Planned: External REST API (Group K)
+## External REST API (Group K)
 
-> Versioned read-only REST API for 3rd party applications. Scoped but not yet implemented (K3–K6 pending). K1 (ConnectedSystem schema) and K2 (API key auth middleware) are implemented. See [ROADMAP.md](./ROADMAP.md) Group K.
+**Status: Implemented (Phase 1)**
 
-All `/api/v1/` routes require `X-API-Key` header authentication (except health). Responses follow the shape `{ "data": ..., "meta": ... }`. Deprecated objects are excluded by default.
+All `/api/v1/` routes require `X-API-Key` header authentication (except health). Responses follow the shape `{ "data": ..., "meta": ... }`. Deprecated objects are excluded by default. Rate limiting via Upstash Redis (standard: 100/min, elevated: 300/min, search: 20/min). See also [EXTERNAL_API.md](./EXTERNAL_API.md) for the developer guide.
 
 **Security model:**
 - Application-level: per-system API keys managed via `ConnectedSystem` collection. Keys are SHA-256 hashed, validated with constant-time comparison, cached in-memory (5-min refresh).

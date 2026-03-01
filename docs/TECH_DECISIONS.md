@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: February 26, 2026
+> Last updated: February 28, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.

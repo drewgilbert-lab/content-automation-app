@@ -71,6 +71,13 @@ const navItems = [
     available: true,
   },
   {
+    title: "Connected Systems",
+    description: "Manage API keys and integrations for external applications.",
+    href: "/connections",
+    icon: "⊞",
+    available: true,
+  },
+  {
     title: "Content",
     description: "Browse, create, and manage generated content across all formats.",
     href: "/content",

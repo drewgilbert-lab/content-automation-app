@@ -64,6 +64,6 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Vercel deployment | Pending | After local dev is confirmed working |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
 | Inbound MCP server | Scoped | 3rd party apps push content via MCP, routed through review queue; see ROADMAP.md Group J |
-| External REST API | In Progress | K1 (ConnectedSystem schema + CRUD) and K2 (API key auth middleware) implemented; K3–K6 (read endpoints, admin UI, rate limiting, testing) pending; see ROADMAP.md Group K |
+| External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see ROADMAP.md Group K |
 | LLM MCP server (RAG) | Scoped | MCP server for Claude/Gemini/ChatGPT read access to knowledge base; see ROADMAP.md Group L |
 | Approval workflows | Future | Defined in ROADMAP.md |

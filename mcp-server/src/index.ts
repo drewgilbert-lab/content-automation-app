@@ -6,6 +6,8 @@ import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { initializeClient, closeClient, checkHealth } from './weaviate.js';
 import { authenticateRequest } from './auth.js';
+import { registerTools } from './tools/index.js';
+import { registerResources } from './resources/index.js';
 
 type TransportType = 'stdio' | 'http';
 
@@ -45,8 +47,8 @@ function createServer(): McpServer {
     { capabilities: { tools: {}, resources: {}, logging: {} } },
   );
 
-  // registerTools(server);   — placeholder for J5
-  // registerResources(server);
+  registerTools(server);
+  registerResources(server);
 
   return server;
 }

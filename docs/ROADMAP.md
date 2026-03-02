@@ -345,7 +345,7 @@ Build `mcp-server/src/weaviate.ts` with a **persistent** Weaviate client (differ
 **J4 — Authentication** ✅ Done
 Extend the `ConnectedSystem` model from Group K with `"mcp-read"` and `"mcp-write"` permission scopes. Reuse `apiKeyHash` validation and `globalThis` caching patterns from `lib/api-auth.ts`. stdio transport does not require API key auth by default (local-only). Streamable HTTP transport requires API key in `Authorization: Bearer <key>` header. Permission scope controls which tools are available per connection.
 
-**J5 — Read Tools**
+**J5 — Read Tools** ✅ Done
 Expose tools that allow MCP clients to explore the knowledge base. These are the core RAG interface.
 
 | Tool | Description | Input | Returns |
@@ -360,7 +360,7 @@ Expose tools that allow MCP clients to explore the knowledge base. These are the
 
 Collection descriptions and cross-reference metadata hardcoded in `schema.ts` (mirroring `KNOWLEDGE_BASE.md`). Multi-collection search runs `nearText` against each target collection in parallel, merges results, sorts by certainty. Response formatting optimized for LLM consumption: structured JSON with clear field names, content snippets truncated to 500 characters to prevent context window overflow. The LLM calls `get_object` for full content when needed.
 
-**J6 — MCP Resources**
+**J6 — MCP Resources** ✅ Done
 Static and dynamic resources that help LLMs understand the knowledge base before querying.
 
 | Resource | URI | Description |
@@ -369,7 +369,7 @@ Static and dynamic resources that help LLMs understand the knowledge base before
 | Relationship Map | `knowledge://relationships` | Text representation of the cross-reference graph (all directional relationships) |
 | Collection Summaries | `knowledge://collections/{type}` | Dynamic: count, list of names, common tags for a collection. Updated on each read |
 
-**J7 — Semantic Search Design**
+**J7 — Semantic Search Design** ✅ Done
 
 1. LLM calls `search_objects` with natural language `query` (e.g. "territory planning for enterprise accounts")
 2. MCP server sends query to Weaviate as `nearText` search across specified collections (or all if unfiltered)
@@ -378,7 +378,7 @@ Static and dynamic resources that help LLMs understand the knowledge base before
 5. MCP server formats results with `id`, `name`, `type`, `score`, and content snippet
 6. LLM receives results and can call `get_object` on any result for full content
 
-**J8 — LLM Client Configuration**
+**J8 — LLM Client Configuration** ✅ Done
 Document integration in `mcp-server/README.md` with setup instructions for each supported client.
 
 | LLM Client | Transport | Support | Notes |

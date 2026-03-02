@@ -1,6 +1,6 @@
 # Content Engine — Project Overview
 
-> Last updated: February 28, 2026
+> Last updated: March 2, 2026
 
 ## What This Is
 
@@ -63,7 +63,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Pending | After local dev is confirmed working |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
-| Inbound MCP server | Scoped | 3rd party apps push content via MCP, routed through review queue; see ROADMAP.md Group J |
+| Inbound MCP server | Phase 1 Read Done | J1-J8 done: foundation, auth, read tools, resources, search, client config; J9+ (write) pending |
 | External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see ROADMAP.md Group K |
-| LLM MCP server (RAG) | Scoped | MCP server for Claude/Gemini/ChatGPT read access to knowledge base; see ROADMAP.md Group L |
+| LLM MCP server (RAG) | Phase 1 Read Done | J1-J8 done: transport, auth, 7 read tools, 3 resources, semantic search, client config; Phase 2 (write) pending |
 | Approval workflows | Future | Defined in ROADMAP.md |

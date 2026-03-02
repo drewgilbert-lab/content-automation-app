@@ -111,14 +111,14 @@ mcp-server/
   src/index.ts              — MCP server entry point, dual transport (stdio + HTTP)
   src/weaviate.ts           — Persistent Weaviate client with reconnection
   src/auth.ts               — API key auth for HTTP transport
-  src/schema.ts             — Collection metadata (placeholder for J5)
-  src/formatters.ts         — Response formatting (placeholder for J5)
-  src/tools/                — MCP tool handlers (placeholder for J5)
-  src/resources/            — MCP resource handlers (placeholder for J6)
+  src/schema.ts             — Collection metadata for all 8 collections (J5)
+  src/formatters.ts         — LLM-optimized response formatting (J5)
+  src/tools/                — 7 MCP read tools: list_collections, list_objects, get_object, search_objects, get_relationships, get_dashboard_health, get_collection_schema (J5)
+  src/resources/            — 3 MCP resources: overview, relationships, collection-summaries (J6)
   package.json              — Standalone Node.js project (ESM)
   tsconfig.json             — TypeScript config (ES2022/NodeNext)
   Dockerfile                — Multi-stage Docker build for Railway
-  README.md                 — Setup and configuration guide
+  README.md                 — Setup, client config, available tools/resources guide (J8)
 .env.example              — Environment variable template (current + planned vars)
 ```
 
@@ -136,7 +136,7 @@ mcp-server/
 | Knowledge Base (Bulk Upload) | Done (Group G) |
 | Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Done (Group I) |
-| MCP Server (Read + Write) | J1-J4 Done, J5+ Pending (Group J) |
+| MCP Server (Read + Write) | J1-J8 Done (Phase 1 Read), J9+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |

@@ -36,49 +36,157 @@ node dist/index.js --transport http --port 3100  # Custom port
 
 Environment variables (`TRANSPORT`, `PORT`) are also supported. CLI flags take precedence.
 
+## Available Tools
+
+The MCP server exposes 7 read tools for querying the knowledge base:
+
+| Tool | Description | Input |
+|------|-------------|-------|
+| `list_collections` | List all collections with object counts and descriptions | None |
+| `list_objects` | Browse objects with optional type filtering and pagination | `type?`, `includeDeprecated?`, `limit?`, `offset?` |
+| `get_object` | Get full details of a single object by ID | `id` |
+| `search_objects` | Semantic search using natural language — the core RAG capability | `query`, `type?`, `limit?`, `certaintyThreshold?` |
+| `get_relationships` | Get all outbound and inbound relationships for an object | `id` |
+| `get_dashboard_health` | Knowledge base health metrics (counts, stale content, gaps) | None |
+| `get_collection_schema` | Schema definitions for collections (properties, cross-references) | `type?` |
+
+## Available Resources
+
+Static and dynamic resources that help LLMs understand the knowledge base:
+
+| Resource | URI | Description |
+|----------|-----|-------------|
+| Knowledge Base Overview | `knowledge://overview` | What the Content Engine is, what each collection stores, how to query it |
+| Relationship Map | `knowledge://relationships` | Cross-reference graph showing all directional relationships |
+| Collection Summary | `knowledge://collections/{type}` | Dynamic: count, names, common tags for a specific collection |
+
 ## LLM Client Configuration
 
-### Claude Desktop
+### Claude Desktop (stdio)
 
-Add to `claude_desktop_config.json`:
+Claude Desktop spawns the MCP server as a child process using stdio transport.
 
-```json
-{
-  "mcpServers": {
-    "content-engine": {
-      "command": "node",
-      "args": ["/path/to/mcp-server/dist/index.js"],
-      "env": {
-        "WEAVIATE_URL": "<your-weaviate-url>",
-        "WEAVIATE_API_KEY": "<your-api-key>"
-      }
-    }
-  }
-}
-```
+**Setup:**
 
-### Claude Code
-
-Same configuration as Claude Desktop — Claude Code uses the stdio transport.
-
-### Cursor
-
-Add to `.cursor/mcp.json` in your project:
+1. Build the server: `cd mcp-server && npm run build`
+2. Add to your Claude Desktop config file:
+   - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+   - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "content-engine": {
       "command": "node",
-      "args": ["/path/to/mcp-server/dist/index.js"],
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
       "env": {
-        "WEAVIATE_URL": "<your-weaviate-url>",
-        "WEAVIATE_API_KEY": "<your-api-key>"
+        "WEAVIATE_URL": "https://your-cluster.weaviate.network",
+        "WEAVIATE_API_KEY": "your-weaviate-api-key"
       }
     }
   }
 }
 ```
+
+3. Restart Claude Desktop. The server appears in the MCP tools menu.
+
+### Claude Code (stdio)
+
+Claude Code uses the same stdio mechanism as Claude Desktop.
+
+```json
+{
+  "mcpServers": {
+    "content-engine": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "WEAVIATE_URL": "https://your-cluster.weaviate.network",
+        "WEAVIATE_API_KEY": "your-weaviate-api-key"
+      }
+    }
+  }
+}
+```
+
+### Cursor (stdio)
+
+Add to `.cursor/mcp.json` in your project root (or global Cursor settings):
+
+```json
+{
+  "mcpServers": {
+    "content-engine": {
+      "command": "node",
+      "args": ["/absolute/path/to/mcp-server/dist/index.js"],
+      "env": {
+        "WEAVIATE_URL": "https://your-cluster.weaviate.network",
+        "WEAVIATE_API_KEY": "your-weaviate-api-key"
+      }
+    }
+  }
+}
+```
+
+After saving, restart Cursor or reload the window. The Content Engine tools appear in the MCP section of the AI assistant settings.
+
+### Gemini (Streamable HTTP)
+
+Gemini and other HTTP-compatible clients connect to the deployed server via Streamable HTTP transport.
+
+**Prerequisites:**
+1. Deploy the MCP server with HTTP transport (see Docker section)
+2. Create a Connected System at `/connections/new` with **mcp-read** permission
+3. Note the API key (shown once at creation)
+
+**Configuration:**
+
+Point your Gemini MCP client at the deployed server URL:
+
+```
+Server URL: https://content-automation-app.up.railway.app/mcp
+Authorization: Bearer <your-api-key>
+```
+
+The server handles MCP session management automatically via the `Mcp-Session-Id` header.
+
+### Remote HTTP Access (any client)
+
+Any MCP-compatible HTTP client can connect to the Streamable HTTP transport:
+
+```bash
+# Initialize a session
+curl -X POST https://content-automation-app.up.railway.app/mcp \
+  -H "Authorization: Bearer <your-api-key>" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{}},"id":1}'
+
+# The response includes a Mcp-Session-Id header — use it in subsequent requests
+```
+
+## Example Interactions
+
+Once configured, you can ask your AI assistant questions and it will call the appropriate MCP tools:
+
+**Exploring personas:**
+> "Show me all our personas and their key pain points."
+> → LLM calls `list_objects({ type: "persona" })`, then `get_object` for each → synthesizes pain points
+
+**Semantic search:**
+> "Find knowledge objects related to territory planning."
+> → LLM calls `search_objects({ query: "territory planning" })` → returns ranked results across collections
+
+**Relationship exploration:**
+> "What segments are linked to the Sales persona?"
+> → LLM calls `list_objects({ type: "persona" })` to find Sales ID, then `get_relationships({ id })` → returns linked segments
+
+**Health check:**
+> "Give me a summary of our knowledge base health."
+> → LLM calls `get_dashboard_health()` → returns total counts, stale items, gap analysis
+
+**Schema exploration:**
+> "What properties does a Segment have?"
+> → LLM calls `get_collection_schema({ type: "segment" })` → returns property definitions
 
 ## Remote Access (Streamable HTTP)
 
@@ -101,15 +209,8 @@ https://content-automation-app.up.railway.app
 
 HTTP transport requires an API key via the Connected Systems admin UI:
 
-1. Create a Connected System at `/connections/new` with **MCP Read** permission
-2. Use the API key in requests:
-
-```bash
-curl -X POST https://content-automation-app.up.railway.app/mcp \
-  -H "Authorization: Bearer <your-api-key>" \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{}},"id":1}'
-```
+1. Create a Connected System at `/connections/new` with **mcp-read** permission
+2. Use the API key in the `Authorization: Bearer <key>` header
 
 stdio transport does not require authentication (local-only).
 
@@ -146,6 +247,6 @@ npm run test:watch  # Watch mode
 
 ## Architecture
 
-The MCP server imports shared library code from the parent `lib/` directory (`knowledge.ts`, `submissions.ts`, `api-auth.ts`, etc.) via dynamic imports. This avoids duplicating business logic — the MCP server is a thin transport layer over the same functions the Next.js API routes use.
+The MCP server imports shared library code from the parent `lib/` directory (`knowledge.ts`, `skills.ts`, `dashboard.ts`, `api-auth.ts`) via dynamic imports. This avoids duplicating business logic — the MCP server is a thin transport layer over the same functions the Next.js API routes use.
 
 See [docs/TECH_DECISIONS.md](../docs/TECH_DECISIONS.md) ADR-015 for architecture rationale.

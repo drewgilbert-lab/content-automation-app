@@ -4,6 +4,28 @@
 
 ---
 
+### Group J Phase 1: MCP Server Read Access (J5–J8) — March 2, 2026
+
+**J5 — Read Tools:**
+- Implemented 7 MCP tools for knowledge base read access: `list_collections`, `list_objects`, `get_object`, `search_objects`, `get_relationships`, `get_dashboard_health`, `get_collection_schema`.
+- Populated `schema.ts` with collection metadata for all 8 collections (7 knowledge + Skill), mirroring `KNOWLEDGE_BASE.md`.
+- Built `formatters.ts` with LLM-optimized response formatting: list items, full details, search results (500-char snippets), health metrics, collection schemas, and relationship maps.
+- Tool handlers use dynamic imports to shared `lib/` functions (same pattern as `auth.ts`), avoiding business logic duplication.
+
+**J6 — MCP Resources:**
+- Registered 3 MCP resources: `knowledge://overview` (static markdown overview), `knowledge://relationships` (cross-reference graph), `knowledge://collections/{type}` (dynamic per-collection summary with names, counts, tags).
+
+**J7 — Semantic Search Design:**
+- Validated that `semanticSearchKnowledge()` in `lib/knowledge.ts` already supports multi-collection parallel search, certainty threshold filtering, result merging by score, and 500-character snippet truncation. The `search_objects` tool calls this directly.
+
+**J8 — LLM Client Configuration:**
+- Expanded `mcp-server/README.md` with detailed setup instructions for Claude Desktop, Claude Code, Cursor (stdio), and Gemini (Streamable HTTP). Added available tools/resources reference table, example interaction patterns, and remote HTTP access documentation.
+
+**Testing:**
+- 43 vitest tests across 7 files: schema metadata (14), formatters (10), tool registration (1), resource registration (1), weaviate (7), auth (8), module exports (2). All passing.
+
+---
+
 ### Group J Phase 1: MCP Server Foundation (J1–J4) — March 2, 2026
 
 **J1 — Project Scaffolding:**

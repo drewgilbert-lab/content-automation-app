@@ -1282,13 +1282,13 @@ Health check for monitoring. Does not require API key authentication.
 
 ---
 
-## MCP Server (Foundation: J1-J4 Done, Tools: J5+ Pending)
+## MCP Server (Phase 1 Read: J1-J8 Done, Phase 2 Write: J9+ Pending)
 
-> MCP tools exposed by the standalone MCP server at `mcp-server/`. Foundation implemented (J1-J4: scaffolding, transports, Weaviate connection, auth). Tools pending (J5+). See [ROADMAP.md](./ROADMAP.md) Groups J and L.
+> MCP tools and resources exposed by the standalone MCP server at `mcp-server/`. Phase 1 read access complete (J1-J8: foundation, auth, 7 read tools, 3 resources, semantic search, client config). Phase 2 write access pending (J9+). See [ROADMAP.md](./ROADMAP.md) Group J.
 
 The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp-server/`. It uses `@modelcontextprotocol/sdk` v1.x with stdio and Streamable HTTP transports. Deployed on Railway at `content-automation-app.up.railway.app`. Authentication via Bearer token (extends ConnectedSystem API keys with `mcp-read`/`mcp-write` permission scopes). stdio transport (local) requires no auth. Tools are called by MCP clients (LLMs, automation tools) via the MCP protocol.
 
-### Read-Only Tools (Group L — LLM RAG, also used by Group J)
+### Read-Only Tools (J5 — Done)
 
 | Tool | Description | Input | Returns |
 |---|---|---|---|
@@ -1300,14 +1300,14 @@ The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp
 | `get_dashboard_health` | Knowledge base health metrics | None | Aggregated counts: total, stale, never-reviewed, gaps |
 | `get_collection_schema` | Schema definitions for collections | `type?` | Properties, data types, descriptions, cross-reference definitions |
 
-### Discovery Tools (Group J — Inbound MCP)
+### Discovery Tools (J9+ — Pending)
 
 | Tool | Description | Input | Returns |
 |---|---|---|---|
 | `list_knowledge_types` | Supported types with required/optional fields | None | Array of `{ type, label, description, requiredFields, optionalFields }` |
 | `get_object_schema` | Full field schema for a specific type | `objectType` | Field-level schema with types, constraints, examples |
 
-### Write Tools (Group J — Inbound MCP)
+### Write Tools (J9+ — Pending)
 
 | Tool | Description | Input | Returns |
 |---|---|---|---|
@@ -1315,7 +1315,7 @@ The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp
 | `update_knowledge_object` | Propose an update (creates Submission) | `objectId`, writable fields | `{ submissionId, status: "pending", targetObjectId }` |
 | `check_submission_status` | Check status of a submission | `submissionId` | `{ submissionId, status, reviewComment? }` |
 
-### MCP Resources (Group L)
+### MCP Resources (J6 — Done)
 
 | Resource | URI | Description |
 |---|---|---|

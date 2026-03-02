@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: February 28, 2026
+> Last updated: March 2, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.
@@ -461,6 +461,34 @@ The application currently uses a single `WEAVIATE_API_KEY` (admin-level) for all
 
 ---
 
+## ADR-015: MCP Server Architecture
+
+**Status:** Decided (implemented)
+
+**Context:**
+The Content Engine needs to be accessible from MCP-compatible clients (Claude Desktop, Claude Code, Cursor, Gemini) for direct knowledge base access without context-switching to the web UI. MCP (Model Context Protocol) requires a long-running process with persistent connections, which conflicts with Vercel's stateless serverless model.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Standalone Node.js process (`@modelcontextprotocol/sdk`) | Full MCP protocol support, persistent connections, separate hosting required |
+| Next.js API route adapter | Fits Vercel serverless but limited by 60s timeout, no persistent state, must shim MCP framing |
+| Official Weaviate MCP server | Generic, lacks domain-specific features (health dashboard, formatted responses, knowledge-type awareness) |
+
+**Decision:** Standalone Node.js process using `@modelcontextprotocol/sdk` v1.x, deployed on Railway, separate from the Next.js app.
+
+**Rationale:**
+- Full SDK lifecycle management without serverless constraints
+- Dual transport: stdio for local LLM clients, Streamable HTTP for remote access
+- Imports shared `lib/` modules (knowledge, submissions, skills, api-auth) via dynamic imports to avoid duplicating business logic
+- Persistent Weaviate client (unlike the per-request `withWeaviate` pattern in Next.js) appropriate for a long-running process
+- Railway provides always-on hosting with auto-deploy from GitHub, health checks, and public domains
+- ESM module format (`"type": "module"`) to match SDK expectations
+- MCP SDK v1.x chosen over v2 (pre-alpha, not production-ready as of March 2026)
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -470,7 +498,7 @@ The application currently uses a single `WEAVIATE_API_KEY` (admin-level) for all
 | ADR-003 | Anthropic Claude (current) | Feb 2026 | Decided |
 | ADR-004 | Vercel | Feb 2026 | Pending execution |
 | ADR-005 | Tailwind CSS v4 | Feb 2026 | Decided |
-| ADR-006 | Consolidated MCP Server (standalone Node.js) | Feb 2026 | Pending implementation |
+| ADR-006 | Consolidated MCP Server (standalone Node.js) | Feb 2026 | Decided (implemented) |
 | ADR-007 | REST API Gateway (`/api/v1/`) | Feb 2026 | Pending implementation |
 | ADR-008 | Document Parsing Libraries (pdf-parse, mammoth) | Feb 2026 | Decided |
 | ADR-009 | SSE Streaming for Bulk Classification Progress | Feb 2026 | Decided |
@@ -479,6 +507,7 @@ The application currently uses a single `WEAVIATE_API_KEY` (admin-level) for all
 | ADR-012 | `globalThis` for In-Memory Session Store (Dev) | Feb 2026 | Decided |
 | ADR-013 | Claude Haiku 4.5 as Default Model (Dev) | Feb 2026 | Decided |
 | ADR-014 | Weaviate Multi-User Access Control | Feb 2026 | Pending implementation |
+| ADR-015 | MCP Server Architecture (J1-J4) | Mar 2026 | Decided (implemented) |
 
 ---
 

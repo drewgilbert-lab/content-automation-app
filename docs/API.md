@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: February 28, 2026 (K3–K6 implemented)
+> Last updated: March 2, 2026 (K3–K6, J1–J4 implemented)
 
 ---
 
@@ -1282,11 +1282,11 @@ Health check for monitoring. Does not require API key authentication.
 
 ---
 
-## Planned: MCP Server Tools (Groups J, L)
+## MCP Server (Foundation: J1-J4 Done, Tools: J5+ Pending)
 
-> MCP tools exposed by the standalone MCP server at `mcp-server/`. Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Groups J and L.
+> MCP tools exposed by the standalone MCP server at `mcp-server/`. Foundation implemented (J1-J4: scaffolding, transports, Weaviate connection, auth). Tools pending (J5+). See [ROADMAP.md](./ROADMAP.md) Groups J and L.
 
-The MCP server is a standalone Node.js process (not a Next.js API route). It uses `@modelcontextprotocol/sdk` with stdio and SSE transports. Tools are called by MCP clients (LLMs, automation tools) via the MCP protocol.
+The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp-server/`. It uses `@modelcontextprotocol/sdk` v1.x with stdio and Streamable HTTP transports. Deployed on Railway at `content-automation-app.up.railway.app`. Authentication via Bearer token (extends ConnectedSystem API keys with `mcp-read`/`mcp-write` permission scopes). stdio transport (local) requires no auth. Tools are called by MCP clients (LLMs, automation tools) via the MCP protocol.
 
 ### Read-Only Tools (Group L — LLM RAG, also used by Group J)
 

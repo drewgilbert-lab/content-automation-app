@@ -1,6 +1,29 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: February 28, 2026
+> Newest entries first. Last updated: March 2, 2026
+
+---
+
+### Group J Phase 1: MCP Server Foundation (J1–J4) — March 2, 2026
+
+**J1 — Project Scaffolding:**
+- Created `mcp-server/` directory with standalone Node.js project: `package.json` (ESM, `@modelcontextprotocol/sdk` v1.x, `weaviate-client`, `express`, `zod`), `tsconfig.json` (ES2022/NodeNext), directory structure for tools and resources.
+
+**J2 — Server Process + Transport Layer:**
+- Built `mcp-server/src/index.ts` with dual transport support: stdio (primary, for Claude Desktop/Code/Cursor) and Streamable HTTP (secondary, for remote access via Railway). CLI flag parsing (`--transport`, `--port`) with env var fallback. Express app with CORS, per-session `StreamableHTTPServerTransport` management, `/health` endpoint for Railway health checks. Graceful shutdown on SIGINT/SIGTERM.
+
+**J3 — Weaviate Connection Management:**
+- Built `mcp-server/src/weaviate.ts` with persistent singleton Weaviate client (differs from the Next.js per-request `withWeaviate` pattern). Exponential backoff retry on startup (5 attempts, 1s/2s/4s/8s delays). Exports `initializeClient()`, `getClient()`, `reconnect()`, `closeClient()`, `checkHealth()`. Non-fatal startup — server enters degraded mode if Weaviate is unavailable.
+
+**J4 — Authentication:**
+- Extended `ConnectedSystem` permission model with `"mcp-read"` and `"mcp-write"` scopes in `lib/connection-types.ts`. Added `getPermissionLabel()` utility. Updated `lib/connections.ts` to pass permissions through on create/update. Added permissions toggle UI to `connection-form.tsx`.
+- Built `mcp-server/src/auth.ts` with Bearer token validation for HTTP transport. Reuses `validateApiKey()` from `lib/api-auth.ts` via dynamic import. Checks: active status, `mcp-read` permission. stdio transport skips auth (local-only).
+
+**Deployment:**
+- Multi-stage Dockerfile (`node:22-alpine`) for Railway deployment. Docker build context includes `lib/` for shared runtime imports. Railway domain: `content-automation-app.up.railway.app`.
+
+**Testing:**
+- 17 vitest tests across 3 files: Weaviate connection management (7 tests), auth middleware (8 tests), module structure validation (2 tests).
 
 ---
 

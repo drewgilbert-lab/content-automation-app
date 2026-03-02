@@ -333,16 +333,16 @@ mcp-server/
 
 The highest-value deliverable — give LLMs direct read access to the knowledge base.
 
-**J1 — Project Scaffolding**
+**J1 — Project Scaffolding** ✅ Done
 Initialize `mcp-server/` with `package.json`, `tsconfig.json`, and dependencies (`@modelcontextprotocol/sdk`, `weaviate-client`, `dotenv`, `zod`). Build script (TypeScript → JavaScript via `tsc`), dev script with watch mode. Update root `README.md` with pointer to `mcp-server/README.md`.
 
-**J2 — Server Process + Transport Layer**
+**J2 — Server Process + Transport Layer** ✅ Done
 Build the MCP server as a standalone Node.js process using `@modelcontextprotocol/sdk`. Implement two transport modes: stdio (primary, for Claude Desktop/Code/Cursor) and Streamable HTTP (secondary, for remote access). Transport selected via CLI flag. The server registers all tools, starts the listener, and validates the Weaviate connection on startup. Entry point at `mcp-server/src/index.ts`.
 
-**J3 — Weaviate Connection Management**
+**J3 — Weaviate Connection Management** ✅ Done
 Build `mcp-server/src/weaviate.ts` with a **persistent** Weaviate client (differs from the Next.js `withWeaviate` per-request pattern). Creates a single `WeaviateClient` at startup and reuses for all tool calls. Exposes `getClient()` and `reconnect()` functions. Validates connection via `client.isReady()` on startup with exponential backoff retry (1s, 2s, 4s, 8s, max 30s) on failure.
 
-**J4 — Authentication**
+**J4 — Authentication** ✅ Done
 Extend the `ConnectedSystem` model from Group K with `"mcp-read"` and `"mcp-write"` permission scopes. Reuse `apiKeyHash` validation and `globalThis` caching patterns from `lib/api-auth.ts`. stdio transport does not require API key auth by default (local-only). Streamable HTTP transport requires API key in `Authorization: Bearer <key>` header. Permission scope controls which tools are available per connection.
 
 **J5 — Read Tools**

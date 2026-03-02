@@ -18,6 +18,7 @@ export {
   RATE_LIMIT_TIERS,
   PERMISSIONS,
   getRateLimitTierLabel,
+  getPermissionLabel,
 } from "./connection-types";
 
 const COLLECTION = "ConnectedSystem";
@@ -116,7 +117,7 @@ export async function createConnectedSystem(
       description: input.description,
       apiKeyHash: hash,
       apiKeyPrefix: prefix,
-      permissions: ["read"],
+      permissions: input.permissions ?? ["read"],
       subscribedTypes: input.subscribedTypes ?? ["*"],
       rateLimitTier: input.rateLimitTier ?? "standard",
       active: true,
@@ -156,6 +157,8 @@ export async function updateConnectedSystem(
 
     if (input.name !== undefined) properties.name = input.name;
     if (input.description !== undefined) properties.description = input.description;
+    if (input.permissions !== undefined)
+      properties.permissions = input.permissions;
     if (input.subscribedTypes !== undefined)
       properties.subscribedTypes = input.subscribedTypes;
     if (input.rateLimitTier !== undefined)

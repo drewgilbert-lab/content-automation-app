@@ -16,6 +16,7 @@ alwaysApply: true
 | Vector DB | Weaviate Cloud (`weaviate-client` v3) |
 | LLM | Anthropic Claude (`claude-opus-4-5`) via `lib/claude.ts` |
 | Deploy | Vercel (pending) |
+| MCP Deploy | Railway (`content-automation-app.up.railway.app`) |
 
 ## Repo Structure
 
@@ -106,6 +107,18 @@ docs/
   API.md                  — API route contracts (incl. planned bulk upload, skills routes)
   EXTERNAL_API.md         — Developer guide for the versioned REST API at /api/v1/
   user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api)
+mcp-server/
+  src/index.ts              — MCP server entry point, dual transport (stdio + HTTP)
+  src/weaviate.ts           — Persistent Weaviate client with reconnection
+  src/auth.ts               — API key auth for HTTP transport
+  src/schema.ts             — Collection metadata (placeholder for J5)
+  src/formatters.ts         — Response formatting (placeholder for J5)
+  src/tools/                — MCP tool handlers (placeholder for J5)
+  src/resources/            — MCP resource handlers (placeholder for J6)
+  package.json              — Standalone Node.js project (ESM)
+  tsconfig.json             — TypeScript config (ES2022/NodeNext)
+  Dockerfile                — Multi-stage Docker build for Railway
+  README.md                 — Setup and configuration guide
 .env.example              — Environment variable template (current + planned vars)
 ```
 
@@ -123,7 +136,7 @@ docs/
 | Knowledge Base (Bulk Upload) | Done (Group G) |
 | Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Done (Group I) |
-| MCP Server (Read + Write) | Scoped (Group J) |
+| MCP Server (Read + Write) | J1-J4 Done, J5+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |

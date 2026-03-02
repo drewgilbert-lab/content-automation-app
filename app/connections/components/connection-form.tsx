@@ -3,7 +3,12 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { ConnectedSystemDetail } from "@/lib/connection-types";
-import { RATE_LIMIT_TIERS, getRateLimitTierLabel } from "@/lib/connection-types";
+import {
+  PERMISSIONS,
+  getPermissionLabel,
+  RATE_LIMIT_TIERS,
+  getRateLimitTierLabel,
+} from "@/lib/connection-types";
 
 interface ConnectionFormProps {
   mode: "create" | "edit";
@@ -32,6 +37,9 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [subscribedTypes, setSubscribedTypes] = useState<string[]>(
     isAllTypes || !init?.subscribedTypes ? [] : init.subscribedTypes
   );
+  const [permissions, setPermissions] = useState<string[]>(
+    init?.permissions ?? ["read"]
+  );
   const [rateLimitTier, setRateLimitTier] = useState(
     init?.rateLimitTier ?? "standard"
   );
@@ -40,6 +48,12 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [createdKey, setCreatedKey] = useState<{ id: string; apiKey: string } | null>(null);
   const [copied, setCopied] = useState(false);
+
+  function togglePermission(perm: string) {
+    setPermissions((prev) =>
+      prev.includes(perm) ? prev.filter((p) => p !== perm) : [...prev, perm]
+    );
+  }
 
   function toggleType(type: string) {
     setSubscribedTypes((prev) =>
@@ -96,6 +110,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         const body = {
           name: name.trim(),
           description: description.trim(),
+          permissions,
           subscribedTypes: resolvedTypes,
           rateLimitTier,
         };
@@ -126,7 +141,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         setSaving(false);
       }
     },
-    [mode, initialData, name, description, allTypes, subscribedTypes, rateLimitTier, router]
+    [mode, initialData, name, description, permissions, allTypes, subscribedTypes, rateLimitTier, router]
   );
 
   if (createdKey) {
@@ -207,6 +222,31 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           rows={3}
           className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none resize-y"
         />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          Permissions
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {PERMISSIONS.map((perm) => (
+            <button
+              key={perm}
+              type="button"
+              onClick={() => togglePermission(perm)}
+              className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                permissions.includes(perm)
+                  ? "border-blue-600 bg-blue-600/20 text-blue-400"
+                  : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+              }`}
+            >
+              {getPermissionLabel(perm)}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1 text-xs text-gray-500">
+          REST API Read is for external REST API access. MCP Read/Write control MCP server tool access.
+        </p>
       </div>
 
       <div>

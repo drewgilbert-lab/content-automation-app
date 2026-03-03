@@ -36,13 +36,13 @@ export async function initializeClient(): Promise<void> {
 
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
-      console.log(
+      console.error(
         `[${timestamp()}] Weaviate connection attempt ${attempt}/${MAX_ATTEMPTS}...`
       );
       client = await weaviate.connectToWeaviateCloud(url, {
         authCredentials: new weaviate.ApiKey(apiKey),
       });
-      console.log(`[${timestamp()}] Weaviate connected successfully.`);
+      console.error(`[${timestamp()}] Weaviate connected successfully.`);
       return;
     } catch (error) {
       const isLastAttempt = attempt === MAX_ATTEMPTS;
@@ -59,7 +59,7 @@ export async function initializeClient(): Promise<void> {
       }
 
       const delay = RETRY_DELAYS[attempt - 1]!;
-      console.warn(
+      console.error(
         `[${timestamp()}] Weaviate connection attempt ${attempt} failed. Retrying in ${delay}ms...`,
         error instanceof Error ? error.message : error
       );
@@ -78,12 +78,12 @@ export function getClient(): WeaviateClient {
 }
 
 export async function reconnect(): Promise<void> {
-  console.log(`[${timestamp()}] Reconnecting to Weaviate...`);
+  console.error(`[${timestamp()}] Reconnecting to Weaviate...`);
   if (client) {
     try {
       await client.close();
     } catch (error) {
-      console.warn(
+      console.error(
         `[${timestamp()}] Error closing existing Weaviate client during reconnect:`,
         error instanceof Error ? error.message : error
       );
@@ -95,10 +95,10 @@ export async function reconnect(): Promise<void> {
 
 export async function closeClient(): Promise<void> {
   if (client) {
-    console.log(`[${timestamp()}] Closing Weaviate client connection...`);
+    console.error(`[${timestamp()}] Closing Weaviate client connection...`);
     await client.close();
     client = null;
-    console.log(`[${timestamp()}] Weaviate client closed.`);
+    console.error(`[${timestamp()}] Weaviate client closed.`);
   }
 }
 

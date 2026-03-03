@@ -4,6 +4,11 @@
 
 ---
 
+### Bugfix: MCP server stdio mode broken by stdout logging — March 3, 2026
+
+- Replaced all `console.log` and `console.warn` calls in `mcp-server/src/weaviate.ts` with `console.error`. In stdio mode, stdout is reserved for JSON-RPC messages — any non-JSON output corrupts the protocol and causes Claude Desktop to fail with parse errors.
+- Added `prebuild` script to `mcp-server/package.json` that compiles `lib/*.ts` to CommonJS via `tsconfig.lib.json` before building the MCP server. This ensures the dynamically imported `lib/*.js` files exist both locally and in Docker builds.
+
 ### Bugfix: MCP server CORS missing Expose-Headers for session ID — March 3, 2026
 
 - Added `Access-Control-Expose-Headers: Mcp-Session-Id` to the MCP server's CORS middleware. Without this, clients (Claude Desktop, Claude Code) could not read the session ID from the initialization response, causing "Server not initialized" errors on Streamable HTTP connections.

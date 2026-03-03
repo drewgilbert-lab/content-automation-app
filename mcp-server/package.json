@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "prebuild": "cd .. && npx tsc -p tsconfig.lib.json",
     "build": "tsc",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",

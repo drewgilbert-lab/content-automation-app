@@ -6,9 +6,12 @@ export type SubmissionStatus = "pending" | "accepted" | "rejected" | "deferred";
 
 export type ReviewAction = "accept" | "reject" | "defer";
 
+export type SourceChannel = "ui" | "mcp" | "bulk_upload";
+
 export const VALID_SUBMISSION_TYPES: SubmissionType[] = ["new", "update", "document_add"];
 export const VALID_STATUSES: SubmissionStatus[] = ["pending", "accepted", "rejected", "deferred"];
 export const VALID_REVIEW_ACTIONS: ReviewAction[] = ["accept", "reject", "defer"];
+export const VALID_SOURCE_CHANNELS: SourceChannel[] = ["ui", "mcp", "bulk_upload"];
 
 export interface SubmissionCreateInput {
   submitter: string;
@@ -17,6 +20,9 @@ export interface SubmissionCreateInput {
   submissionType: SubmissionType;
   proposedContent: string;
   targetObjectId?: string;
+  sourceChannel?: SourceChannel;
+  sourceAppId?: string;
+  sourceDescription?: string;
 }
 
 export interface SubmissionListItem {
@@ -27,6 +33,8 @@ export interface SubmissionListItem {
   submissionType: SubmissionType;
   status: SubmissionStatus;
   createdAt: string;
+  sourceChannel?: SourceChannel;
+  sourceAppId?: string;
 }
 
 export interface SubmissionDetail {
@@ -42,6 +50,9 @@ export interface SubmissionDetail {
   reviewNote?: string;
   createdAt: string;
   reviewedAt?: string;
+  sourceChannel?: SourceChannel;
+  sourceAppId?: string;
+  sourceDescription?: string;
 }
 
 export interface ReviewInput {
@@ -67,4 +78,13 @@ export function getStatusLabel(status: SubmissionStatus): string {
     deferred: "Deferred",
   };
   return labels[status];
+}
+
+export function getSourceChannelLabel(channel: SourceChannel): string {
+  const labels: Record<SourceChannel, string> = {
+    ui: "Web UI",
+    mcp: "MCP",
+    bulk_upload: "Bulk Upload",
+  };
+  return labels[channel];
 }

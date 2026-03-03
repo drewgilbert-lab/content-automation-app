@@ -4,6 +4,39 @@
 
 ---
 
+### Group J Phase 2: MCP Server Write Access (J9–J12) — March 2, 2026
+
+**J9 — Write Tools:**
+- Added 3 MCP write tools: `create_knowledge_object`, `update_knowledge_object`, `check_submission_status`.
+- Write tools create Submission records that enter the admin review queue — nothing writes directly to knowledge collections.
+- `create_knowledge_object` validates objectType, serializes proposed fields into `proposedContent` JSON, calls `createSubmission()` with `sourceChannel: "mcp"`.
+- `update_knowledge_object` verifies the target object exists before creating the update submission.
+- `check_submission_status` returns current status, review comments, and timestamps for a previously created submission.
+
+**J10 — Submission Metadata Extension:**
+- Extended `SubmissionCreateInput`, `SubmissionListItem`, and `SubmissionDetail` types with `sourceChannel`, `sourceAppId`, and `sourceDescription` fields.
+- Added `SourceChannel` type (`"ui" | "mcp" | "bulk_upload"`) and `getSourceChannelLabel()` utility.
+- Updated `createSubmission()` to write source properties to Weaviate, defaulting `sourceChannel` to `"ui"`.
+- Updated `listSubmissions()` and `getSubmission()` to read and return provenance fields.
+
+**J11 — Queue UI Updates:**
+- Added source channel badge to submission list rows (gray for Web UI, violet for MCP, teal for Bulk Upload).
+- Added source channel filter tabs alongside existing submission type filters.
+- MCP submissions display `sourceAppId` next to the badge for traceability.
+- Added Source, Source App, and Source Description fields to submission review detail card.
+
+**J12 — Tool Access Control:**
+- `createServer()` now accepts optional `AuthenticatedSystem` and passes it to `registerTools()`.
+- Write tools (`create_knowledge_object`, `update_knowledge_object`) check for `mcp-write` permission when `authSystem` is defined.
+- stdio transport (local-only): all tools available without auth check.
+- HTTP transport: read tools require `mcp-read`, write tools additionally require `mcp-write`.
+
+**Testing:**
+- 52 vitest tests across 8 files: added write-tools.test.ts (8 tests for permission checks, input validation, tool registration). Updated tools.test.ts (tool count 7→10). All passing.
+- MCP server TypeScript build and Next.js production build both pass cleanly.
+
+---
+
 ### Group J Phase 1: MCP Server Read Access (J5–J8) — March 2, 2026
 
 **J5 — Read Tools:**

@@ -10,6 +10,7 @@ import type {
   SubmissionDetail,
   SubmissionStatus,
   SubmissionType,
+  SourceChannel,
   ReviewAction,
 } from "./submission-types";
 import type { KnowledgeType, KnowledgeCreateInput } from "./knowledge-types";
@@ -20,14 +21,17 @@ export type {
   SubmissionDetail,
   SubmissionStatus,
   SubmissionType,
+  SourceChannel,
   ReviewAction,
 };
 export {
   VALID_SUBMISSION_TYPES,
   VALID_STATUSES,
   VALID_REVIEW_ACTIONS,
+  VALID_SOURCE_CHANNELS,
   getSubmissionTypeLabel,
   getStatusLabel,
+  getSourceChannelLabel,
 } from "./submission-types";
 
 function dateToString(val: unknown): string {
@@ -52,11 +56,18 @@ export async function createSubmission(
       submissionType: input.submissionType,
       proposedContent: input.proposedContent,
       status: "pending",
+      sourceChannel: input.sourceChannel ?? "ui",
       createdAt: now,
     };
 
     if (input.targetObjectId) {
       properties.targetObjectId = input.targetObjectId;
+    }
+    if (input.sourceAppId) {
+      properties.sourceAppId = input.sourceAppId;
+    }
+    if (input.sourceDescription) {
+      properties.sourceDescription = input.sourceDescription;
     }
 
     const id = await collection.data.insert(properties);
@@ -98,6 +109,12 @@ export async function listSubmissions(filters?: {
       submissionType: String(obj.properties.submissionType ?? "") as SubmissionType,
       status: String(obj.properties.status ?? "") as SubmissionStatus,
       createdAt: dateToString(obj.properties.createdAt),
+      sourceChannel: (obj.properties.sourceChannel
+        ? String(obj.properties.sourceChannel)
+        : undefined) as SourceChannel | undefined,
+      sourceAppId: obj.properties.sourceAppId
+        ? String(obj.properties.sourceAppId)
+        : undefined,
     }));
 
     if (filters?.submissionType && filters?.status) {
@@ -158,6 +175,15 @@ export async function getSubmission(
         createdAt: dateToString(obj.properties.createdAt),
         reviewedAt: obj.properties.reviewedAt
           ? dateToString(obj.properties.reviewedAt)
+          : undefined,
+        sourceChannel: (obj.properties.sourceChannel
+          ? String(obj.properties.sourceChannel)
+          : undefined) as SourceChannel | undefined,
+        sourceAppId: obj.properties.sourceAppId
+          ? String(obj.properties.sourceAppId)
+          : undefined,
+        sourceDescription: obj.properties.sourceDescription
+          ? String(obj.properties.sourceDescription)
           : undefined,
       };
     } catch {

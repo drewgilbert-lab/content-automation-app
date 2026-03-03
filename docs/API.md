@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 2, 2026 (K3–K6, J1–J4 implemented)
+> Last updated: March 2, 2026 (K3–K6, J1–J8, J9–J12 implemented)
 
 ---
 
@@ -1282,9 +1282,9 @@ Health check for monitoring. Does not require API key authentication.
 
 ---
 
-## MCP Server (Phase 1 Read: J1-J8 Done, Phase 2 Write: J9+ Pending)
+## MCP Server (Phase 1 Read: J1-J8 Done, Phase 2 Write: J9-J12 Done)
 
-> MCP tools and resources exposed by the standalone MCP server at `mcp-server/`. Phase 1 read access complete (J1-J8: foundation, auth, 7 read tools, 3 resources, semantic search, client config). Phase 2 write access pending (J9+). See [ROADMAP.md](./ROADMAP.md) Group J.
+> MCP tools and resources exposed by the standalone MCP server at `mcp-server/`. Phase 1 read access complete (J1-J8: foundation, auth, 7 read tools, 3 resources, semantic search, client config). Phase 2 write access complete (J9-J12: 3 write tools). See [ROADMAP.md](./ROADMAP.md) Group J.
 
 The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp-server/`. It uses `@modelcontextprotocol/sdk` v1.x with stdio and Streamable HTTP transports. Deployed on Railway at `content-automation-app.up.railway.app`. Authentication via Bearer token (extends ConnectedSystem API keys with `mcp-read`/`mcp-write` permission scopes). stdio transport (local) requires no auth. Tools are called by MCP clients (LLMs, automation tools) via the MCP protocol.
 
@@ -1300,20 +1300,71 @@ The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp
 | `get_dashboard_health` | Knowledge base health metrics | None | Aggregated counts: total, stale, never-reviewed, gaps |
 | `get_collection_schema` | Schema definitions for collections | `type?` | Properties, data types, descriptions, cross-reference definitions |
 
-### Discovery Tools (J9+ — Pending)
+### Write Tools (J9–J12 — Done)
+
+Three write tools that create Submission records entering the review queue. All writes require admin approval.
 
 | Tool | Description | Input | Returns |
 |---|---|---|---|
-| `list_knowledge_types` | Supported types with required/optional fields | None | Array of `{ type, label, description, requiredFields, optionalFields }` |
-| `get_object_schema` | Full field schema for a specific type | `objectType` | Field-level schema with types, constraints, examples |
+| `create_knowledge_object` | Propose a new object (creates Submission) | `objectType`, `name`, `content`, `tags?`, `sourceDescription?`, type-specific fields | `{ submissionId, status: "pending", message }` |
+| `update_knowledge_object` | Propose an update (creates Submission) | `objectId`, `name?`, `content?`, `tags?`, `sourceDescription?`, other writable fields | `{ submissionId, status: "pending", targetObjectId, message }` |
+| `check_submission_status` | Check status of a submission | `submissionId` | `{ submissionId, status, objectType, objectName, submissionType, createdAt, reviewComment?, reviewedAt?, reviewNote? }` |
 
-### Write Tools (J9+ — Pending)
+### `create_knowledge_object`
 
-| Tool | Description | Input | Returns |
-|---|---|---|---|
-| `create_knowledge_object` | Propose a new object (creates Submission) | `objectType`, `name`, `content`, `tags?`, type-specific fields | `{ submissionId, status: "pending" }` |
-| `update_knowledge_object` | Propose an update (creates Submission) | `objectId`, writable fields | `{ submissionId, status: "pending", targetObjectId }` |
-| `check_submission_status` | Check status of a submission | `submissionId` | `{ submissionId, status, reviewComment? }` |
+Propose a new knowledge object for review.
+
+**Input:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `objectType` | string | Yes | Knowledge type: persona, segment, use_case, business_rule, icp, competitor, customer_evidence |
+| `name` | string | Yes | Proposed object name |
+| `content` | string | Yes | Full markdown content |
+| `tags` | string[] | No | Tags for categorization |
+| `sourceDescription` | string | No | Where the content came from |
+| `subType` | string | No | Sub-type for business_rule or customer_evidence |
+| `revenueRange` | string | No | Revenue range (segment) |
+| `employeeRange` | string | No | Employee count (segment) |
+| `website` | string | No | Website URL (competitor) |
+| `customerName` | string | No | Customer name (customer_evidence) |
+| `industry` | string | No | Industry (customer_evidence) |
+| `personaId` | string | No | Persona UUID (ICP) |
+| `segmentId` | string | No | Segment UUID (ICP) |
+
+**Returns:** `{ submissionId, status: "pending", message }`
+
+**Permission:** Requires `mcp-write` on Connected System (HTTP) or no auth (stdio).
+
+### `update_knowledge_object`
+
+Propose an update to an existing knowledge object.
+
+**Input:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `objectId` | string | Yes | UUID of the object to update |
+| `name` | string | No | Updated name |
+| `content` | string | No | Updated content |
+| `tags` | string[] | No | Updated tags |
+| `sourceDescription` | string | No | Where the update came from |
+| Other type-specific fields | various | No | subType, revenueRange, employeeRange, website, customerName, industry |
+
+**Returns:** `{ submissionId, status: "pending", targetObjectId, message }`
+
+**Permission:** Requires `mcp-write` on Connected System (HTTP) or no auth (stdio).
+
+### `check_submission_status`
+
+Check the current status of a previously created submission.
+
+**Input:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `submissionId` | string | Yes | UUID of the submission |
+
+**Returns:** `{ submissionId, status, objectType, objectName, submissionType, createdAt, reviewComment?, reviewedAt?, reviewNote? }`
+
+**Permission:** Requires `mcp-read` (standard auth level).
 
 ### MCP Resources (J6 — Done)
 

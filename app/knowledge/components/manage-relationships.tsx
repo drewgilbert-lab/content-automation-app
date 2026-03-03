@@ -17,6 +17,8 @@ const TYPE_COLORS: Record<KnowledgeType, string> = {
   use_case: "bg-amber-500/15 text-amber-400",
   business_rule: "bg-purple-500/15 text-purple-400",
   icp: "bg-rose-500/15 text-rose-400",
+  competitor: "bg-orange-500/15 text-orange-400",
+  customer_evidence: "bg-lime-500/15 text-lime-400",
 };
 
 interface ManageRelationshipsProps {

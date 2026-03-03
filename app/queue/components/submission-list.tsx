@@ -6,8 +6,11 @@ import {
   type SubmissionListItem,
   type SubmissionType,
   type SubmissionStatus,
+  type SourceChannel,
+  VALID_SOURCE_CHANNELS,
   getStatusLabel,
   getSubmissionTypeLabel,
+  getSourceChannelLabel,
 } from "@/lib/submission-types";
 import { getTypeLabel } from "@/lib/knowledge-types";
 import type { KnowledgeType } from "@/lib/knowledge-types";
@@ -25,6 +28,8 @@ const TYPE_BADGE_CLASSES: Record<KnowledgeType, string> = {
   use_case: "bg-amber-500/15 text-amber-400",
   business_rule: "bg-purple-500/15 text-purple-400",
   icp: "bg-rose-500/15 text-rose-400",
+  competitor: "bg-orange-500/15 text-orange-400",
+  customer_evidence: "bg-lime-500/15 text-lime-400",
 };
 
 const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
@@ -40,6 +45,12 @@ const SUBMISSION_TYPE_BADGE_CLASSES: Record<SubmissionType, string> = {
   document_add: "bg-teal-500/15 text-teal-400",
 };
 
+const SOURCE_CHANNEL_BADGE_CLASSES: Record<string, string> = {
+  ui: "bg-gray-500/15 text-gray-400",
+  mcp: "bg-violet-500/15 text-violet-400",
+  bulk_upload: "bg-teal-500/15 text-teal-400",
+};
+
 export function SubmissionList({
   submissions,
 }: {
@@ -48,6 +59,7 @@ export function SubmissionList({
   const [submissionTypeTab, setSubmissionTypeTab] = useState<
     SubmissionType | "all"
   >("all");
+  const [sourceFilter, setSourceFilter] = useState<SourceChannel | "all">("all");
   const [showClosed, setShowClosed] = useState(false);
 
   const filtered = useMemo(() => {
@@ -63,8 +75,12 @@ export function SubmissionList({
       items = items.filter((s) => s.submissionType === submissionTypeTab);
     }
 
+    if (sourceFilter !== "all") {
+      items = items.filter((s) => s.sourceChannel === sourceFilter);
+    }
+
     return items;
-  }, [submissions, showClosed, submissionTypeTab]);
+  }, [submissions, showClosed, submissionTypeTab, sourceFilter]);
 
   return (
     <div className="mt-10 space-y-6">
@@ -96,6 +112,32 @@ export function SubmissionList({
           />
           <span className="text-sm text-gray-400">Show closed</span>
         </label>
+      </div>
+
+      <div className="flex gap-1 rounded-lg border border-gray-800 bg-gray-900 p-1">
+        <button
+          onClick={() => setSourceFilter("all")}
+          className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
+            sourceFilter === "all"
+              ? "border-blue-500 text-white"
+              : "border-transparent text-gray-400 hover:text-gray-300"
+          }`}
+        >
+          All Sources
+        </button>
+        {VALID_SOURCE_CHANNELS.map((ch) => (
+          <button
+            key={ch}
+            onClick={() => setSourceFilter(ch)}
+            className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
+              sourceFilter === ch
+                ? "border-blue-500 text-white"
+                : "border-transparent text-gray-400 hover:text-gray-300"
+            }`}
+          >
+            {getSourceChannelLabel(ch)}
+          </button>
+        ))}
       </div>
 
       {/* Result count */}
@@ -151,6 +193,20 @@ function SubmissionRow({ submission }: { submission: SubmissionListItem }) {
       >
         {getStatusLabel(submission.status)}
       </span>
+      {submission.sourceChannel && (
+        <span className="flex items-center gap-1.5">
+          <span
+            className={`rounded px-2 py-0.5 text-xs font-medium ${
+              SOURCE_CHANNEL_BADGE_CLASSES[submission.sourceChannel] ?? "bg-gray-500/15 text-gray-400"
+            }`}
+          >
+            {getSourceChannelLabel(submission.sourceChannel)}
+          </span>
+          {submission.sourceChannel === "mcp" && submission.sourceAppId && (
+            <span className="text-xs text-gray-500">{submission.sourceAppId}</span>
+          )}
+        </span>
+      )}
       <span className="ml-auto shrink-0 text-xs text-gray-500">
         {new Date(submission.createdAt).toLocaleDateString()}
       </span>

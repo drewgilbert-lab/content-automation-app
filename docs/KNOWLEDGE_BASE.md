@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: February 28, 2026
+> Last updated: March 2, 2026
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -228,7 +228,7 @@ Stores pending knowledge base submissions for the review queue. Not vectorized.
 
 No cross-references. No vectorization.
 
-The `sourceChannel`, `sourceAppId`, and `sourceDescription` properties are planned additions from [ROADMAP.md](./ROADMAP.md) Group J (Inbound MCP Server). Existing submissions default to `sourceChannel: "ui"` with the other fields empty.
+The `sourceChannel`, `sourceAppId`, and `sourceDescription` properties were added in Group J Phase 2 (J10). New submissions from the web UI default to `sourceChannel: "ui"`. MCP write tools set `sourceChannel: "mcp"` with `sourceAppId` from the authenticated system. Existing submissions without these fields render as undefined (backwards-compatible).
 
 ---
 
@@ -355,7 +355,7 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 | `scripts/migrate-instruction-templates.ts` | Migrates `BusinessRule` objects with `subType: "instruction_template"` to the new `Skill` collection | Done |
 | `scripts/add-skill-collection.ts` | Creates the Skill Weaviate collection | Done |
 | `scripts/add-competitor-customerevidence-collections.ts` | Creates the `Competitor` and `CustomerEvidence` Weaviate collections | Done |
-| `scripts/add-submission-source-fields.ts` | Adds `sourceChannel`, `sourceAppId`, `sourceDescription` properties to the `Submission` collection | Planned (Group J4) |
+| `scripts/add-submission-source-fields.ts` | Adds `sourceChannel`, `sourceAppId`, `sourceDescription` properties to the `Submission` collection | Done (Group J10) |
 
 ### Seed Script Status
 

@@ -3,7 +3,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerTools } from '../tools/index.js';
 
 describe('registerTools', () => {
-  it('registers all 7 tools on the server', () => {
+  it('registers all 10 tools on the server', () => {
     const server = new McpServer(
       { name: 'test', version: '1.0.0' },
       { capabilities: { tools: {} } },
@@ -13,7 +13,7 @@ describe('registerTools', () => {
 
     registerTools(server);
 
-    expect(toolSpy).toHaveBeenCalledTimes(7);
+    expect(toolSpy).toHaveBeenCalledTimes(10);
 
     const toolNames = toolSpy.mock.calls.map((call) => call[0]);
     expect(toolNames).toContain('list_collections');
@@ -23,5 +23,34 @@ describe('registerTools', () => {
     expect(toolNames).toContain('get_relationships');
     expect(toolNames).toContain('get_dashboard_health');
     expect(toolNames).toContain('get_collection_schema');
+    expect(toolNames).toContain('create_knowledge_object');
+    expect(toolNames).toContain('update_knowledge_object');
+    expect(toolNames).toContain('check_submission_status');
+  });
+
+  it('passes authSystem to write tools when provided', () => {
+    const server = new McpServer(
+      { name: 'test', version: '1.0.0' },
+      { capabilities: { tools: {} } },
+    );
+
+    const toolSpy = vi.spyOn(server, 'tool');
+
+    const mockAuthSystem = {
+      id: 'test-id',
+      name: 'test-system',
+      description: 'Test',
+      apiKeyPrefix: 'ce_test',
+      permissions: ['mcp-read', 'mcp-write'],
+      subscribedTypes: [],
+      rateLimitTier: 'standard',
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    registerTools(server, mockAuthSystem);
+
+    expect(toolSpy).toHaveBeenCalledTimes(10);
   });
 });

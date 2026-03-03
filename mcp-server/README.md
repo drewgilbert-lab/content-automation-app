@@ -38,7 +38,7 @@ Environment variables (`TRANSPORT`, `PORT`) are also supported. CLI flags take p
 
 ## Available Tools
 
-The MCP server exposes 7 read tools for querying the knowledge base:
+The MCP server exposes 10 tools — 7 read tools and 3 write tools:
 
 | Tool | Description | Input |
 |------|-------------|-------|
@@ -49,6 +49,18 @@ The MCP server exposes 7 read tools for querying the knowledge base:
 | `get_relationships` | Get all outbound and inbound relationships for an object | `id` |
 | `get_dashboard_health` | Knowledge base health metrics (counts, stale content, gaps) | None |
 | `get_collection_schema` | Schema definitions for collections (properties, cross-references) | `type?` |
+
+### Write Tools
+
+Write tools create Submission records that enter the admin review queue. Nothing is written directly to knowledge collections — all changes require admin approval.
+
+| Tool | Description | Input |
+|------|-------------|-------|
+| `create_knowledge_object` | Propose a new knowledge object for review | `objectType`, `name`, `content`, `tags?`, `sourceDescription?`, type-specific fields |
+| `update_knowledge_object` | Propose an update to an existing object | `objectId`, `name?`, `content?`, `tags?`, `sourceDescription?`, other writable fields |
+| `check_submission_status` | Check the status of a previously created submission | `submissionId` |
+
+Write tools require the **mcp-write** permission on the Connected System API key (HTTP transport) or are available by default (stdio transport).
 
 ## Available Resources
 
@@ -188,6 +200,14 @@ Once configured, you can ask your AI assistant questions and it will call the ap
 > "What properties does a Segment have?"
 > → LLM calls `get_collection_schema({ type: "segment" })` → returns property definitions
 
+**Proposing new content:**
+> "Create a new persona called 'Product Manager' with information about their key responsibilities and pain points."
+> → LLM calls `create_knowledge_object({ objectType: "persona", name: "Product Manager", content: "..." })` → returns submission ID
+
+**Updating existing content:**
+> "Update the Enterprise segment to include the new revenue threshold of $5B+."
+> → LLM calls `search_objects({ query: "Enterprise segment" })`, then `update_knowledge_object({ objectId: "...", content: "..." })` → returns submission ID
+
 ## Remote Access (Streamable HTTP)
 
 The HTTP transport is deployed on Railway at:
@@ -210,6 +230,7 @@ https://content-automation-app.up.railway.app
 HTTP transport requires an API key via the Connected Systems admin UI:
 
 1. Create a Connected System at `/connections/new` with **mcp-read** permission
+   For write access, also add the **mcp-write** permission.
 2. Use the API key in the `Authorization: Bearer <key>` header
 
 stdio transport does not require authentication (local-only).

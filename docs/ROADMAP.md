@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: February 28, 2026
+> Last updated: March 2, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -421,7 +421,7 @@ Phase 1 priority: stdio for Claude Desktop / Claude Code / Cursor, plus Streamab
 
 Add the inbound write channel — external tools push content through the review queue. All writes create Submission records; nothing writes directly to Weaviate knowledge collections.
 
-**J9 — Write Tools**
+**J9 — Write Tools** ✅ Done
 Expose tools that create Submission records entering the review queue.
 
 | Tool | Description | Key Input | Returns |
@@ -432,7 +432,7 @@ Expose tools that create Submission records entering the review queue.
 
 Write tool flow: validate input → serialize proposed fields into `proposedContent` JSON → call `createSubmission()` with `sourceChannel: "mcp"` and `sourceAppId` from the authenticated API key → return submission ID.
 
-**J10 — Submission Metadata Extension**
+**J10 — Submission Metadata Extension** ✅ Done
 Extend the `Submission` Weaviate collection schema and `SubmissionCreateInput` type to track provenance:
 
 | Property | Type | Description |
@@ -443,10 +443,10 @@ Extend the `Submission` Weaviate collection schema and `SubmissionCreateInput` t
 
 All existing submissions default to `sourceChannel: "ui"`. The `createSubmission()` function accepts optional source parameters — existing callers continue working without changes.
 
-**J11 — Queue UI Updates**
+**J11 — Queue UI Updates** ✅ Done
 The queue UI at `/queue` displays a source badge on each item and adds a filter by source channel. `sourceChannel: "mcp"` submissions show the `sourceAppId` for traceability.
 
-**J12 — Tool Access Control**
+**J12 — Tool Access Control** ✅ Done
 Permission scoping per API key (`mcp-read` vs `mcp-write`) controls which tools are available per connection. A configuration flag or API key scope controls whether a client can access write tools. LLM clients (Claude Desktop, Cursor) may start with read-only access in Phase 1 and gain write tools in Phase 2. Automation clients (n8n, Zapier) get both read and write tools.
 
 #### Phase 2 Example Use Cases

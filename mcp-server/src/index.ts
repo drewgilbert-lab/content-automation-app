@@ -5,7 +5,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import express from 'express';
 import { randomUUID } from 'node:crypto';
 import { initializeClient, closeClient, checkHealth } from './weaviate.js';
-import { authenticateRequest } from './auth.js';
+import { authenticateRequest, type AuthenticatedSystem } from './auth.js';
 import { registerTools } from './tools/index.js';
 import { registerResources } from './resources/index.js';
 
@@ -39,15 +39,16 @@ let log: (...args: unknown[]) => void = console.log;
 
 /**
  * Factory for McpServer instances. Each HTTP session gets its own server.
- * Tool/resource/prompt registration goes here (J5).
+ * @param authSystem — authenticated system for HTTP sessions (controls write tool access).
+ *   Undefined for stdio (local-only, all tools available).
  */
-function createServer(): McpServer {
+function createServer(authSystem?: AuthenticatedSystem): McpServer {
   const server = new McpServer(
     { name: 'content-engine', version: '1.0.0' },
     { capabilities: { tools: {}, resources: {}, logging: {} } },
   );
 
-  registerTools(server);
+  registerTools(server, authSystem);
   registerResources(server);
 
   return server;
@@ -117,7 +118,7 @@ async function startHttp(port: number): Promise<void> {
       });
       transports.set(newSessionId, transport);
 
-      const sessionServer = createServer();
+      const sessionServer = createServer(authResult.system);
       await sessionServer.connect(transport);
 
       transport.onclose = () => {

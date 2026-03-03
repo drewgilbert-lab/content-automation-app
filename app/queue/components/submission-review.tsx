@@ -7,6 +7,7 @@ import type { SubmissionDetail, SubmissionStatus } from "@/lib/submission-types"
 import {
   getStatusLabel,
   getSubmissionTypeLabel,
+  getSourceChannelLabel,
 } from "@/lib/submission-types";
 import type { KnowledgeDetail } from "@/lib/knowledge-types";
 import { getTypeLabel } from "@/lib/knowledge-types";
@@ -189,6 +190,24 @@ export function SubmissionReview({
             <div>
               <p className="text-sm font-medium text-gray-300">Reviewed</p>
               <p className="text-sm text-gray-400">{formatDate(submission.reviewedAt)}</p>
+            </div>
+          )}
+          {submission.sourceChannel && (
+            <div>
+              <p className="text-sm font-medium text-gray-300">Source</p>
+              <p className="text-sm text-white">{getSourceChannelLabel(submission.sourceChannel)}</p>
+            </div>
+          )}
+          {submission.sourceAppId && (
+            <div>
+              <p className="text-sm font-medium text-gray-300">Source App</p>
+              <p className="text-sm text-white">{submission.sourceAppId}</p>
+            </div>
+          )}
+          {submission.sourceDescription && (
+            <div className="sm:col-span-2">
+              <p className="text-sm font-medium text-gray-300">Source Description</p>
+              <p className="text-sm text-gray-400">{submission.sourceDescription}</p>
             </div>
           )}
         </div>

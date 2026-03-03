@@ -104,6 +104,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { sourceChannel, sourceAppId, sourceDescription } = body;
+
     const input = {
       submitter: String(submitter).trim(),
       objectType: objectType as KnowledgeType,
@@ -111,6 +113,9 @@ export async function POST(req: NextRequest) {
       submissionType: submissionType as SubmissionType,
       proposedContent: String(proposedContent),
       targetObjectId: targetObjectId ? String(targetObjectId).trim() : undefined,
+      sourceChannel: sourceChannel ? String(sourceChannel).trim() as "ui" | "mcp" | "bulk_upload" : undefined,
+      sourceAppId: sourceAppId ? String(sourceAppId).trim() : undefined,
+      sourceDescription: sourceDescription ? String(sourceDescription).trim() : undefined,
     };
 
     const { id, status } = await createSubmission(input);

@@ -1,6 +1,19 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 2, 2026
+> Newest entries first. Last updated: March 3, 2026
+
+---
+
+### Bugfix: Connected System permissions not saved — March 3, 2026
+
+- Fixed `POST /api/connections` and `PUT /api/connections/[id]` silently dropping the `permissions` field from request bodies. MCP Read/Write permissions selected in the form were never written to Weaviate.
+- Added `permissions` to request body destructuring, input validation, and the `ConnectedSystemCreateInput`/`ConnectedSystemUpdateInput` objects in both route handlers.
+- Added `invalidateApiKeyCache()` call in `updateConnectedSystem()` so permission changes take effect immediately instead of waiting for the 5-minute cache TTL.
+
+### MCP Server auth fix: compile shared lib/ modules in Docker build — March 3, 2026
+
+- The MCP server's `auth.ts` dynamically imports `lib/api-auth.js` at runtime, but the Dockerfile only copied TypeScript sources without compiling them to JavaScript, causing a 500 Internal Server Error on all authenticated requests.
+- Added `tsconfig.lib.json` to compile `lib/*.ts` to CommonJS `.js` files and added the compilation step to the Docker build.
 
 ---
 

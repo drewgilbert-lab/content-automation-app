@@ -165,6 +165,7 @@ export async function updateConnectedSystem(
       properties.rateLimitTier = input.rateLimitTier;
 
     await collection.data.update({ id, properties });
+    invalidateApiKeyCache();
 
     const updated = await collection.query.fetchObjectById(id);
     return updated ? mapToListItem(updated) : null;

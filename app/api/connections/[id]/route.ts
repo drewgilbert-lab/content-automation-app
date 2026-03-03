@@ -43,7 +43,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, description, subscribedTypes, rateLimitTier } = body;
+    const { name, description, subscribedTypes, rateLimitTier, permissions } = body;
 
     if (name !== undefined && !String(name).trim()) {
       return new Response(
@@ -58,6 +58,10 @@ export async function PUT(
     if (subscribedTypes !== undefined)
       input.subscribedTypes = Array.isArray(subscribedTypes)
         ? subscribedTypes.map(String)
+        : [];
+    if (permissions !== undefined)
+      input.permissions = Array.isArray(permissions)
+        ? permissions.map(String)
         : [];
     if (rateLimitTier !== undefined) input.rateLimitTier = String(rateLimitTier);
 

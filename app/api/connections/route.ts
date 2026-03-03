@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, description, subscribedTypes, rateLimitTier } = body;
+    const { name, description, subscribedTypes, rateLimitTier, permissions } = body;
 
     if (!name || !description) {
       return new Response(
@@ -45,12 +45,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (permissions !== undefined && !Array.isArray(permissions)) {
+      return new Response(
+        JSON.stringify({ error: "permissions must be an array" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const input: ConnectedSystemCreateInput = {
       name: String(name).trim(),
       description: String(description),
       subscribedTypes: Array.isArray(subscribedTypes)
         ? subscribedTypes.map(String)
         : undefined,
+      permissions: Array.isArray(permissions) ? permissions.map(String) : undefined,
       rateLimitTier: rateLimitTier ? String(rateLimitTier) : undefined,
     };
 

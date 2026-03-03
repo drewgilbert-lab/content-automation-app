@@ -11,7 +11,7 @@ export function registerGetObjectTool(server: McpServer): void {
     },
     async ({ id }) => {
       try {
-        const knowledgeModulePath = '../../lib/knowledge.js';
+        const knowledgeModulePath = '../../../lib/knowledge.js';
         const knowledgeMod = (await import(knowledgeModulePath)) as {
           getKnowledgeObject: (id: string) => Promise<Record<string, unknown> | null>;
         };
@@ -28,7 +28,7 @@ export function registerGetObjectTool(server: McpServer): void {
           };
         }
 
-        const skillsModulePath = '../../lib/skills.js';
+        const skillsModulePath = '../../../lib/skills.js';
         const skillsMod = (await import(skillsModulePath)) as {
           getSkill: (id: string) => Promise<Record<string, unknown> | null>;
         };

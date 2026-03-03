@@ -25,7 +25,7 @@ export function registerGetRelationshipsTool(server: McpServer): void {
     },
     async ({ id }) => {
       try {
-        const knowledgePath = '../../lib/knowledge.js';
+        const knowledgePath = '../../../lib/knowledge.js';
         const knowledgeMod = (await import(knowledgePath)) as {
           getKnowledgeObject: (id: string) => Promise<KnowledgeDetail | null>;
           getInboundReferences: (

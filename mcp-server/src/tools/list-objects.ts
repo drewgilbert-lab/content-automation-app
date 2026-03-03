@@ -30,7 +30,7 @@ export function registerListObjectsTool(server: McpServer): void {
         const clampedLimit = Math.min(limit, 200);
 
         if (type === 'skill') {
-          const skillsModulePath = '../../lib/skills.js';
+          const skillsModulePath = '../../../lib/skills.js';
           const skillsMod = (await import(skillsModulePath)) as {
             listSkills: (filters?: Record<string, unknown>) => Promise<Array<{
               id: string; name: string; type?: string; tags?: string[];
@@ -64,7 +64,7 @@ export function registerListObjectsTool(server: McpServer): void {
           };
         }
 
-        const knowledgeModulePath = '../../lib/knowledge.js';
+        const knowledgeModulePath = '../../../lib/knowledge.js';
         const knowledgeMod = (await import(knowledgeModulePath)) as {
           listKnowledgeObjectsPaginated: (params?: {
             type?: string;

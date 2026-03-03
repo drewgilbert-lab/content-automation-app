@@ -31,7 +31,7 @@ export function registerUpdateObjectTool(
           };
         }
 
-        const knowledgeModulePath = '../../lib/knowledge.js';
+        const knowledgeModulePath = '../../../lib/knowledge.js';
         const knowledgeMod = (await import(knowledgeModulePath)) as {
           getKnowledgeObject: (id: string) => Promise<Record<string, unknown> | null>;
         };
@@ -44,7 +44,7 @@ export function registerUpdateObjectTool(
           objectType = String(targetObject.type ?? '');
           objectName = String(targetObject.name ?? '');
         } else {
-          const skillsModulePath = '../../lib/skills.js';
+          const skillsModulePath = '../../../lib/skills.js';
           const skillsMod = (await import(skillsModulePath)) as {
             getSkill: (id: string) => Promise<Record<string, unknown> | null>;
           };
@@ -84,7 +84,7 @@ export function registerUpdateObjectTool(
           };
         }
 
-        const submissionsModulePath = '../../lib/submissions.js';
+        const submissionsModulePath = '../../../lib/submissions.js';
         const submissionsMod = (await import(submissionsModulePath)) as {
           createSubmission: (input: Record<string, unknown>) => Promise<{ id: string; status: string }>;
         };

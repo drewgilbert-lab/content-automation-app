@@ -10,8 +10,8 @@ export function registerListCollectionsTool(server: McpServer): void {
       try {
         const collections = getAllCollections();
 
-        const knowledgeModulePath = '../../lib/knowledge.js';
-        const skillsModulePath = '../../lib/skills.js';
+        const knowledgeModulePath = '../../../lib/knowledge.js';
+        const skillsModulePath = '../../../lib/skills.js';
         const knowledgeMod = (await import(knowledgeModulePath)) as {
           listKnowledgeObjectsPaginated: (params?: {
             type?: string;

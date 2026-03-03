@@ -10,7 +10,7 @@ export function registerCheckStatusTool(server: McpServer): void {
     },
     async ({ submissionId }) => {
       try {
-        const submissionsModulePath = '../../lib/submissions.js';
+        const submissionsModulePath = '../../../lib/submissions.js';
         const submissionsMod = (await import(submissionsModulePath)) as {
           getSubmission: (id: string) => Promise<Record<string, unknown> | null>;
         };

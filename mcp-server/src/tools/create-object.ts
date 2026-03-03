@@ -77,7 +77,7 @@ export function registerCreateObjectTool(
         if (args.personaId) proposedFields.personaId = args.personaId;
         if (args.segmentId) proposedFields.segmentId = args.segmentId;
 
-        const submissionsModulePath = '../../lib/submissions.js';
+        const submissionsModulePath = '../../../lib/submissions.js';
         const submissionsMod = (await import(submissionsModulePath)) as {
           createSubmission: (input: Record<string, unknown>) => Promise<{ id: string; status: string }>;
         };

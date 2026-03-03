@@ -1,4 +1,61 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+import type { ParsedDocument } from "@/lib/document-parser-types";
+import type { ClassificationResult } from "@/lib/classification-types";
+
+// --- Mock Redis backed by an in-memory Map ---
+
+const mockStore = new Map<string, string>();
+
+const mockGet = vi.fn(async (key: string) => {
+  const raw = mockStore.get(key);
+  if (raw === undefined) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+});
+
+const mockSet = vi.fn(
+  async (key: string, value: unknown, _opts?: { ex?: number }) => {
+    mockStore.set(key, JSON.stringify(value));
+    return "OK";
+  }
+);
+
+const mockDel = vi.fn(async (...keys: string[]) => {
+  let count = 0;
+  for (const k of keys) {
+    if (mockStore.delete(k)) count++;
+  }
+  return count;
+});
+
+const mockTtl = vi.fn(async () => 80000);
+
+const mockScan = vi.fn(
+  async (
+    _cursor: number,
+    opts?: { match?: string; count?: number }
+  ) => {
+    const prefix = (opts?.match ?? "").replace("*", "");
+    const keys = Array.from(mockStore.keys()).filter((k) =>
+      k.startsWith(prefix)
+    );
+    return [0, keys];
+  }
+);
+
+vi.mock("@upstash/redis", () => ({
+  Redis: vi.fn().mockImplementation(() => ({
+    get: mockGet,
+    set: mockSet,
+    del: mockDel,
+    ttl: mockTtl,
+    scan: mockScan,
+  })),
+}));
+
 import {
   createSession,
   getSession,
@@ -9,9 +66,8 @@ import {
   deleteSession,
   _clearAllSessions,
   _getSessionCount,
+  _resetInit,
 } from "@/lib/upload-session";
-import type { ParsedDocument } from "@/lib/document-parser-types";
-import type { ClassificationResult } from "@/lib/classification-types";
 
 function mockDoc(filename: string, content = "test content"): ParsedDocument {
   return {
@@ -36,13 +92,14 @@ function mockClassification(filename: string): ClassificationResult {
 }
 
 beforeEach(() => {
-  _clearAllSessions();
+  mockStore.clear();
+  vi.clearAllMocks();
 });
 
 describe("createSession", () => {
-  it("creates a session with correct fields", () => {
+  it("creates a session with correct fields", async () => {
     const docs = [mockDoc("a.md"), mockDoc("b.md")];
-    const session = createSession(docs);
+    const session = await createSession(docs);
 
     expect(session.id).toBeDefined();
     expect(session.documents).toEqual(docs);
@@ -55,28 +112,24 @@ describe("createSession", () => {
     expect(session.expiresAt).toBeInstanceOf(Date);
   });
 
-  it("generates unique ids", () => {
-    const s1 = createSession([mockDoc("a.md")]);
-    const s2 = createSession([mockDoc("b.md")]);
+  it("generates unique ids", async () => {
+    const s1 = await createSession([mockDoc("a.md")]);
+    const s2 = await createSession([mockDoc("b.md")]);
     expect(s1.id).not.toBe(s2.id);
   });
 
-  it("sets status to parsing", () => {
-    const session = createSession([mockDoc("a.md")]);
-    expect(session.status).toBe("parsing");
+  it("stores session in Redis with TTL", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+
+    expect(mockSet).toHaveBeenCalledTimes(1);
+    const [key, , opts] = mockSet.mock.calls[0];
+    expect(key).toBe(`upload-session:${session.id}`);
+    expect(opts).toEqual({ ex: 86400 });
   });
 
-  it("stores documents", () => {
-    const docs = [mockDoc("a.md", "hello world"), mockDoc("b.md")];
-    const session = createSession(docs);
-    expect(session.documents).toHaveLength(2);
-    expect(session.documents[0].filename).toBe("a.md");
-    expect(session.documents[0].content).toBe("hello world");
-  });
-
-  it("sets expiresAt to 24h from now", () => {
+  it("sets expiresAt to 24h from now", async () => {
     const before = Date.now();
-    const session = createSession([mockDoc("a.md")]);
+    const session = await createSession([mockDoc("a.md")]);
     const after = Date.now();
     const expiresMs = session.expiresAt.getTime();
     expect(expiresMs).toBeGreaterThanOrEqual(before + 86400000);
@@ -85,25 +138,29 @@ describe("createSession", () => {
 });
 
 describe("getSession", () => {
-  it("returns session by id", () => {
+  it("returns session by id", async () => {
     const docs = [mockDoc("a.md")];
-    const created = createSession(docs);
-    const found = getSession(created.id);
+    const created = await createSession(docs);
+    const found = await getSession(created.id);
+
     expect(found).not.toBeNull();
     expect(found!.id).toBe(created.id);
     expect(found!.documents).toEqual(docs);
+    expect(found!.classifications).toBeInstanceOf(Map);
+    expect(found!.createdAt).toBeInstanceOf(Date);
   });
 
-  it("returns null for unknown id", () => {
-    expect(getSession("unknown-id")).toBeNull();
+  it("returns null for unknown id", async () => {
+    expect(await getSession("unknown-id")).toBeNull();
   });
 });
 
 describe("getSerializedSession", () => {
-  it("returns serialized version", () => {
+  it("returns serialized version", async () => {
     const docs = [mockDoc("a.md")];
-    const created = createSession(docs);
-    const serialized = getSerializedSession(created.id);
+    const created = await createSession(docs);
+    const serialized = await getSerializedSession(created.id);
+
     expect(serialized).not.toBeNull();
     expect(serialized!.id).toBe(created.id);
     expect(serialized!.documents).toHaveLength(1);
@@ -112,109 +169,138 @@ describe("getSerializedSession", () => {
     expect(serialized!.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
-  it("returns null for unknown id", () => {
-    expect(getSerializedSession("unknown-id")).toBeNull();
+  it("returns null for unknown id", async () => {
+    expect(await getSerializedSession("unknown-id")).toBeNull();
   });
 });
 
 describe("updateSessionStatus", () => {
-  it("updates status", () => {
-    const session = createSession([mockDoc("a.md")]);
-    const ok = updateSessionStatus(session.id, "classifying");
+  it("updates status and persists to Redis", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    const ok = await updateSessionStatus(session.id, "classifying");
     expect(ok).toBe(true);
-    expect(getSession(session.id)!.status).toBe("classifying");
 
-    updateSessionStatus(session.id, "reviewing");
-    expect(getSession(session.id)!.status).toBe("reviewing");
-
-    updateSessionStatus(session.id, "approved");
-    expect(getSession(session.id)!.status).toBe("approved");
+    const updated = await getSession(session.id);
+    expect(updated!.status).toBe("classifying");
   });
 
-  it("returns false for unknown session", () => {
-    expect(updateSessionStatus("unknown-id", "classifying")).toBe(false);
+  it("preserves remaining TTL on update", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    mockTtl.mockResolvedValueOnce(50000);
+
+    await updateSessionStatus(session.id, "reviewing");
+
+    const lastSetCall = mockSet.mock.calls[mockSet.mock.calls.length - 1];
+    expect(lastSetCall[2]).toEqual({ ex: 50000 });
+  });
+
+  it("returns false for unknown session", async () => {
+    expect(await updateSessionStatus("unknown-id", "classifying")).toBe(false);
   });
 });
 
 describe("setClassification", () => {
-  it("stores classification at index", () => {
+  it("stores classification at index", async () => {
     const docs = [mockDoc("a.md"), mockDoc("b.md")];
-    const session = createSession(docs);
+    const session = await createSession(docs);
     const classification = mockClassification("a.md");
 
-    const ok = setClassification(session.id, 0, classification);
+    const ok = await setClassification(session.id, 0, classification);
     expect(ok).toBe(true);
-    expect(getSession(session.id)!.classifications.get(0)).toEqual(classification);
+
+    const found = await getSession(session.id);
+    expect(found!.classifications.get(0)).toEqual(classification);
   });
 
-  it("returns false for invalid index", () => {
-    const session = createSession([mockDoc("a.md")]);
+  it("returns false for invalid index", async () => {
+    const session = await createSession([mockDoc("a.md")]);
     const classification = mockClassification("a.md");
 
-    expect(setClassification(session.id, -1, classification)).toBe(false);
-    expect(setClassification(session.id, 1, classification)).toBe(false);
+    expect(await setClassification(session.id, -1, classification)).toBe(false);
+    expect(await setClassification(session.id, 1, classification)).toBe(false);
   });
 
-  it("returns false for unknown session", () => {
+  it("returns false for unknown session", async () => {
     expect(
-      setClassification("unknown-id", 0, mockClassification("a.md"))
+      await setClassification("unknown-id", 0, mockClassification("a.md"))
     ).toBe(false);
   });
 });
 
 describe("setUserEdit", () => {
-  it("stores edits", () => {
-    const session = createSession([mockDoc("a.md")]);
-    setClassification(session.id, 0, mockClassification("a.md"));
+  it("stores edits", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    await setClassification(session.id, 0, mockClassification("a.md"));
 
-    const ok = setUserEdit(session.id, 0, { objectName: "Edited Name" });
+    const ok = await setUserEdit(session.id, 0, { objectName: "Edited Name" });
     expect(ok).toBe(true);
-    expect(getSession(session.id)!.userEdits.get(0)).toEqual({
-      objectName: "Edited Name",
-    });
+
+    const found = await getSession(session.id);
+    expect(found!.userEdits.get(0)).toEqual({ objectName: "Edited Name" });
   });
 
-  it("merges with existing edits", () => {
-    const session = createSession([mockDoc("a.md")]);
-    setClassification(session.id, 0, mockClassification("a.md"));
-    setUserEdit(session.id, 0, { objectName: "First" });
-    setUserEdit(session.id, 0, { tags: ["new-tag"] });
+  it("merges with existing edits", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    await setClassification(session.id, 0, mockClassification("a.md"));
+    await setUserEdit(session.id, 0, { objectName: "First" });
+    await setUserEdit(session.id, 0, { tags: ["new-tag"] });
 
-    const edits = getSession(session.id)!.userEdits.get(0)!;
+    const found = await getSession(session.id);
+    const edits = found!.userEdits.get(0)!;
     expect(edits.objectName).toBe("First");
     expect(edits.tags).toEqual(["new-tag"]);
   });
 
-  it("returns false for invalid index", () => {
-    const session = createSession([mockDoc("a.md")]);
-    expect(setUserEdit(session.id, -1, { objectName: "x" })).toBe(false);
-    expect(setUserEdit(session.id, 1, { objectName: "x" })).toBe(false);
+  it("returns false for invalid index", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    expect(await setUserEdit(session.id, -1, { objectName: "x" })).toBe(false);
+    expect(await setUserEdit(session.id, 1, { objectName: "x" })).toBe(false);
   });
 
-  it("returns false for unknown session", () => {
-    expect(setUserEdit("unknown-id", 0, { objectName: "x" })).toBe(false);
+  it("returns false for unknown session", async () => {
+    expect(await setUserEdit("unknown-id", 0, { objectName: "x" })).toBe(
+      false
+    );
   });
 });
 
 describe("deleteSession", () => {
-  it("removes session", () => {
-    const session = createSession([mockDoc("a.md")]);
-    const ok = deleteSession(session.id);
+  it("removes session from Redis", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    const ok = await deleteSession(session.id);
     expect(ok).toBe(true);
-    expect(getSession(session.id)).toBeNull();
+    expect(await getSession(session.id)).toBeNull();
   });
 
-  it("returns false for unknown id", () => {
-    expect(deleteSession("unknown-id")).toBe(false);
+  it("returns false for unknown id", async () => {
+    expect(await deleteSession("unknown-id")).toBe(false);
+  });
+
+  it("calls Redis del with correct key", async () => {
+    const session = await createSession([mockDoc("a.md")]);
+    await deleteSession(session.id);
+
+    expect(mockDel).toHaveBeenCalledWith(`upload-session:${session.id}`);
   });
 });
 
 describe("_getSessionCount", () => {
-  it("returns correct count", () => {
-    expect(_getSessionCount()).toBe(0);
-    createSession([mockDoc("a.md")]);
-    expect(_getSessionCount()).toBe(1);
-    createSession([mockDoc("b.md")]);
-    expect(_getSessionCount()).toBe(2);
+  it("returns correct count", async () => {
+    expect(await _getSessionCount()).toBe(0);
+    await createSession([mockDoc("a.md")]);
+    expect(await _getSessionCount()).toBe(1);
+    await createSession([mockDoc("b.md")]);
+    expect(await _getSessionCount()).toBe(2);
+  });
+});
+
+describe("_clearAllSessions", () => {
+  it("removes all sessions", async () => {
+    await createSession([mockDoc("a.md")]);
+    await createSession([mockDoc("b.md")]);
+    expect(await _getSessionCount()).toBe(2);
+
+    await _clearAllSessions();
+    expect(await _getSessionCount()).toBe(0);
   });
 });

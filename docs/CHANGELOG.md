@@ -6,7 +6,8 @@
 
 ### Bugfix: MCP server tool import paths resolving to wrong directory — March 3, 2026
 
-- Fixed dynamic import paths in `search-objects.ts` and `get-dashboard-health.ts` from `../../lib/` to `../../../lib/`. Files in `src/tools/` compile to `dist/tools/`, which is one level deeper than `dist/` — the extra `../` is needed to reach the project root `lib/` directory.
+- Fixed dynamic import paths in all tool and resource files under `src/tools/` and `src/resources/` from `../../lib/` to `../../../lib/`. These files compile to `dist/tools/` and `dist/resources/`, which are one level deeper than `dist/` — the extra `../` is needed to reach the project root `lib/` directory.
+- Scoped `tsconfig.lib.json` to only compile the 10 `lib/` files the MCP server actually imports, avoiding pre-existing type errors in unrelated modules.
 
 ### Bugfix: MCP server stdio mode broken by stdout logging — March 3, 2026
 

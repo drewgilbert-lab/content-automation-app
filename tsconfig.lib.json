@@ -12,6 +12,17 @@
     "resolveJsonModule": true,
     "declaration": false
   },
-  "include": ["lib/*.ts"],
+  "include": [
+    "lib/weaviate.ts",
+    "lib/connection-types.ts",
+    "lib/knowledge-types.ts",
+    "lib/knowledge.ts",
+    "lib/skill-types.ts",
+    "lib/skills.ts",
+    "lib/submission-types.ts",
+    "lib/submissions.ts",
+    "lib/dashboard.ts",
+    "lib/api-auth.ts"
+  ],
   "exclude": ["node_modules", "__tests__"]
 }

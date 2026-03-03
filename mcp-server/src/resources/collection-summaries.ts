@@ -27,7 +27,7 @@ export function registerCollectionSummariesResource(server: McpServer): void {
 
       try {
         if (type === 'skill') {
-          const skillsPath = '../../lib/skills.js';
+          const skillsPath = '../../../lib/skills.js';
           const skillsMod = (await import(skillsPath)) as {
             listSkills: () => Promise<Array<{
               id: string; name: string; tags?: string[]; deprecated?: boolean;
@@ -55,7 +55,7 @@ export function registerCollectionSummariesResource(server: McpServer): void {
           };
         }
 
-        const knowledgePath = '../../lib/knowledge.js';
+        const knowledgePath = '../../../lib/knowledge.js';
         const knowledgeMod = (await import(knowledgePath)) as {
           listKnowledgeObjectsPaginated: (params: {
             type?: string; limit?: number; offset?: number; includeDeprecated?: boolean;

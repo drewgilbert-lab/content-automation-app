@@ -76,6 +76,7 @@ async function startHttp(port: number): Promise<void> {
       'Access-Control-Allow-Headers',
       'Content-Type, Authorization, Mcp-Session-Id',
     );
+    res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id');
     if (_req.method === 'OPTIONS') {
       res.status(204).end();
       return;

@@ -4,6 +4,10 @@
 
 ---
 
+### Bugfix: MCP server CORS missing Expose-Headers for session ID — March 3, 2026
+
+- Added `Access-Control-Expose-Headers: Mcp-Session-Id` to the MCP server's CORS middleware. Without this, clients (Claude Desktop, Claude Code) could not read the session ID from the initialization response, causing "Server not initialized" errors on Streamable HTTP connections.
+
 ### Bugfix: Connected System permissions not saved — March 3, 2026
 
 - Fixed `POST /api/connections` and `PUT /api/connections/[id]` silently dropping the `permissions` field from request bodies. MCP Read/Write permissions selected in the form were never written to Weaviate.

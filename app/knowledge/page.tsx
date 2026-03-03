@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { listKnowledgeObjects } from "@/lib/knowledge";
 import { KnowledgeList } from "./components/knowledge-list";

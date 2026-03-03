@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { listConnectedSystems } from "@/lib/connections";
 import { ConnectionList } from "./components/connection-list";

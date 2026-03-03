@@ -227,6 +227,29 @@ export async function setUserEdit(
   return true;
 }
 
+export async function deleteUserEdit(
+  sessionId: string,
+  documentIndex: number
+): Promise<boolean> {
+  const r = getRedis();
+  if (r) {
+    const session = await getSession(sessionId);
+    if (!session) return false;
+    if (!session.userEdits.has(documentIndex)) return false;
+    session.userEdits.delete(documentIndex);
+    await writeToRedis(r, session, true);
+    return true;
+  }
+
+  const session = fallbackStore.get(sessionId);
+  if (!session) return false;
+  if (session.expiresAt.getTime() <= Date.now()) {
+    fallbackStore.delete(sessionId);
+    return false;
+  }
+  return session.userEdits.delete(documentIndex);
+}
+
 export async function deleteSession(id: string): Promise<boolean> {
   const r = getRedis();
   if (r) {
@@ -240,17 +263,17 @@ export async function deleteSession(id: string): Promise<boolean> {
 export async function _clearAllSessions(): Promise<void> {
   const r = getRedis();
   if (r) {
-    let cursor = 0;
+    let cursor = "0";
     do {
-      const [nextCursor, keys] = await r.scan(cursor, {
+      const [nextCursor, keys]: [string, string[]] = await r.scan(cursor, {
         match: `${SESSION_KEY_PREFIX}*`,
         count: 100,
       });
       cursor = nextCursor;
       if (keys.length > 0) {
-        await r.del(...(keys as string[]));
+        await r.del(...keys);
       }
-    } while (cursor !== 0);
+    } while (cursor !== "0");
   }
   fallbackStore.clear();
 }
@@ -260,22 +283,22 @@ export async function _getSessionCount(): Promise<number> {
   const r = getRedis();
   if (r) {
     let count = 0;
-    let cursor = 0;
+    let cursor = "0";
     do {
-      const [nextCursor, keys] = await r.scan(cursor, {
+      const [nextCursor, keys]: [string, string[]] = await r.scan(cursor, {
         match: `${SESSION_KEY_PREFIX}*`,
         count: 100,
       });
       cursor = nextCursor;
       count += keys.length;
-    } while (cursor !== 0);
+    } while (cursor !== "0");
     return count;
   }
   return fallbackStore.size;
 }
 
-/** Visible for testing only – resets lazy-init state so the next call re-reads env vars. */
-export function _resetInit(): void {
-  redisInitialized = false;
-  redis = null;
+/** Visible for testing only – injects a Redis client (or null for fallback). */
+export function _setRedisForTesting(client: Redis | null): void {
+  redis = client;
+  redisInitialized = true;
 }

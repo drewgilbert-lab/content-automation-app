@@ -1,13 +1,26 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
+import type { Redis } from "@upstash/redis";
 import type { ParsedDocument } from "@/lib/document-parser-types";
 import type { ClassificationResult } from "@/lib/classification-types";
+import {
+  createSession,
+  getSession,
+  getSerializedSession,
+  updateSessionStatus,
+  setClassification,
+  setUserEdit,
+  deleteSession,
+  _clearAllSessions,
+  _getSessionCount,
+  _setRedisForTesting,
+} from "@/lib/upload-session";
 
-// --- Mock Redis backed by an in-memory Map ---
+// --- Fake Redis backed by an in-memory Map ---
 
-const mockStore = new Map<string, string>();
+const store = new Map<string, string>();
 
 const mockGet = vi.fn(async (key: string) => {
-  const raw = mockStore.get(key);
+  const raw = store.get(key);
   if (raw === undefined) return null;
   try {
     return JSON.parse(raw);
@@ -18,7 +31,7 @@ const mockGet = vi.fn(async (key: string) => {
 
 const mockSet = vi.fn(
   async (key: string, value: unknown, _opts?: { ex?: number }) => {
-    mockStore.set(key, JSON.stringify(value));
+    store.set(key, JSON.stringify(value));
     return "OK";
   }
 );
@@ -26,7 +39,7 @@ const mockSet = vi.fn(
 const mockDel = vi.fn(async (...keys: string[]) => {
   let count = 0;
   for (const k of keys) {
-    if (mockStore.delete(k)) count++;
+    if (store.delete(k)) count++;
   }
   return count;
 });
@@ -39,35 +52,20 @@ const mockScan = vi.fn(
     opts?: { match?: string; count?: number }
   ) => {
     const prefix = (opts?.match ?? "").replace("*", "");
-    const keys = Array.from(mockStore.keys()).filter((k) =>
-      k.startsWith(prefix)
-    );
+    const keys = Array.from(store.keys()).filter((k) => k.startsWith(prefix));
     return [0, keys];
   }
 );
 
-vi.mock("@upstash/redis", () => ({
-  Redis: vi.fn().mockImplementation(() => ({
-    get: mockGet,
-    set: mockSet,
-    del: mockDel,
-    ttl: mockTtl,
-    scan: mockScan,
-  })),
-}));
+const fakeRedis = {
+  get: mockGet,
+  set: mockSet,
+  del: mockDel,
+  ttl: mockTtl,
+  scan: mockScan,
+} as unknown as Redis;
 
-import {
-  createSession,
-  getSession,
-  getSerializedSession,
-  updateSessionStatus,
-  setClassification,
-  setUserEdit,
-  deleteSession,
-  _clearAllSessions,
-  _getSessionCount,
-  _resetInit,
-} from "@/lib/upload-session";
+// --- Helpers ---
 
 function mockDoc(filename: string, content = "test content"): ParsedDocument {
   return {
@@ -92,8 +90,9 @@ function mockClassification(filename: string): ClassificationResult {
 }
 
 beforeEach(() => {
-  mockStore.clear();
+  store.clear();
   vi.clearAllMocks();
+  _setRedisForTesting(fakeRedis);
 });
 
 describe("createSession", () => {
@@ -118,7 +117,7 @@ describe("createSession", () => {
     expect(s1.id).not.toBe(s2.id);
   });
 
-  it("stores session in Redis with TTL", async () => {
+  it("stores session in Redis with 24h TTL", async () => {
     const session = await createSession([mockDoc("a.md")]);
 
     expect(mockSet).toHaveBeenCalledTimes(1);

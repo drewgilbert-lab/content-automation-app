@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: March 2, 2026
+> Last updated: March 3, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.
@@ -134,7 +134,7 @@ ANTHROPIC_API_KEY=    # From console.anthropic.com
 
 ## ADR-004: Deployment Platform
 
-**Status:** Decided (pending execution)
+**Status:** Implemented
 
 **Context:**
 We need a deployment platform that works seamlessly with Next.js, supports environment variable management, and enables CI/CD from GitHub.
@@ -156,11 +156,21 @@ We need a deployment platform that works seamlessly with Next.js, supports envir
 - Preview deployments on every PR branch
 - Aligns with Next.js App Router features (streaming, server components)
 
-**Deployment Steps (Pending):**
-1. Push `content-automation-app/` to a GitHub repository
-2. Connect the repo to a Vercel project at vercel.com
-3. Add `WEAVIATE_URL`, `WEAVIATE_API_KEY`, and `ANTHROPIC_API_KEY` to Vercel environment variables
-4. Deploy — Vercel auto-builds and deploys on every push to `main`
+**Production URL:** `https://content-automation-app-zeta.vercel.app`
+
+**GitHub:** `drewgilbert-lab/content-automation-app` connected to Vercel project — auto-deploys on push to `main`.
+
+**Environment Variables Configured:**
+- `WEAVIATE_URL` (production + preview)
+- `WEAVIATE_API_KEY` (production + preview)
+- `ANTHROPIC_API_KEY` (production + preview)
+- `NEXT_PUBLIC_MCP_SERVER_URL` (production + preview)
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` — not yet configured; rate limiting and Redis-backed upload sessions gracefully fall back
+
+**Deployment Notes:**
+- `vercel.json` created with security headers (`X-Content-Type-Options`, `X-Frame-Options`) for `/api/v1/` routes
+- `tsconfig.json` excludes `mcp-server` to prevent build failures (MCP server is built separately on Railway)
+- Data-fetching pages marked with `export const dynamic = "force-dynamic"` to prevent build-time pre-rendering — see ADR-016
 
 ---
 
@@ -489,6 +499,70 @@ The Content Engine needs to be accessible from MCP-compatible clients (Claude De
 
 ---
 
+## ADR-016: `force-dynamic` on Data-Fetching Pages
+
+**Status:** Decided (implemented)
+
+**Context:**
+During the Vercel production build, Next.js attempts to pre-render pages at build time by default. Pages that fetch from Weaviate (dashboard, knowledge list, queue, skills, connections) fail during pre-rendering because the Weaviate client requires runtime environment variables that are not available at build time. This causes the build to fail or produce stale/empty pages.
+
+**Decision:** Mark all data-fetching pages with `export const dynamic = "force-dynamic"`.
+
+**Affected Pages:**
+- `app/page.tsx` (homepage — checks Weaviate/Claude connection status)
+- `app/dashboard/page.tsx`
+- `app/knowledge/page.tsx`
+- `app/knowledge/new/page.tsx`
+- `app/queue/page.tsx`
+- `app/skills/page.tsx`
+- `app/connections/page.tsx`
+
+**Rationale:**
+- `force-dynamic` tells Next.js to always render these pages at request time, never at build time
+- Weaviate connection requires `WEAVIATE_URL` and `WEAVIATE_API_KEY` which are only available at runtime in Vercel's serverless environment
+- This is the standard Next.js pattern for pages that depend on runtime data sources
+- No performance impact for an internal tool — these pages are not public-facing and not cached by CDN
+
+**Implications:**
+- Any new page that fetches from Weaviate or another runtime data source must include `export const dynamic = "force-dynamic"`
+- Static pages (layout, error boundaries) are unaffected
+
+---
+
+## ADR-017: Upload Session Store — Redis Migration for Serverless
+
+**Status:** Decided (implemented)
+
+**Context:**
+The upload session store (`lib/upload-session.ts`) originally used an in-memory `globalThis.__uploadSessions` Map (see ADR-012). This worked in local development but is incompatible with Vercel's serverless architecture: each function invocation runs in an isolated container, so sessions created by one API route (e.g. `/api/bulk-upload/parse`) are invisible to subsequent routes (e.g. `/api/bulk-upload/classify`) because they execute in different containers with separate memory spaces.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| In-memory Map (`globalThis`) | Works in dev; fails in serverless — sessions lost across invocations |
+| Upstash Redis (`@upstash/redis`) | Serverless-compatible; HTTP-based; used by the project for rate limiting (ADR-007) |
+| Vercel KV | Vercel-native Redis; adds vendor lock-in |
+| Database (Weaviate) | Possible but adds schema complexity for ephemeral session data |
+
+**Decision:** Migrate to `@upstash/redis` with graceful fallback to in-memory for local development.
+
+**Rationale:**
+- Upstash Redis is already a project dependency (used for rate limiting in `lib/rate-limit.ts`)
+- HTTP-based Redis client works natively in serverless environments — no persistent connections needed
+- Graceful fallback: when `UPSTASH_REDIS_REST_URL` is not configured, the store falls back to in-memory, so local development works without Redis
+- 24-hour TTL on session keys matches the original in-memory cleanup interval
+- All upload session functions (`createSession`, `getSession`, `updateClassification`, `setUserEdit`, `deleteUserEdit`, `getSerializedSession`) are now async and Redis-backed
+
+**New Function:** `deleteUserEdit(sessionId, documentIndex)` added for proper Redis-backed session mutation (removing a user edit from a session requires a read-modify-write cycle in Redis).
+
+**Implications:**
+- All consumer API routes (`parse`, `classify`, `session/[sessionId]`, `reclassify`, `approve`) updated to `await` the now-async session functions
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` should be configured in Vercel for production upload session support; without them, upload sessions fall back to in-memory (which may lose data across serverless invocations)
+- ADR-012 (`globalThis` pattern) is superseded for upload sessions but remains valid for other in-memory caches (e.g. API key cache in `lib/api-auth.ts`)
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -496,7 +570,7 @@ The Content Engine needs to be accessible from MCP-compatible clients (Claude De
 | ADR-001 | Next.js 16 App Router | Feb 2026 | Decided |
 | ADR-002 | Weaviate Cloud | Feb 2026 | Decided |
 | ADR-003 | Anthropic Claude (current) | Feb 2026 | Decided |
-| ADR-004 | Vercel | Feb 2026 | Pending execution |
+| ADR-004 | Vercel | Feb 2026 | Implemented |
 | ADR-005 | Tailwind CSS v4 | Feb 2026 | Decided |
 | ADR-006 | Consolidated MCP Server (standalone Node.js) | Feb 2026 | Decided (implemented) |
 | ADR-007 | REST API Gateway (`/api/v1/`) | Feb 2026 | Pending implementation |
@@ -508,6 +582,8 @@ The Content Engine needs to be accessible from MCP-compatible clients (Claude De
 | ADR-013 | Claude Haiku 4.5 as Default Model (Dev) | Feb 2026 | Decided |
 | ADR-014 | Weaviate Multi-User Access Control | Feb 2026 | Pending implementation |
 | ADR-015 | MCP Server Architecture (J1-J4) | Mar 2026 | Decided (implemented) |
+| ADR-016 | `force-dynamic` on Data-Fetching Pages | Mar 2026 | Decided (implemented) |
+| ADR-017 | Upload Session Store — Redis Migration | Mar 2026 | Decided (implemented) |
 
 ---
 

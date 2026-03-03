@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
 
   const sessionId =
     typeof body.sessionId === "string" ? body.sessionId : null;
-  const session = sessionId ? getSession(sessionId) : null;
+  const session = sessionId ? await getSession(sessionId) : null;
 
   let existingObjects;
   try {
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       let failed = 0;
 
       if (session && sessionId) {
-        updateSessionStatus(sessionId, "classifying");
+        await updateSessionStatus(sessionId, "classifying");
       }
 
       for (let i = 0; i < documents.length; i++) {
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
         try {
           const classification = await classifyDocument(doc, existingObjects);
           if (session && sessionId) {
-            setClassification(sessionId, i, classification);
+            await setClassification(sessionId, i, classification);
           }
           const result: ClassificationResultEvent = {
             index: i,
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (session && sessionId) {
-        updateSessionStatus(sessionId, "reviewing");
+        await updateSessionStatus(sessionId, "reviewing");
       }
 
       const done: ClassificationDoneEvent = { total, classified, failed };

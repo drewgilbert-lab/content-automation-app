@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { listSubmissions } from "@/lib/submissions";
 import { SubmissionList } from "./components/submission-list";

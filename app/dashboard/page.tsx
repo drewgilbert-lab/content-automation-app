@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { getDashboardData } from "@/lib/dashboard";
 import { countPendingSubmissions } from "@/lib/submissions";

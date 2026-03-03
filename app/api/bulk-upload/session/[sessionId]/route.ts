@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
   const { sessionId } = await params;
-  const state = getSerializedSession(sessionId);
+  const state = await getSerializedSession(sessionId);
 
   if (!state) {
     return Response.json(

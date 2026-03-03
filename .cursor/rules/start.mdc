@@ -15,7 +15,7 @@ alwaysApply: true
 | Styling | Tailwind CSS v4 |
 | Vector DB | Weaviate Cloud (`weaviate-client` v3) |
 | LLM | Anthropic Claude (`claude-opus-4-5`) via `lib/claude.ts` |
-| Deploy | Vercel (pending) |
+| Deploy | Vercel (`content-automation-app-zeta.vercel.app`) |
 | MCP Deploy | Railway (`content-automation-app.up.railway.app`) |
 
 ## Repo Structure
@@ -90,7 +90,7 @@ lib/
   document-parser-types.ts — ParsedDocument, ParseOptions, ParseResult types
   classifier.ts           — AI document classification via Claude (G2)
   classification-types.ts — ClassificationResult, SuggestedRelationship types
-  upload-session.ts       — In-memory upload session store with 24h TTL (G3)
+  upload-session.ts       — Upload session store: Upstash Redis with in-memory fallback, 24h TTL (G3)
   upload-session-types.ts — UploadSession, UploadSessionState types (G3)
   skills.ts               — Skill CRUD operations: list, get, create, update, delete, activate/deactivate, deprecate/restore
   skill-types.ts          — Skill types, content type constants, category constants, utilities
@@ -119,6 +119,7 @@ mcp-server/
   tsconfig.json             — TypeScript config (ES2022/NodeNext)
   Dockerfile                — Multi-stage Docker build for Railway
   README.md                 — Setup, client config, available tools/resources guide (J8)
+vercel.json               — Vercel config: security headers for /api/v1/ routes
 .env.example              — Environment variable template (current + planned vars)
 ```
 

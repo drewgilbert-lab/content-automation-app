@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { RoleToggle } from "@/app/components/role-toggle";
 import { checkWeaviateConnection } from "@/lib/weaviate";

@@ -4,6 +4,30 @@
 
 ---
 
+### Vercel Production Deployment — March 3, 2026
+
+**Production URL:** `https://content-automation-app-zeta.vercel.app`
+
+**Deployment:**
+- Connected GitHub repo `drewgilbert-lab/content-automation-app` to Vercel project — auto-deploys on push to `main`.
+- Environment variables configured in Vercel: `WEAVIATE_URL`, `WEAVIATE_API_KEY`, `ANTHROPIC_API_KEY`, `NEXT_PUBLIC_MCP_SERVER_URL` (production + preview). `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` not yet configured — rate limiting and Redis-backed upload sessions gracefully fall back.
+- Created `vercel.json` with security headers (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`) applied to all `/api/v1/` routes.
+- Updated `tsconfig.json` — added `mcp-server` to the `exclude` array to prevent Vercel build failures (MCP server is built separately on Railway).
+
+**Upload Session Redis Migration (ADR-017):**
+- Rewrote `lib/upload-session.ts` from in-memory `globalThis.__uploadSessions` Map to `@upstash/redis` with graceful fallback for local dev. In-memory sessions are incompatible with Vercel's serverless model where each function invocation runs in an isolated container.
+- Added `deleteUserEdit()` function for proper Redis-backed session mutation.
+- All bulk-upload API route handlers (`parse`, `classify`, `session/[sessionId]`, `reclassify`, `approve`) updated to `await` the now-async upload session functions.
+
+**force-dynamic Pages (ADR-016):**
+- Marked pages with `export const dynamic = "force-dynamic"` to prevent build-time pre-rendering of pages that fetch from Weaviate at runtime: homepage (`app/page.tsx`), dashboard, knowledge list, knowledge/new, queue, skills, connections.
+
+**Smoke Test Results:**
+- All 10 API/page tests passed (200 status on all pages, 401 on unauthed API, security headers present).
+- Browser tests confirmed: Weaviate connected (green badge), Claude connected (green badge), 29 knowledge objects, dashboard health metrics working, bulk upload wizard functional.
+
+---
+
 ### Bugfix: MCP server tool import paths resolving to wrong directory — March 3, 2026
 
 - Fixed dynamic import paths in all tool and resource files under `src/tools/` and `src/resources/` from `../../lib/` to `../../../lib/`. These files compile to `dist/tools/` and `dist/resources/`, which are one level deeper than `dist/` — the extra `../` is needed to reach the project root `lib/` directory.

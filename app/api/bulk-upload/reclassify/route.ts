@@ -1,7 +1,7 @@
 export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
-import { getSession, setClassification } from "@/lib/upload-session";
+import { getSession, setClassification, deleteUserEdit } from "@/lib/upload-session";
 import { listKnowledgeObjects } from "@/lib/knowledge";
 import { classifyDocument } from "@/lib/classifier";
 
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const session = getSession(sessionId);
+  const session = await getSession(sessionId);
   if (!session) {
     return new Response(
       JSON.stringify({ error: "Session not found or expired" }),
@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  setClassification(sessionId, documentIndex, classification);
-  session.userEdits.delete(documentIndex);
+  await setClassification(sessionId, documentIndex, classification);
+  await deleteUserEdit(sessionId, documentIndex);
 
   return new Response(JSON.stringify(classification), {
     status: 200,

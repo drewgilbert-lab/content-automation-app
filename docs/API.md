@@ -1,6 +1,10 @@
 # Content Engine — API Reference
 
-> Last updated: March 2, 2026 (K3–K6, J1–J8, J9–J12 implemented)
+> Last updated: March 3, 2026 (K3–K6, J1–J8, J9–J12 implemented)
+
+**Production Base URL:** `https://content-automation-app-zeta.vercel.app`
+
+All internal routes below are relative to this base URL in production. The external API (`/api/v1/`) is also served from this URL with `X-API-Key` authentication.
 
 ---
 

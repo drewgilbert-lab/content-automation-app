@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { listSkills } from "@/lib/skills";
 import { SkillList } from "./components/skill-list";

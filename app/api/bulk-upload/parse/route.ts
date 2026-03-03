@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
 
   const { documents, errors } = await parseDocuments(files);
 
-  const session = createSession(documents);
-  updateSessionStatus(session.id, "reviewing");
+  const session = await createSession(documents);
+  await updateSessionStatus(session.id, "reviewing");
 
   return Response.json({
     sessionId: session.id,

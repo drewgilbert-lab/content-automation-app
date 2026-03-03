@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: March 2, 2026
+> Last updated: March 3, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -815,6 +815,129 @@ When an external system pushes a knowledge object update via MCP (Group J) and t
 
 ---
 
+### Group N — Unified Object Type Support
+
+> Scope: Extend the submission pipeline, MCP tools, bulk upload classifier, and UI to treat `skill` as a first-class object type alongside the 7 knowledge types. Fix missing object type coverage in the Knowledge Base UI. Add MCP duplicate detection so resubmitting an existing document routes through review/merge. Establish a schema-change process so type additions propagate automatically.
+> Dependencies: Group I (Skills Module), Groups E–F (Review Queue, AI Merge), Group J (MCP Server).
+
+#### Context
+
+The `Skill` collection exists in Weaviate with full CRUD in `lib/skills.ts`, but it is isolated from the submission/review pipeline. The MCP `create_knowledge_object` tool rejects `skill` as a type, and `reviewSubmission()` only calls `createKnowledgeObject()`/`updateKnowledgeObject()` — accepting a skill submission would fail at the review stage. Additionally, the Knowledge Base list page hardcodes only 5 of 7 knowledge types in its filter tabs (missing `competitor` and `customer_evidence`). The MCP create tool has no duplicate detection, so resubmitting content for an existing object creates a duplicate "new" submission instead of routing through review/merge.
+
+**N1 — Fix Missing Object Types in Knowledge Base UI**
+The `TABS` and `TYPE_ORDER` arrays in `app/knowledge/components/knowledge-list.tsx` are hardcoded with only 5 types (`persona`, `segment`, `use_case`, `business_rule`, `icp`). `competitor` and `customer_evidence` have no filter tabs and do not appear in the grouped view. Fix: derive `TABS` and `TYPE_ORDER` from `VALID_TYPES` and `getTypeLabel()` in `lib/knowledge-types.ts` so any future type additions propagate automatically. Add a fallback color in `type-badge.tsx` for unknown types as a safety net.
+
+**N2 — Schema Change Rule**
+Create `.cursor/rules/schema-change.mdc` — a checklist of all files and locations that must be updated when object types are added or changed. This becomes part of the AI-assisted workflow so changes propagate to every touchpoint. Locations to document: `lib/knowledge-types.ts` (type union, `VALID_TYPES`, `getTypeLabel()`), `lib/submission-types.ts` (after N3), `app/knowledge/components/type-badge.tsx` (color map), `app/knowledge/components/knowledge-list.tsx` (after N1, derived automatically), `lib/classifier.ts` (classification prompt type descriptions), `mcp-server/src/tools/create-object.ts` (`VALID_TYPES`), `mcp-server/src/schema.ts` (collection metadata), `app/api/bulk-upload/approve/route.ts` (type-specific field handling), `app/queue/components/submission-review.tsx` (type-specific rendering).
+
+**N3 — Expand Submission Pipeline for Skill Type**
+Introduce a broader `ObjectType` that includes `"skill"` alongside the existing `KnowledgeType` values. Update `SubmissionCreateInput` in `lib/submission-types.ts` to use the expanded type. Update `reviewSubmission()` in `lib/submissions.ts`: on accept of a `"new"` submission where `objectType === "skill"`, call `createSkill()` from `lib/skills.ts` instead of `createKnowledgeObject()`. On accept of an `"update"` or `"document_add"` submission where `objectType === "skill"`, call `updateSkill()` instead of `updateKnowledgeObject()`. Map the proposed content fields to the correct input shapes (`SkillCreateInput` vs `KnowledgeCreateInput`).
+
+**N4 — MCP Create Tool: Add Skill Support**
+Add `"skill"` to the `VALID_TYPES` array in `mcp-server/src/tools/create-object.ts`. Add skill-specific optional parameters to the tool schema: `description`, `contentType` (string array), `category`, `author`, `triggerConditions`, `parameters`, `outputFormat`. Include these in `proposedFields` when `objectType === "skill"`. Update the tool description to mention skill as a valid type.
+
+**N5 — MCP Update Tool: Add Skill-Specific Parameters**
+Add skill-specific optional parameters (`description`, `contentType`, `category`, `author`, `triggerConditions`, `parameters`, `outputFormat`) to the `update_knowledge_object` tool schema in `mcp-server/src/tools/update-object.ts`. The tool already looks up skills by ID; this adds the ability to propose changes to skill-specific fields.
+
+**N6 — MCP Duplicate Detection**
+Before creating a submission in the MCP `create_knowledge_object` tool, search for existing objects by name (exact match) in the target collection using `listKnowledgeObjects` (for knowledge types) or `listSkills` (for skill type). If a match is found, set `submissionType: "update"` instead of `"new"` and set `targetObjectId` to the existing object's ID. The response to the MCP caller should clearly indicate whether the submission was treated as new or as an update to an existing object. If no match, proceed with `submissionType: "new"` as today.
+
+```
+MCP create_knowledge_object called
+        │
+        ▼
+Search by name in target collection
+        │
+        ├── Match found → Create "update" submission
+        │                  with targetObjectId set
+        │
+        └── No match → Create "new" submission (today's behavior)
+        │
+        ▼
+Submission enters review queue
+        │
+        ├── Accept new → createKnowledgeObject() or createSkill()
+        ├── Accept update → updateKnowledgeObject() or updateSkill()
+        └── Reject / Defer → No changes to collections
+```
+
+**N7 — SKILL.md Filename Classification in Bulk Upload**
+Add a pre-AI filename check in `lib/classifier.ts`: if filename ends with `SKILL.md` (case-insensitive), set `objectType: "skill"` with `confidence: 1.0` and `needsReview: false`, skipping the Claude classification call for that document. Update `buildClassificationPrompt()` to include `skill` as a valid type with description: *"Content generation skill — prompt template, instructions, output format for producing specific content types."* Update `app/api/bulk-upload/approve/route.ts` to build skill-specific `proposedContent` with skill fields (`description`, `contentType`, `category`) when `objectType === "skill"`.
+
+---
+
+### Group O — Review Queue Enhancements
+
+> Scope: Add bulk approve capability and editable tags to the review queue. Upgrade the knowledge form tag input to the pill-style TagEditor.
+> Dependencies: Group E (Review Queue).
+
+**O1 — Bulk Approve**
+Add multi-select capability to the review queue list page (`app/queue/components/submission-list.tsx`). Convert from a server-rendered link list to a client component with: checkbox per row (only for pending/deferred submissions), "select all visible" checkbox in the header, and a sticky action bar that appears when items are selected showing count and "Approve Selected" button. Clicking the row (not the checkbox) still navigates to the detail page. Build a new `POST /api/submissions/bulk-review` endpoint accepting `{ submissionIds: string[], action: "accept" }`. The endpoint iterates through IDs and calls `reviewSubmission(id, "accept")` for each, returning a summary of successes and failures. Bulk reject is intentionally excluded since rejection requires a per-submission comment.
+
+**O2 — Editable Tags in Review Queue**
+Replace static tag pills in `app/queue/components/submission-review.tsx` with the `TagEditor` component from the bulk upload flow. Store edited tags in local state. When the reviewer clicks "Accept", include the edited tags in the proposed content sent to the review endpoint. Update `POST /api/submissions/[id]/review` to accept an optional `proposedContentOverrides` field in the request body. If present, merge overrides into the submission's `proposedContent` before calling `reviewSubmission()`.
+
+**O3 — Upgrade Knowledge Form TagEditor**
+Replace the comma-separated text input in `app/knowledge/components/knowledge-form.tsx` with the pill-style `TagEditor` component. Since `TagEditor` is now used in three places (bulk upload, review queue, knowledge form), move it from `app/bulk-upload/components/tag-editor.tsx` to `app/components/tag-editor.tsx` as a shared component. Update all existing imports.
+
+---
+
+### Group P — Content Cleaning Rules
+
+> Scope: A new admin module for defining rules that clean and transform incoming content at ingestion time. Rules remove repeated non-value patterns (terms and conditions, company address boilerplate, legal disclaimers) before content enters the review queue. Reviewers see cleaned content with a diff showing what was removed.
+> Dependencies: Groups E–G (submission pipeline, bulk upload).
+
+#### Core Concept
+
+Content arrives unchanged from source to storage. Repeated non-value patterns (terms and conditions, company locations, legal boilerplate) pollute knowledge objects. Content cleaning rules provide an automated layer that strips these patterns at ingestion time, with full transparency for reviewers.
+
+Three rule types are supported:
+
+| Type | Pattern Field | Behavior |
+|---|---|---|
+| `regex` | Regular expression | Pattern-based removal/replacement (e.g., strip "Terms & Conditions" sections) |
+| `substring` | Literal text | Simple text matching (e.g., remove "123 Main St, Anytown USA" everywhere) |
+| `ai_prompt` | Claude instruction | Send content through Claude with the prompt as instructions (e.g., "Remove any legal disclaimers and copyright notices"). More flexible but higher cost; for complex patterns that are hard to regex |
+
+**P1 — CleaningRule Weaviate Collection and CRUD**
+Design and create a `CleaningRule` Weaviate collection with fields: `name` (text), `description` (text), `ruleType` (text: `regex` | `substring` | `ai_prompt`), `pattern` (text), `replacement` (text, default empty for removal), `active` (boolean), `priority` (int, lower = runs first), `scope` (text array of object types, empty = all), `createdAt` (date), `updatedAt` (date). Build `lib/cleaning-rule-types.ts` with types and constants. Build `lib/cleaning-rules.ts` with CRUD operations: `listCleaningRules`, `getCleaningRule`, `createCleaningRule`, `updateCleaningRule`, `deleteCleaningRule`.
+
+**P2 — Content Cleaner Engine**
+Build `lib/content-cleaner.ts` with an `applyCleaningRules(content, objectType?)` function. Loads active rules sorted by priority, filters by scope (matching `objectType` or rules with empty scope), and applies each in order. For `regex` rules, applies `content.replace(new RegExp(pattern, 'g'), replacement)`. For `substring` rules, replaces all occurrences. For `ai_prompt` rules, sends content through Claude with the pattern as the system instruction. Returns `{ cleaned: string, changes: CleaningChange[] }` where each `CleaningChange` records the rule name, what was matched, and the replacement.
+
+**P3 — Pipeline Integration**
+Apply cleaning rules at ingestion time so reviewers see cleaned content. In `app/api/bulk-upload/approve/route.ts`, call `applyCleaningRules(doc.content, objectType)` before creating the submission; store cleaned content in `proposedContent` and attach `cleaningChanges` as metadata. In `lib/submissions.ts`, when creating submissions from MCP or API sources, apply cleaning rules to `proposedContent.content` if present. In `app/queue/components/submission-review.tsx`, if `cleaningChanges` metadata exists on the submission, show a collapsible "Content Cleaned" section with a diff of what was removed so the reviewer has full visibility.
+
+**P4 — Admin UI**
+Build an admin module at `/cleaning-rules`:
+- **List page** (`app/cleaning-rules/page.tsx`): shows all rules with active/inactive toggle, rule type badges, priority ordering, scope tags. Links to create and edit.
+- **Create page** (`app/cleaning-rules/new/page.tsx`): form with name, description, rule type selector, pattern input (with regex tester UI for regex type), replacement, scope multi-select (object types), priority number input.
+- **Detail/edit page** (`app/cleaning-rules/[id]/page.tsx`): view and edit rule details.
+- **API routes**: `GET/POST /api/cleaning-rules` for list and create; `GET/PUT/DELETE /api/cleaning-rules/[id]` for detail, update, and delete.
+- Add a "Cleaning Rules" navigation entry to the app layout.
+
+**Risks and Gaps:**
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| Regex rules run on user-supplied patterns | Potential ReDoS or unexpected behavior | Validate regex at creation time; run with a timeout; show a pattern tester in the admin UI |
+| `ai_prompt` rules add latency and cost | Each rule invokes Claude per document | Reserve `ai_prompt` for cases where regex/substring are insufficient; show cost warning in admin UI |
+| Rules interact unexpectedly when chained | Earlier rules change content that later rules expected to match | Priority ordering is explicit; show a "test content" feature that applies all rules in order with intermediate results |
+| Cleaning removes valuable content | Overly broad patterns strip useful information | Diff is shown to the reviewer before acceptance; rules can be scoped to specific object types; easy to deactivate |
+
+#### Suggested Implementation Order for Groups N–P
+
+1. **N1 + N2** (fix missing UI types + schema change rule) — quick fix, establishes the process for subsequent work
+2. **N3 + N4 + N5 + N7** (skill type expansion + SKILL.md classification) — core type expansion, done together
+3. **N6** (MCP duplicate detection) — builds on the expanded submission pipeline from step 2
+4. **O2 + O3** (editable tags + shared TagEditor) — independent UI improvement
+5. **O1** (bulk approve) — independent UI improvement
+6. **P1 → P2 → P3 → P4** (content cleaning rules) — largest item, new module, done last
+
+Steps 4–5 can be parallelized with step 3. Group P is fully independent and can begin at any time.
+
+---
+
 ### Cross-Cutting Notes: Groups J and K
 
 #### K + J Data Overlap
@@ -859,6 +982,9 @@ No implementation is needed now. The key design constraint is that `lib/api-auth
 | Module | What's Left | Requirements |
 |---|---|---|
 | Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) deferred | See [PRD.md](./PRD.md) Module 1 |
+| Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process | See Group N above |
+| Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, shared TagEditor | See Group O above |
+| Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See Group P above |
 | Knowledge-Linked Skills | Group M — not yet started | See Group M above |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](./PRD.md) Module 2 |
 
@@ -1059,7 +1185,7 @@ The following `business_rule` objects are planned but not yet created. They will
 
 | Item | Notes |
 |---|---|
-| Vercel deployment | Infrastructure is ready; deployment is a pending step after local dev is confirmed |
+| Vercel deployment | ✅ Done (March 3, 2026). Production: `https://content-automation-app-zeta.vercel.app`. GitHub repo `drewgilbert-lab/content-automation-app` connected, auto-deploys on push to main. Upload sessions migrated to Upstash Redis for serverless compatibility (ADR-017). Data-fetching pages marked `force-dynamic` (ADR-016). `vercel.json` with security headers for `/api/v1/` routes. |
 | Auth / RBAC | User authentication and role-based access for the web UI and internal API routes. Not needed for single-user internal tool in Phase 1. Planned approach: OIDC integration (Okta, Auth0, Azure AD, or Keycloak) for session-based auth on internal routes. External API keys (Group K) and MCP keys (Group J) continue working alongside OIDC. Weaviate-level RBAC users (Group K) provide defense-in-depth. See Cross-Cutting Notes: OIDC/SSO Upgrade Path. |
 | Internal API route protection | All internal routes (`/api/knowledge`, `/api/skills`, `/api/submissions`, `/api/dashboard`, `/api/connections`, `/api/bulk-upload`) currently have zero authentication. Accepted risk for the current single-user internal tool. Must be protected when Auth/RBAC is added. |
 | External integrations | CRM, MAP, social platforms — future consideration. Groups J and K provide the programmatic access layer for building these integrations. |

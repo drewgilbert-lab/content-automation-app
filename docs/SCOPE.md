@@ -1,6 +1,6 @@
 # Content Engine — Project Overview
 
-> Last updated: March 2, 2026
+> Last updated: March 3, 2026
 
 ## What This Is
 
@@ -23,7 +23,6 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 
 - User authentication and role-based access (internal API routes are unprotected; accepted risk for single-user internal tool — see Phase 3+ backlog in [ROADMAP.md](./ROADMAP.md))
 - Content approval and publishing workflows (defined in [ROADMAP.md](./ROADMAP.md), not yet implemented)
-- Vercel production deployment (infrastructure is ready; deployment is a pending step)
 - Integration with external systems (CRM, MAP, social platforms)
 - Multi-tenant or customer-facing use
 
@@ -61,7 +60,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Knowledge Base UI | Done | Groups A–I done (I1–I5); I6 (Skill Testing Interface) deferred |
 | Generate UI | Pending | Content generation with context retrieval |
 | Content library UI | Pending | Browse and manage generated content |
-| Vercel deployment | Pending | After local dev is confirmed working |
+| Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
 | Inbound MCP server | Phase 1 Read Done | J1-J8 done: foundation, auth, read tools, resources, search, client config; J9+ (write) pending |
 | External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see ROADMAP.md Group K |

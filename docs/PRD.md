@@ -1,6 +1,6 @@
 # Content Engine — Product Requirements Document
 
-> Last updated: February 2026
+> Last updated: March 2026
 
 ---
 
@@ -206,6 +206,86 @@ Separate procedural task instructions ("Skills") from passive constraints ("Busi
 - Skills declare conflicts via `conflictsWith` field
 - UI shows a warning banner when conflicting skills are both active
 - Conflict resolution: admin deactivates one or edits to resolve
+
+---
+
+### Content Narratives (Group R)
+
+#### Purpose
+Create, review, and approve strategic narrative documents that aggregate core knowledge around a specific theme, audience, and intent. Content Narratives serve as the instruction layer between raw knowledge and content generation — ensuring every downstream deliverable is grounded in the same strategic foundation.
+
+#### Functional Requirements
+
+- [ ] Create a Content Narrative manually (theme, angle, audience, intent, content, linked knowledge objects)
+- [ ] Create a Content Narrative via AI-assisted generation (theme prompt → semantic search → Claude draft)
+- [ ] Clone an existing narrative and modify for a new angle or audience
+- [ ] Submit narratives for review via the existing review queue
+- [ ] Approve, reject, or defer narrative submissions
+- [ ] Select an approved narrative as primary context during content generation
+- [ ] Detect when linked knowledge objects change after narrative approval (staleness)
+- [ ] Archive narratives that are no longer relevant
+- [ ] Version narratives with rollback capability
+- [ ] Expose approved narratives via External REST API and MCP server
+
+#### User Stories
+
+**CN-1** — As a **PMM**, I want to create a Content Narrative around a competitive theme so that all content produced from it — battle cards, emails, blog posts — shares the same strategic angle and messaging.
+- Creation form with theme, angle, target audience, intent, and markdown content editor
+- Knowledge object selector to link personas, segments, use cases, competitors, and customer evidence
+- Save as draft for refinement before submitting for review
+
+**CN-2** — As a **campaign manager**, I want to generate a draft narrative from a theme prompt so I don't have to assemble strategic context from scratch.
+- AI-assisted mode: enter a theme prompt, system searches knowledge base and generates a draft
+- Review and edit the generated fields before saving
+- Suggested knowledge object links auto-populated from semantic search results
+
+**CN-3** — As a **content strategist**, I want to review and approve Content Narratives before they can be used for generation so I can ensure strategic alignment.
+- Narrative submissions appear in the review queue with a "Narrative Review" badge
+- Reviewer sees full narrative content, metadata, and linked knowledge objects
+- Accept, reject (with comments), or defer actions
+
+**CN-4** — As a **content creator**, I want to select an approved Content Narrative when generating content so the output is grounded in a reviewed strategic direction.
+- Generation UI includes a "Select Content Narrative" picker showing approved narratives
+- Selected narrative is injected as primary strategic context in the system prompt
+- Generation without a narrative remains supported for standalone content
+
+**CN-5** — As a **PMM**, I want to see when a narrative's linked knowledge objects have changed so I know if the narrative may be stale.
+- Staleness indicator on the narrative detail page
+- Health dashboard shows count of stale narratives
+- Stale flag shows which linked objects changed and when
+
+**CN-6** — As a **campaign manager**, I want to clone an existing narrative and modify it for a different audience so I can reuse strategic framing without starting from scratch.
+- "Clone" action on the narrative detail page
+- Pre-populates the create form with the original narrative's content and links
+- Creator modifies and saves as a new draft
+
+**CN-7** — As a **PMM**, I want to version a narrative when strategic direction shifts so I can preserve the previous approved version for reference.
+- Editing an approved narrative creates a new draft version
+- Previous version preserved via `previousVersionId`
+- Only one version can be approved at a time
+
+**CN-8** — As an **admin**, I want to archive narratives that are no longer relevant so they don't clutter the narrative picker.
+- Archive action on approved narratives
+- Archived narratives excluded from the generation picker
+- Archived narratives remain accessible for reference
+
+**CN-9** — As a **developer**, I want to list approved narratives via the REST API so external tools can discover available narratives.
+- `GET /api/v1/narratives` returns approved, non-deprecated narratives
+- `GET /api/v1/narratives/:id` returns full narrative detail
+- Standard API key authentication
+
+**CN-10** — As an **AI agent**, I want to read narratives via MCP so I can use them as context for content generation in Claude Desktop or Cursor.
+- `list_narratives` and `get_narrative` MCP tools for read access
+- `create_narrative_draft` MCP tool for proposing new narratives via the review queue
+
+**CN-11** — As a **marketing manager**, I want to see narrative health metrics on the dashboard so I can track how many narratives are in each status and identify stale ones.
+- Dashboard stat cards for total, draft, in review, approved, archived narrative counts
+- Stale narrative count and list in the staleness report
+
+**CN-12** — As a **content creator**, I want to browse all narratives with filters so I can find the right narrative for my content generation task.
+- List page with status filter tabs (All / Draft / In Review / Approved / Archived)
+- Theme and tag filters
+- Search by name or theme
 
 ---
 

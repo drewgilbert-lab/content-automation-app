@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: February 26, 2026
+> Last updated: March 3, 2026
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -8,7 +8,7 @@ This document defines the rules that govern how knowledge is stored, how context
 
 ## Knowledge Object Types
 
-Eight types of knowledge objects are stored in Weaviate. Each type has a distinct role in the context assembly process.
+Nine types of knowledge objects are stored in Weaviate. Each type has a distinct role in the context assembly process.
 
 | Type | Role | Examples |
 |---|---|---|
@@ -20,6 +20,7 @@ Eight types of knowledge objects are stored in Weaviate. Each type has a distinc
 | `skill` | Active procedural instructions for specific tasks — how to structure and generate specific content types | Campaign Brief Generator, Ops Configuration Guide |
 | `competitor` | Competitive intelligence about rival products and companies — injected when generating competitive content such as battlecards, positioning, and objection responses | Competitor strengths/weaknesses, pricing, positioning |
 | `customer_evidence` | Customer proof points and named references — injected to ground claims in real customer outcomes; subTypes: `proof_point` (quantified results) and `reference` (named customers/quotes) | "Customer reduced churn by 30%", Named customer quote |
+| `content_narrative` | Strategic document aggregating core knowledge around a theme, audience, and intent — serves as the instruction layer between raw knowledge and content generation; lifecycle: draft → in_review → approved → archived | "Competitive Displacement: ZoomInfo to HG Insights", "Enterprise GTM Data Quality" |
 
 ---
 
@@ -136,6 +137,38 @@ Follow the Active Skills above to structure and format your output.
 Respect all Business Rules for tone and constraints.
 Use the Persona, Segment, and Use Case context to inform your content.
 ```
+
+Updated template (with Content Narrative — planned, Group R):
+
+```
+You are a B2B content writer creating [CONTENT_TYPE] for [COMPANY_NAME].
+
+## Content Narrative: [Narrative Name]
+[Full narrative content — strategic direction, messaging, angle]
+
+## Active Skills
+### Skill: [Skill Name] (v[version])
+[Skill instruction content from Weaviate]
+
+## Target Persona
+[Persona content from Weaviate]
+
+## Target Account Segment
+[Segment content from Weaviate]
+
+## Use Case / Topic
+[Use case content from Weaviate]
+
+## Business Rules (Constraints)
+[Applicable business rules from Weaviate — tone, what not to say]
+
+Follow the Content Narrative for strategic direction, messaging, and angle.
+Follow the Active Skills above to structure and format your output.
+Respect all Business Rules for tone and constraints.
+Use the Persona, Segment, and Use Case context to inform your content.
+```
+
+When a Content Narrative is selected, it is injected as the primary strategic context above Active Skills. The narrative defines WHAT to say and WHY. Skills define HOW to produce the specific content type. Business rules define constraints and tone. See [ROADMAP.md](./ROADMAP.md) Group R for full scope.
 
 Skill selection logic:
 1. **Automatic**: Query active skills where `contentType` includes the requested content type

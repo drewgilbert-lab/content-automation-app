@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 3, 2026 (K3–K6, J1–J8, J9–J12 implemented)
+> Last updated: March 3, 2026 (K3–K6, J1–J8, J9–J12 implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -650,6 +650,351 @@ Note: `overrides` is optional — allows applying user edits to classifications 
 | 500 | `{ "error": "Failed to create submissions" }` | Server error |
 
 **Implementation:** `app/api/bulk-upload/approve/route.ts` → calls `createSubmission()` from `lib/submissions.ts`
+
+---
+
+## Planned: Content Narrative Routes (Group R)
+
+> Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group R.
+
+### GET /api/narratives
+
+Returns all Content Narratives with optional filters.
+
+**Runtime:** `nodejs`
+
+**Query Parameters:**
+- `status` (optional): Filter by status. Valid values: `draft`, `in_review`, `approved`, `archived`
+- `theme` (optional): Filter by theme (partial match)
+- `tags` (optional): Comma-separated tags
+- `createdBy` (optional): Filter by creator
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "narratives": NarrativeListItem[] }`
+
+Each `NarrativeListItem` contains: `id`, `name`, `theme`, `targetAudience`, `status`, `version`, `tags`, `createdBy`, `deprecated`, `createdAt`, `updatedAt`
+
+**Implementation:** `app/api/narratives/route.ts` → calls `listNarratives()` from `lib/narratives.ts`
+
+---
+
+### POST /api/narratives
+
+Creates a new Content Narrative (status: draft).
+
+**Runtime:** `nodejs`
+
+**Request:**
+```json
+{
+  "name": "string (required)",
+  "description": "string (optional)",
+  "theme": "string (required)",
+  "angle": "string (optional)",
+  "targetAudience": "string (optional)",
+  "intent": "string (optional)",
+  "content": "string (required)",
+  "researchNotes": "string (optional)",
+  "tags": "string[] (optional)",
+  "createdBy": "string (required)",
+  "linkedPersonas": "string[] (optional — Persona UUIDs)",
+  "linkedSegments": "string[] (optional — Segment UUIDs)",
+  "linkedUseCases": "string[] (optional — UseCase UUIDs)",
+  "linkedCompetitors": "string[] (optional — Competitor UUIDs)",
+  "linkedCustomerEvidence": "string[] (optional — CustomerEvidence UUIDs)"
+}
+```
+
+**Response (success):**
+- Status: `201`
+- Body: `{ "id": "string", "name": "string", "status": "draft", "version": "1.0.0" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing required fields |
+| 409 | `{ "error": "..." }` | Name conflict |
+| 500 | `{ "error": "Failed to create narrative" }` | Server error |
+
+**Implementation:** `app/api/narratives/route.ts` → calls `createNarrative()` from `lib/narratives.ts`
+
+---
+
+### GET /api/narratives/[id]
+
+Returns a single Content Narrative with resolved cross-references.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Response (success):**
+- Status: `200`
+- Body: Full `NarrativeDetail` object including content, metadata, and resolved cross-references (linked personas, segments, use cases, competitors, customer evidence)
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to fetch narrative" }` | Server error |
+
+**Implementation:** `app/api/narratives/[id]/route.ts` → calls `getNarrative()` from `lib/narratives.ts`
+
+---
+
+### PUT /api/narratives/[id]
+
+Updates a draft Content Narrative. Only draft narratives can be updated directly.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Request:**
+```json
+{
+  "name": "string (optional)",
+  "description": "string (optional)",
+  "theme": "string (optional)",
+  "angle": "string (optional)",
+  "targetAudience": "string (optional)",
+  "intent": "string (optional)",
+  "content": "string (optional)",
+  "researchNotes": "string (optional)",
+  "tags": "string[] (optional)",
+  "linkedPersonas": "string[] (optional)",
+  "linkedSegments": "string[] (optional)",
+  "linkedUseCases": "string[] (optional)",
+  "linkedCompetitors": "string[] (optional)",
+  "linkedCustomerEvidence": "string[] (optional)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: Updated `NarrativeDetail` object
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Cannot update a non-draft narrative" }` | Narrative is not in draft status |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to update narrative" }` | Server error |
+
+**Implementation:** `app/api/narratives/[id]/route.ts` → calls `updateNarrative()` from `lib/narratives.ts`
+
+---
+
+### DELETE /api/narratives/[id]
+
+Deletes a draft Content Narrative. Only drafts can be deleted.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "deleted": true }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Only draft narratives can be deleted" }` | Narrative is not in draft status |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to delete narrative" }` | Server error |
+
+**Implementation:** `app/api/narratives/[id]/route.ts` → calls `deleteNarrative()` from `lib/narratives.ts`
+
+---
+
+### POST /api/narratives/[id]/submit
+
+Submits a draft narrative for review. Creates a Submission and changes status to `in_review`.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "status": "in_review", "submissionId": "string" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Only draft narratives can be submitted" }` | Not in draft status |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+
+**Implementation:** `app/api/narratives/[id]/submit/route.ts` → calls `submitForReview()` from `lib/narratives.ts`
+
+---
+
+### POST /api/narratives/[id]/approve
+
+Approves a narrative that is in review. Sets `approvedBy` and `approvedAt`.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Request:**
+```json
+{
+  "approvedBy": "string (required)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "status": "approved", "approvedBy": "string", "approvedAt": "string" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Only in-review narratives can be approved" }` | Not in in_review status |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+
+**Implementation:** `app/api/narratives/[id]/approve/route.ts` → calls `approveNarrative()` from `lib/narratives.ts`
+
+---
+
+### POST /api/narratives/[id]/reject
+
+Rejects a narrative in review with a comment. Returns status to draft.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Request:**
+```json
+{
+  "comment": "string (required)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "status": "draft", "reviewComment": "string" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Not in in_review status or missing comment |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+
+**Implementation:** `app/api/narratives/[id]/reject/route.ts` → calls `rejectNarrative()` from `lib/narratives.ts`
+
+---
+
+### POST /api/narratives/[id]/archive
+
+Archives an approved narrative.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "status": "archived" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Only approved narratives can be archived" }` | Not in approved status |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+
+**Implementation:** `app/api/narratives/[id]/archive/route.ts` → calls `archiveNarrative()` from `lib/narratives.ts`
+
+---
+
+### PATCH /api/narratives/[id]
+
+Deprecates or restores a Content Narrative.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): ContentNarrative UUID
+
+**Request:**
+```json
+{
+  "action": "deprecate | restore"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": "string", "deprecated": boolean }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing or invalid action |
+| 404 | `{ "error": "Narrative not found" }` | UUID not found |
+
+**Implementation:** `app/api/narratives/[id]/route.ts` → calls `deprecateNarrative()` / `restoreNarrative()` from `lib/narratives.ts`
+
+---
+
+### POST /api/narratives/generate
+
+AI-assisted narrative creation. Performs semantic search and streams a draft narrative via Claude.
+
+**Runtime:** `nodejs`
+
+**Request:**
+```json
+{
+  "themePrompt": "string (required)",
+  "pinnedObjectIds": "string[] (optional — knowledge object UUIDs to include)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `text/event-stream`
+- Body: SSE stream with narrative fields and suggested knowledge object links
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "themePrompt is required" }` | Missing theme prompt |
+| 500 | `{ "error": "Failed to generate narrative" }` | Server/Claude error |
+
+**Implementation:** `app/api/narratives/generate/route.ts` → semantic search via `lib/knowledge.ts`, Claude streaming via `lib/claude.ts`
+
+---
+
+### Planned: External Narrative API (Group R, Phase 7)
+
+| Method | Route | Description | Auth |
+|---|---|---|---|
+| `GET` | `/api/v1/narratives` | List approved, non-deprecated narratives with pagination and tag filtering | `X-API-Key` required |
+| `GET` | `/api/v1/narratives/:id` | Approved narrative detail with resolved cross-references | `X-API-Key` required |
+
+These endpoints follow the existing `/api/v1/` patterns with `withApiAuth()` middleware and `{ "data": ..., "meta": ... }` response shape.
 
 ---
 

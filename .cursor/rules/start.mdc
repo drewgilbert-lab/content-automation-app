@@ -60,6 +60,20 @@ app/
   api/v1/skills/route.ts — GET list (auth required)
   api/v1/skills/[id]/route.ts — GET detail (auth required)
   api/v1/health/route.ts — GET health check (no auth)
+  api/narratives/route.ts — GET list, POST create narratives (planned, Group R)
+  api/narratives/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore (planned, Group R)
+  api/narratives/[id]/submit/route.ts — POST submit for review (planned, Group R)
+  api/narratives/[id]/approve/route.ts — POST approve narrative (planned, Group R)
+  api/narratives/[id]/reject/route.ts — POST reject narrative (planned, Group R)
+  api/narratives/[id]/archive/route.ts — POST archive narrative (planned, Group R)
+  api/narratives/generate/route.ts — POST AI-assisted narrative creation, SSE stream (planned, Group R)
+  api/v1/narratives/route.ts — GET list approved narratives (auth required, planned, Group R)
+  api/v1/narratives/[id]/route.ts — GET approved narrative detail (auth required, planned, Group R)
+  narratives/page.tsx — Content Narratives list page (planned, Group R)
+  narratives/[id]/page.tsx — Narrative detail page (planned, Group R)
+  narratives/new/page.tsx — Create narrative form page (planned, Group R)
+  narratives/[id]/edit/page.tsx — Edit narrative form page (planned, Group R)
+  narratives/components/ — NarrativeList, NarrativeForm, NarrativeDetailActions (planned, Group R)
   connections/page.tsx    — Connected Systems list page
   connections/[id]/page.tsx — Connected System detail page
   connections/new/page.tsx — Create connection form page
@@ -95,12 +109,14 @@ lib/
   skills.ts               — Skill CRUD operations: list, get, create, update, delete, activate/deactivate, deprecate/restore
   skill-types.ts          — Skill types, content type constants, category constants, utilities
   rate-limit.ts           — checkRateLimit(), Upstash Redis sliding window, graceful degradation
-  context-assembly.ts     — assembleContext() for building generation system prompts with skills + knowledge + rules
+  context-assembly.ts     — assembleContext() for building generation system prompts with skills + knowledge + rules + optional narrative
+  narratives.ts           — Narrative CRUD: list, get, create, update, delete, submit, approve, reject, archive, deprecate/restore, version (planned, Group R)
+  narrative-types.ts      — Narrative types, status enums, input types, utilities (planned, Group R)
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
   BUSINESS_LOGIC.md       — Context assembly, content types, skills vs rules, runtime logic
-  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem collections), content inventory, seed plan
+  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, ContentNarrative collections), content inventory, seed plan
   SCOPE.md                — Project overview, goals, status
   ROADMAP.md              — Phases, future modules, backlog, open questions
   CHANGELOG.md            — What was built and when
@@ -139,6 +155,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | Skills Module | Done (Group I) |
 | MCP Server (Read + Write) | J1-J12 Done (Phase 1 Read + Phase 2 Write), J13+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
+| Content Narratives | Planned (Group R) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |

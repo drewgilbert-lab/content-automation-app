@@ -62,6 +62,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
+| Content Narratives | Planned (Group R) | Strategic narrative layer: schema, CRUD, UI, AI-assisted creation, review workflow, context assembly, staleness detection, external API/MCP; not yet started |
 | Inbound MCP server | Phase 1 Read Done | J1-J8 done: foundation, auth, read tools, resources, search, client config; J9+ (write) pending |
 | External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see ROADMAP.md Group K |
 | LLM MCP server (RAG) | Phase 1 Read Done | J1-J8 done: transport, auth, 7 read tools, 3 resources, semantic search, client config; Phase 2 (write) pending |

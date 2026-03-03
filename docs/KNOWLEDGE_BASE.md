@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: March 2, 2026
+> Last updated: March 3, 2026
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -161,6 +161,40 @@ Cross-references:
 
 ---
 
+### Collection: `ContentNarrative`
+
+Stores strategic narrative documents that aggregate core knowledge around a specific theme, audience, and intent. Content Narratives serve as the instruction layer between raw knowledge and content generation. See [ROADMAP.md](./ROADMAP.md) Group R for full scope.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Narrative title (e.g. "Competitive Displacement: ZoomInfo to HG Insights") — vectorized |
+| `description` | `text` | Short summary of the narrative's purpose and scope — vectorized |
+| `theme` | `text` | The central theme or topic |
+| `angle` | `text` | The specific strategic angle or point of view |
+| `targetAudience` | `text` | Who this narrative is designed to reach |
+| `intent` | `text` | What the narrative is meant to achieve |
+| `content` | `text` | Full narrative body in markdown — vectorized (primary) |
+| `researchNotes` | `text` | Optional external research, competitive intel, or market context |
+| `status` | `text` | Workflow status: `"draft"`, `"in_review"`, `"approved"`, `"archived"` |
+| `version` | `text` | Semantic version string (e.g. `"1.0.0"`) |
+| `previousVersionId` | `text` | UUID of the prior version (for rollback) |
+| `createdBy` | `text` | Who created the narrative |
+| `approvedBy` | `text` | Who approved the narrative (set on approval) |
+| `approvedAt` | `date` | When the narrative was approved |
+| `tags` | `text[]` | Categorization labels |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated narratives are excluded from generation |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+Cross-references:
+- `hasPersonas` → `Persona[]` (personas this narrative targets)
+- `hasSegments` → `Segment[]` (account segments this narrative targets)
+- `hasUseCases` → `UseCase[]` (use cases this narrative addresses)
+- `hasCompetitors` → `Competitor[]` (competitors this narrative positions against)
+- `hasCustomerEvidence` → `CustomerEvidence[]` (proof points and references included)
+
+---
+
 ### Collection: `GeneratedContent`
 
 Stores all content produced by the system with full generation metadata.
@@ -251,6 +285,13 @@ GeneratedContent ──usedSegment──► Segment
 GeneratedContent ──usedUseCases──► UseCase[]
 GeneratedContent ──usedBusinessRules──► BusinessRule[]
 GeneratedContent ──usedSkills──► Skill[]
+GeneratedContent ──usedNarrative──► ContentNarrative
+
+ContentNarrative ──hasPersonas──► Persona[]
+ContentNarrative ──hasSegments──► Segment[]
+ContentNarrative ──hasUseCases──► UseCase[]
+ContentNarrative ──hasCompetitors──► Competitor[]
+ContentNarrative ──hasCustomerEvidence──► CustomerEvidence[]
 ```
 
 Cross-references are populated:
@@ -356,6 +397,7 @@ The script uses `withWeaviate` from `lib/weaviate.ts` and reads files using Node
 | `scripts/add-skill-collection.ts` | Creates the Skill Weaviate collection | Done |
 | `scripts/add-competitor-customerevidence-collections.ts` | Creates the `Competitor` and `CustomerEvidence` Weaviate collections | Done |
 | `scripts/add-submission-source-fields.ts` | Adds `sourceChannel`, `sourceAppId`, `sourceDescription` properties to the `Submission` collection | Done (Group J10) |
+| `scripts/create-content-narrative-collection.ts` | Creates the `ContentNarrative` Weaviate collection with cross-references to Persona, Segment, UseCase, Competitor, CustomerEvidence | Planned (Group R1) |
 
 ### Seed Script Status
 

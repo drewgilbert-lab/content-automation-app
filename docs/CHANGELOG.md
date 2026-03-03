@@ -4,6 +4,16 @@
 
 ---
 
+### Roadmap Scoping — Group R: Content Narratives — March 3, 2026
+
+**Group R — Content Narratives:** Fully scoped in ROADMAP.md. Twenty-four steps (R1–R24) across 7 phases: schema and CRUD (R1–R4), UI pages (R5–R8), AI-assisted creation (R9–R12), review workflow integration (R13–R15), context assembly integration (R16–R17), staleness detection and health dashboard (R18–R20), external API and MCP extensions (R21–R23), and documentation (R24). Each phase includes a dedicated testing and validation step.
+
+Content Narratives are strategic documents assembled from multiple pieces of core knowledge, organized around a specific theme, audience, and intent. They serve as the instruction layer between raw knowledge and content generation — ensuring that every downstream deliverable (battle cards, emails, blog posts, etc.) shares the same strategic foundation. Three creation modes: manual, AI-assisted (semantic search + Claude draft), and clone. Full review/approval workflow reusing existing Submission infrastructure. Context assembly extended to inject approved narratives as primary strategic context above skills and business rules.
+
+**Documentation updates:** ROADMAP.md (Group R with full scope, schema, phases, risks/gaps, open questions, build order; Phase 1 Remaining Work table updated), PRD.md (user stories CN-1–CN-12), KNOWLEDGE_BASE.md (ContentNarrative collection schema, cross-references, migration entry), BUSINESS_LOGIC.md (narrative context assembly template, content_narrative type added), API.md (narrative CRUD routes, workflow routes, generation route, external API endpoints), SCOPE.md (Content Narratives module status).
+
+---
+
 ### Vercel Production Deployment — March 3, 2026
 
 **Production URL:** `https://content-automation-app-zeta.vercel.app`

@@ -14,9 +14,11 @@ RUN cd mcp-server && npm ci
 COPY lib ./lib
 COPY mcp-server/src ./mcp-server/src
 COPY mcp-server/tsconfig.json ./mcp-server/
+COPY tsconfig.lib.json ./
 
-# Build
+# Build MCP server + shared lib/ modules
 RUN cd mcp-server && npx tsc
+RUN npx tsc -p tsconfig.lib.json
 
 # --- Production ---
 FROM node:22-alpine

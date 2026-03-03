@@ -20,6 +20,7 @@ node_modules
 # production
 /build
 mcp-server/dist
+lib/*.js
 
 # misc
 .DS_Store

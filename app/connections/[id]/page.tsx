@@ -22,6 +22,100 @@ function formatTypeName(type: string): string {
     .join(" ");
 }
 
+function McpConfigCard({
+  apiKeyPrefix,
+  permissions,
+}: {
+  apiKeyPrefix: string;
+  permissions: string[];
+}) {
+  const mcpServerUrl = process.env.NEXT_PUBLIC_MCP_SERVER_URL;
+
+  const mcpScopes = [
+    permissions.includes("mcp-read") && "Read",
+    permissions.includes("mcp-write") && "Write",
+  ]
+    .filter(Boolean)
+    .join(" + ");
+
+  const configSnippet = JSON.stringify(
+    {
+      mcpServers: {
+        "content-engine": {
+          url: `${mcpServerUrl || "https://your-mcp-server.example.com"}/mcp`,
+          headers: {
+            Authorization: "Bearer <your-api-key>",
+          },
+        },
+      },
+    },
+    null,
+    2
+  );
+
+  return (
+    <div className="rounded-xl border border-violet-800/50 bg-violet-950/20 p-6 space-y-5">
+      <div>
+        <h3 className="text-sm font-semibold text-violet-300">
+          MCP Configuration
+        </h3>
+        <p className="mt-1 text-xs text-gray-400">
+          This connection has MCP {mcpScopes} access. Use the config below with
+          Streamable HTTP clients (Claude Desktop remote, Gemini, etc.).
+        </p>
+      </div>
+
+      <div>
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+          Server URL
+        </p>
+        {mcpServerUrl ? (
+          <code className="block break-all rounded bg-gray-800 px-3 py-2 font-mono text-sm text-gray-300">
+            {mcpServerUrl}/mcp
+          </code>
+        ) : (
+          <p className="text-sm text-yellow-400">
+            Set{" "}
+            <code className="font-mono text-xs">
+              NEXT_PUBLIC_MCP_SERVER_URL
+            </code>{" "}
+            in your environment to display the server URL here.
+          </p>
+        )}
+      </div>
+
+      <div>
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+          Claude Desktop / Cursor Config
+        </p>
+        <pre className="overflow-x-auto rounded bg-gray-800 px-3 py-2.5 font-mono text-xs text-gray-300 leading-relaxed">
+          {configSnippet}
+        </pre>
+      </div>
+
+      <div>
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+          API Key
+        </p>
+        <p className="text-sm text-gray-300">
+          Use the key starting with{" "}
+          <code className="font-mono text-xs text-gray-400">
+            {apiKeyPrefix}...
+          </code>
+        </p>
+      </div>
+
+      <p className="text-xs text-gray-500">
+        For local development (stdio transport), no API key is needed. See{" "}
+        <code className="font-mono text-xs text-gray-400">
+          mcp-server/README.md
+        </code>{" "}
+        for full setup docs.
+      </p>
+    </div>
+  );
+}
+
 export default async function ConnectionDetailPage({
   params,
 }: {
@@ -69,7 +163,7 @@ export default async function ConnectionDetailPage({
 
         <div className="mt-8 flex flex-col gap-8 lg:flex-row">
           {/* Main info */}
-          <div className="lg:flex-1 min-w-0">
+          <div className="lg:flex-1 min-w-0 space-y-6">
             <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-6">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -109,6 +203,14 @@ export default async function ConnectionDetailPage({
                 </div>
               </div>
             </div>
+
+            {(system.permissions.includes("mcp-read") ||
+              system.permissions.includes("mcp-write")) && (
+              <McpConfigCard
+                apiKeyPrefix={system.apiKeyPrefix}
+                permissions={system.permissions}
+              />
+            )}
           </div>
 
           {/* Sidebar */}

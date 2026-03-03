@@ -4,6 +4,22 @@
 
 ---
 
+### MCP Connection Setup UX Enhancement — March 2, 2026
+
+**Connection Creation Success Screen:**
+- When creating a Connected System with `mcp-read` or `mcp-write` permissions, the success screen now shows an MCP Setup section below the API key card.
+- Displays the MCP server URL (from `NEXT_PUBLIC_MCP_SERVER_URL` env var), a copyable Claude Desktop / Cursor config JSON snippet pre-filled with the server URL and generated API key, an MCP permission summary, and a stdio transport note.
+- Falls back gracefully when the env var is not set.
+
+**Connection Detail Page:**
+- Added an MCP Configuration card on the detail page for connections with MCP permissions.
+- Shows server URL, generic config snippet (with `<your-api-key>` placeholder), key prefix reminder, and link to full setup docs.
+
+**Environment:**
+- Added `NEXT_PUBLIC_MCP_SERVER_URL` to `.env.example` for the deployed MCP server URL.
+
+---
+
 ### Group J Phase 2: MCP Server Write Access (J9–J12) — March 2, 2026
 
 **J9 — Write Tools:**

@@ -48,6 +48,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [createdKey, setCreatedKey] = useState<{ id: string; apiKey: string } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [copiedConfig, setCopiedConfig] = useState(false);
 
   function togglePermission(perm: string) {
     setPermissions((prev) =>
@@ -145,6 +146,38 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   );
 
   if (createdKey) {
+    const hasMcpPermission =
+      permissions.includes("mcp-read") || permissions.includes("mcp-write");
+    const mcpServerUrl = process.env.NEXT_PUBLIC_MCP_SERVER_URL;
+
+    const mcpPermissionSummary = [
+      permissions.includes("mcp-read") && "Read",
+      permissions.includes("mcp-write") && "Write",
+    ]
+      .filter(Boolean)
+      .join(" + ");
+
+    const configSnippet = JSON.stringify(
+      {
+        mcpServers: {
+          "content-engine": {
+            url: `${mcpServerUrl || "https://your-mcp-server.example.com"}/mcp`,
+            headers: {
+              Authorization: `Bearer ${createdKey.apiKey}`,
+            },
+          },
+        },
+      },
+      null,
+      2
+    );
+
+    async function copyConfig() {
+      await navigator.clipboard.writeText(configSnippet);
+      setCopiedConfig(true);
+      setTimeout(() => setCopiedConfig(false), 2000);
+    }
+
     return (
       <div className="space-y-6">
         <div className="rounded-lg border border-green-800 bg-green-950/30 p-6">
@@ -176,6 +209,59 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             </p>
           </div>
         </div>
+
+        {hasMcpPermission && (
+          <div className="rounded-lg border border-violet-800 bg-violet-950/30 p-6 space-y-5">
+            <div>
+              <h3 className="text-lg font-semibold text-violet-300">
+                MCP Setup
+              </h3>
+              <p className="mt-1 text-sm text-gray-400">
+                This key has MCP {mcpPermissionSummary} access. Use the
+                configuration below to connect MCP clients.
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+                Server URL
+              </p>
+              {mcpServerUrl ? (
+                <code className="block break-all rounded bg-gray-800 px-3 py-2 font-mono text-sm text-gray-300">
+                  {mcpServerUrl}/mcp
+                </code>
+              ) : (
+                <p className="text-sm text-yellow-400">
+                  Set <code className="font-mono text-xs">NEXT_PUBLIC_MCP_SERVER_URL</code> in
+                  your environment to display the server URL here.
+                </p>
+              )}
+            </div>
+
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  Claude Desktop / Cursor Config
+                </p>
+                <button
+                  onClick={copyConfig}
+                  className="rounded border border-gray-700 px-2.5 py-1 text-xs font-medium text-gray-400 hover:border-gray-600 hover:text-white transition-colors"
+                >
+                  {copiedConfig ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <pre className="overflow-x-auto rounded bg-gray-800 px-3 py-2.5 font-mono text-xs text-gray-300 leading-relaxed">
+                {configSnippet}
+              </pre>
+            </div>
+
+            <p className="text-xs text-gray-500">
+              For local development (stdio transport), no API key is needed. See{" "}
+              <code className="font-mono text-xs text-gray-400">mcp-server/README.md</code>{" "}
+              for stdio setup instructions.
+            </p>
+          </div>
+        )}
 
         <button
           onClick={() => {

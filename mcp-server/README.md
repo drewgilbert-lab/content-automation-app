@@ -229,9 +229,11 @@ https://content-automation-app.up.railway.app
 
 HTTP transport requires an API key via the Connected Systems admin UI:
 
-1. Create a Connected System at `/connections/new` with **mcp-read** permission
+1. Create a Connected System at `/connections/new` with **mcp-read** permission.
    For write access, also add the **mcp-write** permission.
-2. Use the API key in the `Authorization: Bearer <key>` header
+2. The creation success screen displays the MCP server URL and a ready-to-use config snippet for Claude Desktop / Cursor — copy it directly into your client config.
+3. The connection detail page also shows the MCP config for reference (with a `<your-api-key>` placeholder since the key is only shown once at creation).
+4. Use the API key in the `Authorization: Bearer <key>` header.
 
 stdio transport does not require authentication (local-only).
 

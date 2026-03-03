@@ -8,7 +8,7 @@ export function registerGetDashboardHealthTool(server: McpServer): void {
     {},
     async () => {
       try {
-        const modulePath = '../../lib/dashboard.js';
+        const modulePath = '../../../lib/dashboard.js';
         const mod = (await import(modulePath)) as {
           getDashboardData: () => Promise<unknown>;
         };

@@ -24,7 +24,7 @@ export function registerSearchObjectsTool(server: McpServer): void {
 
         const clampedLimit = Math.min(limit, 25);
 
-        const modulePath = '../../lib/knowledge.js';
+        const modulePath = '../../../lib/knowledge.js';
         const mod = (await import(modulePath)) as {
           semanticSearchKnowledge: (params: {
             q: string;

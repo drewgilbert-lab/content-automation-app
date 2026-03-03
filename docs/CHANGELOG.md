@@ -4,6 +4,10 @@
 
 ---
 
+### Bugfix: MCP server tool import paths resolving to wrong directory — March 3, 2026
+
+- Fixed dynamic import paths in `search-objects.ts` and `get-dashboard-health.ts` from `../../lib/` to `../../../lib/`. Files in `src/tools/` compile to `dist/tools/`, which is one level deeper than `dist/` — the extra `../` is needed to reach the project root `lib/` directory.
+
 ### Bugfix: MCP server stdio mode broken by stdout logging — March 3, 2026
 
 - Replaced all `console.log` and `console.warn` calls in `mcp-server/src/weaviate.ts` with `console.error`. In stdio mode, stdout is reserved for JSON-RPC messages — any non-JSON output corrupts the protocol and causes Claude Desktop to fail with parse errors.

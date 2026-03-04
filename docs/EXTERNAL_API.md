@@ -282,4 +282,4 @@ The API uses URL path versioning (`/api/v1/`). Non-breaking changes (new fields,
 
 - [API Reference](./API.md) — Full endpoint contracts for all routes
 - [User Guide: External API](./user-guides/external-api.md) — Getting started guide for integrators
-- [ROADMAP.md](./ROADMAP.md) — Group K scope and Phase 2 webhook plans
+- [roadmap/README.md](./roadmap/README.md) — Group K scope and Phase 2 webhook plans

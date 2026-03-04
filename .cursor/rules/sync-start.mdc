@@ -8,9 +8,10 @@ Regenerate `.cursor/rules/start.mdc` by reading all files in `docs/` and summari
 
 ## Procedure
 
-1. Read every file in `docs/` (PRD, TECH_DECISIONS, BUSINESS_LOGIC, KNOWLEDGE_BASE, SCOPE, CHANGELOG, API)
-2. Rewrite `.cursor/rules/start.mdc` with current facts
-3. Preserve `alwaysApply: true` frontmatter
+1. Read every file in `docs/` (PRD, TECH_DECISIONS, BUSINESS_LOGIC, KNOWLEDGE_BASE, SCOPE, CHANGELOG, API, EXTERNAL_API)
+2. Read `docs/roadmap/README.md` for module status and group listing — do NOT read individual group files (they are too large; the index has the status table)
+3. Rewrite `.cursor/rules/start.mdc` with current facts
+4. Preserve `alwaysApply: true` frontmatter
 
 ## Constraints
 
@@ -19,3 +20,4 @@ Regenerate `.cursor/rules/start.mdc` by reading all files in `docs/` and summari
 - Orientation only: stack, repo structure, module status, detail pointers
 - Do NOT duplicate full schema, seed inventory, or API contracts — those live in glob-triggered rules
 - Do NOT include changelog history — that lives in `docs/CHANGELOG.md`
+- The roadmap is split into `docs/roadmap/` with per-group files — reference `docs/roadmap/README.md` as the index, not individual group files

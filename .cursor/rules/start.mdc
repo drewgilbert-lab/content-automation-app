@@ -85,6 +85,8 @@ app/
   skills/[id]/edit/page.tsx — Edit skill form page
   skills/components/      — SkillList, SkillForm, SkillDetailActions
   components/             — RoleProvider, RoleToggle
+  components/ui/          — Button, Input, Select, Textarea, FormField, Badge, LoadingSpinner, PageSkeleton, ErrorState, TagEditor, MarkdownRenderer, VisualDiff, FilterableList, ConfirmDialog (planned, Group S)
+  components/layout/      — PageLayout (planned, Group S)
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
 lib/
@@ -118,10 +120,18 @@ docs/
   BUSINESS_LOGIC.md       — Context assembly, content types, skills vs rules, runtime logic
   KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, ContentNarrative collections), content inventory, seed plan
   SCOPE.md                — Project overview, goals, status
-  ROADMAP.md              — Phases, future modules, backlog, open questions
+  roadmap/README.md       — Roadmap index: group status table, phase 1 remaining work, open questions
+  roadmap/group-{a-z}.md  — Per-group detail: scope, numbered items, risks/gaps (one file per group, 26 groups A–Z, no L)
+  roadmap/cross-cutting.md — Cross-cutting notes for Groups J and K
+  roadmap/phase-2.md      — Module 2 Generate, Module 3 Content Library, Module 4 Workflows
+  roadmap/phase-3-backlog.md — Phase 3+ backlog, business rules to author, infrastructure & integrations
+  roadmap/deferred.md     — Deferred: event logging & audit trails
   CHANGELOG.md            — What was built and when
   API.md                  — API route contracts (incl. planned bulk upload, skills routes)
   EXTERNAL_API.md         — Developer guide for the versioned REST API at /api/v1/
+  DESIGN_TOKENS.md        — Design token reference (planned, Group S)
+  COMPONENTS.md           — Shared component catalog (planned, Group S)
+  UI_STANDARDS.md         — UI coding standards (planned, Group S)
   user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api)
 mcp-server/
   src/index.ts              — MCP server entry point, dual transport (stdio + HTTP)
@@ -156,6 +166,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | MCP Server (Read + Write) | J1-J12 Done (Phase 1 Read + Phase 2 Write), J13+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
 | Content Narratives | Planned (Group R) |
+| Design System Foundation | Planned (Group S) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |
@@ -168,5 +179,5 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 - Content types, context assembly, skills vs rules: `docs/BUSINESS_LOGIC.md`
 - Tech decisions and rationale: `docs/TECH_DECISIONS.md`
 - Full requirements and user stories: `docs/PRD.md`
-- Future phases, backlog, open questions: `docs/ROADMAP.md`
+- Future phases, backlog, open questions: `docs/roadmap/README.md`
 - End-user feature guides: `docs/user-guides/`

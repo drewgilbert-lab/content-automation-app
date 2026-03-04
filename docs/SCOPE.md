@@ -1,6 +1,6 @@
 # Content Engine — Project Overview
 
-> Last updated: March 3, 2026
+> Last updated: March 4, 2026
 
 ## What This Is
 
@@ -21,8 +21,8 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 
 ### Out of Scope (Current Phase)
 
-- User authentication and role-based access (internal API routes are unprotected; accepted risk for single-user internal tool — see Phase 3+ backlog in [ROADMAP.md](./ROADMAP.md))
-- Content approval and publishing workflows (defined in [ROADMAP.md](./ROADMAP.md), not yet implemented)
+- User authentication and role-based access (internal API routes are unprotected; accepted risk for single-user internal tool — see Phase 3+ backlog in [roadmap/README.md](./roadmap/README.md))
+- Content approval and publishing workflows (defined in [roadmap/README.md](./roadmap/README.md), not yet implemented)
 - Integration with external systems (CRM, MAP, social platforms)
 - Multi-tenant or customer-facing use
 
@@ -63,7 +63,8 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
 | Content Narratives | Planned (Group R) | Strategic narrative layer: schema, CRUD, UI, AI-assisted creation, review workflow, context assembly, staleness detection, external API/MCP; not yet started |
+| Design System Foundation | Planned (Group S) | Semantic tokens, shared primitives, page layout, error boundaries, organism consolidation; not yet started |
 | Inbound MCP server | Phase 1 Read Done | J1-J8 done: foundation, auth, read tools, resources, search, client config; J9+ (write) pending |
-| External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see ROADMAP.md Group K |
+| External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see roadmap/README.md Group K |
 | LLM MCP server (RAG) | Phase 1 Read Done | J1-J8 done: transport, auth, 7 read tools, 3 resources, semantic search, client config; Phase 2 (write) pending |
-| Approval workflows | Future | Defined in ROADMAP.md |
+| Approval workflows | Future | Defined in roadmap/README.md |

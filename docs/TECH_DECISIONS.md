@@ -587,4 +587,4 @@ The upload session store (`lib/upload-session.ts`) originally used an in-memory 
 
 ---
 
-Open questions and future technical investigations are tracked in [ROADMAP.md](./ROADMAP.md).
+Open questions and future technical investigations are tracked in [roadmap/README.md](./roadmap/README.md).

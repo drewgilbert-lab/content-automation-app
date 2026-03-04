@@ -463,7 +463,7 @@ Saves the reviewer-edited merged content to the target knowledge object and clos
 
 ## Planned: Bulk Upload Routes (Group G)
 
-> These routes are scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group G.
+> These routes are scoped but not yet implemented. See [roadmap/README.md](./roadmap/README.md) Group G.
 
 ### POST /api/bulk-upload/parse
 
@@ -655,7 +655,7 @@ Note: `overrides` is optional — allows applying user edits to classifications 
 
 ## Planned: Content Narrative Routes (Group R)
 
-> Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group R.
+> Scoped but not yet implemented. See [roadmap/README.md](./roadmap/README.md) Group R.
 
 ### GET /api/narratives
 
@@ -1000,7 +1000,7 @@ These endpoints follow the existing `/api/v1/` patterns with `withApiAuth()` mid
 
 ## Planned: Document Upload Route (Group H)
 
-> Scoped but not yet implemented. See [ROADMAP.md](./ROADMAP.md) Group H.
+> Scoped but not yet implemented. See [roadmap/README.md](./roadmap/README.md) Group H.
 
 ### POST /api/submissions/upload-document
 
@@ -1633,7 +1633,7 @@ Health check for monitoring. Does not require API key authentication.
 
 ## MCP Server (Phase 1 Read: J1-J8 Done, Phase 2 Write: J9-J12 Done)
 
-> MCP tools and resources exposed by the standalone MCP server at `mcp-server/`. Phase 1 read access complete (J1-J8: foundation, auth, 7 read tools, 3 resources, semantic search, client config). Phase 2 write access complete (J9-J12: 3 write tools). See [ROADMAP.md](./ROADMAP.md) Group J.
+> MCP tools and resources exposed by the standalone MCP server at `mcp-server/`. Phase 1 read access complete (J1-J8: foundation, auth, 7 read tools, 3 resources, semantic search, client config). Phase 2 write access complete (J9-J12: 3 write tools). See [roadmap/README.md](./roadmap/README.md) Group J.
 
 The MCP server is a standalone Node.js process (not a Next.js API route) at `mcp-server/`. It uses `@modelcontextprotocol/sdk` v1.x with stdio and Streamable HTTP transports. Deployed on Railway at `content-automation-app.up.railway.app`. Authentication via Bearer token (extends ConnectedSystem API keys with `mcp-read`/`mcp-write` permission scopes). stdio transport (local) requires no auth. Tools are called by MCP clients (LLMs, automation tools) via the MCP protocol.
 

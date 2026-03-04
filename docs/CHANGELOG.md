@@ -1,16 +1,26 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 3, 2026
+> Newest entries first. Last updated: March 4, 2026
+
+---
+
+### Roadmap Scoping — Group S: Design System Foundation — March 4, 2026
+
+**Group S — Design System Foundation:** Fully scoped in roadmap/README.md. Twenty steps (S1–S20) across 5 phases: infrastructure fixes and semantic tokens (S1–S3), shared atom components and migration (S4–S9), page layout and shared infrastructure (S10–S14), organism consolidation and cross-feature centralization (S15–S19), and documentation and standards (S20). Each phase includes a dedicated testing and validation step.
+
+The Content Engine currently has no design system — every component uses inline Tailwind utility classes with hardcoded values, and there are no shared primitives, semantic tokens, or page layout abstractions. Group S establishes the foundation: semantic design tokens in `globals.css` via Tailwind v4's `@theme inline` directive (surfaces, borders, text, actions, status), shared atom components in `app/components/ui/` (Button, Input, Select, Textarea, FormField, Badge, LoadingSpinner, PageSkeleton, ErrorState, ConfirmDialog, FilterableList), a PageLayout template in `app/components/layout/`, centralized cross-feature components (TagEditor, MarkdownRenderer, VisualDiff), global and route-level error boundaries, and UI coding standards. Also fixes the broken font stack (Geist Sans loaded but overridden by Arial) and removes dead dark-mode CSS. No dependencies on other groups; can be built incrementally alongside feature work.
+
+**Documentation updates:** roadmap/README.md (Group S with full scope, architecture decisions, 5 phases, risks/gaps, open questions, build order; Phase 1 Remaining Work table updated), CHANGELOG.md (this scoping entry), SCOPE.md (Design System Foundation module status).
 
 ---
 
 ### Roadmap Scoping — Group R: Content Narratives — March 3, 2026
 
-**Group R — Content Narratives:** Fully scoped in ROADMAP.md. Twenty-four steps (R1–R24) across 7 phases: schema and CRUD (R1–R4), UI pages (R5–R8), AI-assisted creation (R9–R12), review workflow integration (R13–R15), context assembly integration (R16–R17), staleness detection and health dashboard (R18–R20), external API and MCP extensions (R21–R23), and documentation (R24). Each phase includes a dedicated testing and validation step.
+**Group R — Content Narratives:** Fully scoped in roadmap/README.md. Twenty-four steps (R1–R24) across 7 phases: schema and CRUD (R1–R4), UI pages (R5–R8), AI-assisted creation (R9–R12), review workflow integration (R13–R15), context assembly integration (R16–R17), staleness detection and health dashboard (R18–R20), external API and MCP extensions (R21–R23), and documentation (R24). Each phase includes a dedicated testing and validation step.
 
 Content Narratives are strategic documents assembled from multiple pieces of core knowledge, organized around a specific theme, audience, and intent. They serve as the instruction layer between raw knowledge and content generation — ensuring that every downstream deliverable (battle cards, emails, blog posts, etc.) shares the same strategic foundation. Three creation modes: manual, AI-assisted (semantic search + Claude draft), and clone. Full review/approval workflow reusing existing Submission infrastructure. Context assembly extended to inject approved narratives as primary strategic context above skills and business rules.
 
-**Documentation updates:** ROADMAP.md (Group R with full scope, schema, phases, risks/gaps, open questions, build order; Phase 1 Remaining Work table updated), PRD.md (user stories CN-1–CN-12), KNOWLEDGE_BASE.md (ContentNarrative collection schema, cross-references, migration entry), BUSINESS_LOGIC.md (narrative context assembly template, content_narrative type added), API.md (narrative CRUD routes, workflow routes, generation route, external API endpoints), SCOPE.md (Content Narratives module status).
+**Documentation updates:** roadmap/README.md (Group R with full scope, schema, phases, risks/gaps, open questions, build order; Phase 1 Remaining Work table updated), PRD.md (user stories CN-1–CN-12), KNOWLEDGE_BASE.md (ContentNarrative collection schema, cross-references, migration entry), BUSINESS_LOGIC.md (narrative context assembly template, content_narrative type added), API.md (narrative CRUD routes, workflow routes, generation route, external API endpoints), SCOPE.md (Content Narratives module status).
 
 ---
 
@@ -219,7 +229,7 @@ Content Narratives are strategic documents assembled from multiple pieces of cor
 
 Reviewed Weaviate security best practices (authentication, RBAC, audit logging, key rotation) against the Group K External REST API plan. Identified and addressed gaps across all project documentation.
 
-**ROADMAP.md updates:**
+**roadmap/README.md updates:**
 - Added Weaviate multi-user access control (defense-in-depth) architecture with three scoped Weaviate users: `content-engine-admin`, `content-engine-api-reader`, `content-engine-mcp`
 - Promoted API key rotation from open question to Phase 1 requirement (K2) with `POST /api/connections/[id]/rotate-key`
 - Added request logging specification for `/api/v1/` routes (stdout-based audit trail)
@@ -370,25 +380,25 @@ Reviewed Weaviate security best practices (authentication, RBAC, audit logging, 
 
 ### Roadmap Scoping — Groups J, K, L (February 2026)
 
-**Group J — Inbound MCP Server for 3rd Party Write Access:** Fully scoped in ROADMAP.md. Five steps (J1–J5): standalone MCP server process with Streamable HTTP transport, read-only discovery tools (list types, search, get object), write tools that create Submissions (never write to Weaviate directly), Submission metadata extension (`sourceChannel`, `sourceAppId`, `sourceDescription`), and API key authentication. Includes example use cases (n8n workflows, Slack bots, CRM sync scripts, AI agents). Risk/gap analysis covers separate hosting requirement, rate limiting, duplicate detection, queue overwhelm, and MCP spec evolution.
+**Group J — Inbound MCP Server for 3rd Party Write Access:** Fully scoped in roadmap/README.md. Five steps (J1–J5): standalone MCP server process with Streamable HTTP transport, read-only discovery tools (list types, search, get object), write tools that create Submissions (never write to Weaviate directly), Submission metadata extension (`sourceChannel`, `sourceAppId`, `sourceDescription`), and API key authentication. Includes example use cases (n8n workflows, Slack bots, CRM sync scripts, AI agents). Risk/gap analysis covers separate hosting requirement, rate limiting, duplicate detection, queue overwhelm, and MCP spec evolution.
 
-**Group K — External REST API for 3rd Party Read Access:** Fully scoped in ROADMAP.md. Eight steps (K1–K8): API key auth middleware, list knowledge objects endpoint with pagination, object detail endpoint, semantic search endpoint via `nearText`, types and counts endpoint, conditional skills endpoints, unauthenticated health endpoint, and OpenAPI spec (stretch). Architecture decision: REST gateway over `/api/v1/` reusing `lib/knowledge.ts`, not direct Weaviate access or GraphQL. Risk/gap analysis covers single-key model, Vercel timeouts, schema breaking changes, and stale consumer data.
+**Group K — External REST API for 3rd Party Read Access:** Fully scoped in roadmap/README.md. Eight steps (K1–K8): API key auth middleware, list knowledge objects endpoint with pagination, object detail endpoint, semantic search endpoint via `nearText`, types and counts endpoint, conditional skills endpoints, unauthenticated health endpoint, and OpenAPI spec (stretch). Architecture decision: REST gateway over `/api/v1/` reusing `lib/knowledge.ts`, not direct Weaviate access or GraphQL. Risk/gap analysis covers single-key model, Vercel timeouts, schema breaking changes, and stale consumer data.
 
-**Group L — MCP Server for LLM Read Access (RAG Interface):** Fully scoped in ROADMAP.md. Fifteen steps (L1–L15): standalone MCP server with dual transport (stdio for Claude Desktop/Code/Cursor, SSE for Gemini and remote access), persistent Weaviate connection, seven MCP tools (`list_collections`, `list_objects`, `get_object`, `search_objects`, `get_relationships`, `get_dashboard_health`, `get_collection_schema`), three MCP resources (overview, relationship map, collection summaries), semantic search design, cross-LLM compatibility strategy, and Claude Desktop configuration. Phase 2 write access vision documented. Risk/gap analysis covers context window overflow, data exposure, duplicated logic, and connection stability.
+**Group L — MCP Server for LLM Read Access (RAG Interface):** Fully scoped in roadmap/README.md. Fifteen steps (L1–L15): standalone MCP server with dual transport (stdio for Claude Desktop/Code/Cursor, SSE for Gemini and remote access), persistent Weaviate connection, seven MCP tools (`list_collections`, `list_objects`, `get_object`, `search_objects`, `get_relationships`, `get_dashboard_health`, `get_collection_schema`), three MCP resources (overview, relationship map, collection summaries), semantic search design, cross-LLM compatibility strategy, and Claude Desktop configuration. Phase 2 write access vision documented. Risk/gap analysis covers context window overflow, data exposure, duplicated logic, and connection stability.
 
 **Cross-cutting notes:** J + L consolidation opportunity (single MCP server with tool namespaces), K + L data overlap (shared `lib/knowledge.ts` implementation), unified API key strategy, and RBAC-free design.
 
-**Documentation updates:** ROADMAP.md (Groups J, K, L with full scope, risks, and open questions; cross-cutting notes; infrastructure backlog updates), PRD.md (user stories MCP-1–6, API-1–5, RAG-1–6), API.md (planned external API routes, MCP tool references), KNOWLEDGE_BASE.md (Submission schema extensions), TECH_DECISIONS.md (ADR-006 MCP architecture, ADR-007 external API gateway), BUSINESS_LOGIC.md (external access patterns), SCOPE.md (updated development status), start.mdc (updated module status table).
+**Documentation updates:** roadmap/README.md (Groups J, K, L with full scope, risks, and open questions; cross-cutting notes; infrastructure backlog updates), PRD.md (user stories MCP-1–6, API-1–5, RAG-1–6), API.md (planned external API routes, MCP tool references), KNOWLEDGE_BASE.md (Submission schema extensions), TECH_DECISIONS.md (ADR-006 MCP architecture, ADR-007 external API gateway), BUSINESS_LOGIC.md (external access patterns), SCOPE.md (updated development status), start.mdc (updated module status table).
 
 ---
 
 ### Roadmap Scoping — Groups G, H, I (February 2026)
 
-**Group G — Bulk Upload with AI Classification:** Fully scoped in ROADMAP.md. Five steps (G1–G5): document parser supporting PDF/DOCX/Markdown/TXT, AI classification API using Claude, upload session management, uploader review UI with bulk actions, and submission bridge to the existing review queue. Risk/gap analysis covers parsing accuracy, classification errors, rate limiting, duplicate detection, session persistence, and cost management.
+**Group G — Bulk Upload with AI Classification:** Fully scoped in roadmap/README.md. Five steps (G1–G5): document parser supporting PDF/DOCX/Markdown/TXT, AI classification API using Claude, upload session management, uploader review UI with bulk actions, and submission bridge to the existing review queue. Risk/gap analysis covers parsing accuracy, classification errors, rate limiting, duplicate detection, session persistence, and cost management.
 
-**Group H — Enhanced Change Review Workflows:** Fully scoped in ROADMAP.md. Five steps (H1–H5) covering two workflows: (a) upload a document to add content to an existing knowledge object via AI merge with a new `document_add` submission type, and (b) visual diff component upgrade replacing the static side-by-side comparison with word-level diff highlighting in unified and side-by-side modes. Risk/gap analysis covers large diffs, concurrent edits, accessibility, and version history dependency.
+**Group H — Enhanced Change Review Workflows:** Fully scoped in roadmap/README.md. Five steps (H1–H5) covering two workflows: (a) upload a document to add content to an existing knowledge object via AI merge with a new `document_add` submission type, and (b) visual diff component upgrade replacing the static side-by-side comparison with word-level diff highlighting in unified and side-by-side modes. Risk/gap analysis covers large diffs, concurrent edits, accessibility, and version history dependency.
 
-**Group I — Skills Module:** Fully scoped in ROADMAP.md. Six steps (I1–I6): new `Skill` Weaviate collection, CRUD API, library UI, context assembly integration, migration script for existing instruction templates, and a future skill testing interface. Includes separation criteria table (Skills = active procedural instructions vs. Business Rules = passive constraints). Risk/gap analysis covers skill conflicts, context window bloat, testing, versioning, migration, and composability.
+**Group I — Skills Module:** Fully scoped in roadmap/README.md. Six steps (I1–I6): new `Skill` Weaviate collection, CRUD API, library UI, context assembly integration, migration script for existing instruction templates, and a future skill testing interface. Includes separation criteria table (Skills = active procedural instructions vs. Business Rules = passive constraints). Risk/gap analysis covers skill conflicts, context window bloat, testing, versioning, migration, and composability.
 
 **Documentation updates:** PRD.md (user stories BU-1–5, CR-1–4, SK-1–6), KNOWLEDGE_BASE.md (Skill collection schema, `document_add` submission type, `usedSkills` cross-reference), API.md (bulk upload routes, document upload route, skills CRUD routes), BUSINESS_LOGIC.md (Skills vs Business Rules distinction, updated context assembly template with skills section), SCOPE.md (updated development status), start.mdc (regenerated).
 
@@ -520,7 +530,7 @@ Reviewed Weaviate security best practices (authentication, RBAC, audit logging, 
 ## 2026-02-25
 
 ### Added
-- `docs/ROADMAP.md` — single source for phases, future modules, backlog, open questions
+- `docs/roadmap/README.md` — single source for phases, future modules, backlog, open questions
 - `scripts/seed.ts` — collection creation + 26 object seed + 49 cross-references
 - `npm run seed` script, `dotenv` and `tsx` dev dependencies
 
@@ -528,10 +538,10 @@ Reviewed Weaviate security best practices (authentication, RBAC, audit logging, 
 - Eliminated content overlap across all docs; each file now has a single responsibility
 - `SCOPE.md` — removed repo structure and doc index (duplicated in README/start.mdc)
 - `PRD.md` — stripped to requirements only; removed vision, seed inventory, content types, future modules; added pointers
-- `BUSINESS_LOGIC.md` — removed workflow states and planned business rules (moved to ROADMAP.md)
+- `BUSINESS_LOGIC.md` — removed workflow states and planned business rules (moved to roadmap/README.md)
 - `KNOWLEDGE_BASE.md` — updated seed inventory status from "Pending seed" to "Seeded"
-- `TECH_DECISIONS.md` — removed Open Questions (moved to ROADMAP.md)
-- Updated `docs-maintenance.mdc`, `start.mdc`, and `README.md` to include ROADMAP.md
+- `TECH_DECISIONS.md` — removed Open Questions (moved to roadmap/README.md)
+- Updated `docs-maintenance.mdc`, `start.mdc`, and `README.md` to include roadmap/README.md
 
 ### Changed
 - `.env.example` now includes `CONTENT_REPO_PATH`

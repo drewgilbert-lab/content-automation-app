@@ -23,6 +23,10 @@ Provide the sub-agent with:
 | Content type or context assembly change | `docs/BUSINESS_LOGIC.md` |
 | Feature completed or module status changed | `docs/SCOPE.md` |
 | New functional requirement or module definition | `docs/PRD.md` |
-| New future plan, deferred scope, or phase change | `docs/ROADMAP.md` |
+| New roadmap group | Create `docs/roadmap/group-{letter}.md`, add row to status table and Remaining Work table in `docs/roadmap/README.md` (see `roadmap-maintenance.mdc`) |
+| Existing group status changed (e.g., completed) | Update status in `docs/roadmap/README.md` status table, update group file heading |
+| Group item completed or modified | Edit the specific `docs/roadmap/group-{letter}.md` |
+| Phase-level or cross-cutting change | `docs/roadmap/README.md`, `docs/roadmap/phase-2.md`, `docs/roadmap/phase-3-backlog.md`, or `docs/roadmap/cross-cutting.md` as appropriate |
+| New deferred scope | `docs/roadmap/deferred.md` |
 | Any meaningful progress | `docs/CHANGELOG.md` (prepend, newest first) |
 | New or modified user-facing feature or workflow | `docs/user-guides/<feature>.md` (create if new, update if existing) |

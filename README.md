@@ -59,6 +59,6 @@ Detailed documentation lives in `docs/`:
 | [BUSINESS_LOGIC.md](docs/BUSINESS_LOGIC.md) | Context assembly, content types, runtime logic |
 | [KNOWLEDGE_BASE.md](docs/KNOWLEDGE_BASE.md) | Weaviate schema, content inventory, seed plan |
 | [TECH_DECISIONS.md](docs/TECH_DECISIONS.md) | Architecture decision records |
-| [ROADMAP.md](docs/ROADMAP.md) | Phases, future modules, backlog, open questions |
+| [roadmap/README.md](docs/roadmap/README.md) | Phases, future modules, backlog, open questions |
 | [CHANGELOG.md](docs/CHANGELOG.md) | What was built and when |
 | [API.md](docs/API.md) | API route contracts |

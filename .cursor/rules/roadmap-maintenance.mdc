@@ -1,0 +1,51 @@
+---
+description: Conventions for maintaining the docs/roadmap/ directory structure
+---
+
+# Roadmap Maintenance
+
+The roadmap lives in `docs/roadmap/` as a directory of per-group files with a central index.
+
+## File Structure
+
+| File | Purpose |
+|---|---|
+| `README.md` | Index: group status table, Phase 1 Remaining Work table, Acceptance Criteria, Open Questions |
+| `group-{letter}.md` | One file per group (A–Z, no L). Full scope, numbered items, risks/gaps |
+| `cross-cutting.md` | Cross-cutting notes (Groups J+K overlap, API key strategy, OIDC path, Query Agent) |
+| `phase-2.md` | Phase 2: Module 2 Generate, Module 3 Content Library, Module 4 Workflows |
+| `phase-3-backlog.md` | Phase 3+ Backlog: business rules to author, infrastructure & integrations |
+| `deferred.md` | Deferred scope: event logging, audit trails, version history |
+
+## Conventions for Group Files
+
+- **Filename**: `group-{letter}.md` (lowercase letter, e.g., `group-m.md`)
+- **First line**: `> Back to [Roadmap Index](./README.md)`
+- **Heading levels**: `#` for group title, `##` for phases/sections, `###` for sub-sections
+- **Group title format**: `# Group {LETTER} — {Title}` optionally followed by ` — **Done**`
+- **Scope block**: `> Scope:` and `> Dependencies:` immediately after the title
+- **Item numbering**: `**{LETTER}{NUMBER} — {Title}**` (e.g., `**T1 — Token Counting**`)
+- **Cross-references**: Link to other groups as `[Group X](./group-x.md)`, not "see Group X above"
+- **Doc references**: Use `../` prefix for docs in the parent directory (e.g., `[PRD.md](../PRD.md)`)
+- **Risks table**: Every group ends with a `**Risks and Gaps:**` table
+
+## Adding a New Group
+
+1. Create `docs/roadmap/group-{letter}.md` following the conventions above
+2. Add a row to the **Group Status** table in `docs/roadmap/README.md`
+3. Add a row to the **Remaining Work** table in `docs/roadmap/README.md`
+4. Update `docs/SCOPE.md` if the new group represents a visible module
+5. Update `docs/CHANGELOG.md` with the addition
+
+## Updating Group Status
+
+When a group is completed:
+
+1. Update the **Status** column in the Group Status table in `docs/roadmap/README.md`
+2. Append ` — **Done**` to the `#` heading in the group file
+3. Remove or update the corresponding row in the Remaining Work table
+4. Update `docs/SCOPE.md` development status table
+
+## Modifying an Existing Group
+
+Edit the specific `docs/roadmap/group-{letter}.md` file directly. Do not modify the index unless the group's status or summary changes.

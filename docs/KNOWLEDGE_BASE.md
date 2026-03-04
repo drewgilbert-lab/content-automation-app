@@ -134,7 +134,7 @@ No cross-references in this phase.
 
 ### Collection: `Skill`
 
-Stores procedural task instructions that tell the AI how to perform specific types of work. Separated from `BusinessRule` (which stores passive constraints). See [ROADMAP.md](./ROADMAP.md) Group I for full scope and migration plan.
+Stores procedural task instructions that tell the AI how to perform specific types of work. Separated from `BusinessRule` (which stores passive constraints). See [roadmap/README.md](./roadmap/README.md) Group I for full scope and migration plan.
 
 | Property | Type | Description |
 |---|---|---|
@@ -163,7 +163,7 @@ Cross-references:
 
 ### Collection: `ContentNarrative`
 
-Stores strategic narrative documents that aggregate core knowledge around a specific theme, audience, and intent. Content Narratives serve as the instruction layer between raw knowledge and content generation. See [ROADMAP.md](./ROADMAP.md) Group R for full scope.
+Stores strategic narrative documents that aggregate core knowledge around a specific theme, audience, and intent. Content Narratives serve as the instruction layer between raw knowledge and content generation. See [roadmap/README.md](./roadmap/README.md) Group R for full scope.
 
 | Property | Type | Description |
 |---|---|---|

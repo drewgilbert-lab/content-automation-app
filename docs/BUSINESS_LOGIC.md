@@ -52,7 +52,7 @@ Skills and business rules both influence AI generation, but they serve different
 
 Skills must still respect business rules. In the assembled prompt, skills appear before business rules so the AI receives task-specific instructions first, then constraints that apply universally.
 
-Current state: Two `BusinessRule` objects with `subType: "instruction_template"` (Campaign Brief Generator, Ops Configuration Guide) were migrated to the `Skill` collection as part of Group I. See [ROADMAP.md](./ROADMAP.md) Group I.
+Current state: Two `BusinessRule` objects with `subType: "instruction_template"` (Campaign Brief Generator, Ops Configuration Guide) were migrated to the `Skill` collection as part of Group I. See [roadmap/README.md](./roadmap/README.md) Group I.
 
 ---
 
@@ -168,7 +168,7 @@ Respect all Business Rules for tone and constraints.
 Use the Persona, Segment, and Use Case context to inform your content.
 ```
 
-When a Content Narrative is selected, it is injected as the primary strategic context above Active Skills. The narrative defines WHAT to say and WHY. Skills define HOW to produce the specific content type. Business rules define constraints and tone. See [ROADMAP.md](./ROADMAP.md) Group R for full scope.
+When a Content Narrative is selected, it is injected as the primary strategic context above Active Skills. The narrative defines WHAT to say and WHY. Skills define HOW to produce the specific content type. Business rules define constraints and tone. See [roadmap/README.md](./roadmap/README.md) Group R for full scope.
 
 Skill selection logic:
 1. **Automatic**: Query active skills where `contentType` includes the requested content type
@@ -257,7 +257,7 @@ customer_evidence ────────────────► all conten
 
 ---
 
-Workflow states and planned business rules are defined in [ROADMAP.md](./ROADMAP.md).
+Workflow states and planned business rules are defined in [roadmap/README.md](./roadmap/README.md).
 
 ---
 
@@ -270,13 +270,13 @@ Two instruction templates from `content-automation/content_transformation/` were
 | Campaign Brief Generator | `campaign_brief_instructions.md` | `BusinessRule` (`subType: "instruction_template"`) | `Skill` (`contentType: ["internal_doc"]`) |
 | Ops Configuration Guide | `ops_guide_instructions.md` | `BusinessRule` (`subType: "instruction_template"`) | `Skill` (`contentType: ["internal_doc"]`) |
 
-After migration, the `instruction_template` subType was removed from the `BusinessRule` collection. Business rules only contain passive constraints (`subType: "tone"` or `"constraint"`). See [ROADMAP.md](./ROADMAP.md) Group I and [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) for the `Skill` collection schema.
+After migration, the `instruction_template` subType was removed from the `BusinessRule` collection. Business rules only contain passive constraints (`subType: "tone"` or `"constraint"`). See [roadmap/README.md](./roadmap/README.md) Group I and [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) for the `Skill` collection schema.
 
 ---
 
 ## External Access Patterns
 
-The knowledge base is accessible through three channels. Each channel has different capabilities and constraints. See [ROADMAP.md](./ROADMAP.md) Groups J, K, L and [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-006, ADR-007 for full scope and architecture decisions.
+The knowledge base is accessible through three channels. Each channel has different capabilities and constraints. See [roadmap/README.md](./roadmap/README.md) Groups J, K, L and [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-006, ADR-007 for full scope and architecture decisions.
 
 ### Access Channels
 
@@ -316,7 +316,7 @@ The review queue is the **universal authorization layer** for writes. No externa
 - Source provenance is tracked on every submission (`sourceChannel`, `sourceAppId`, `sourceDescription`)
 - The same merge, diff, and review UI works for all submission sources
 
-Each access channel connects to Weaviate with a dedicated user whose permissions match only what that channel needs (defense-in-depth). Even if application-level auth is bypassed, the Weaviate user limits the blast radius. See [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-014 and [ROADMAP.md](./ROADMAP.md) Group K Architecture Decisions.
+Each access channel connects to Weaviate with a dedicated user whose permissions match only what that channel needs (defense-in-depth). Even if application-level auth is bypassed, the Weaviate user limits the blast radius. See [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-014 and [roadmap/README.md](./roadmap/README.md) Group K Architecture Decisions.
 
 ### Read Path: Protocol-Specific but Shared Implementation
 

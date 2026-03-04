@@ -10,11 +10,11 @@
 Dashboard
 ├── 1. Knowledge Base    ← Manage company context
 ├── 2. Generate          ← AI content generation using knowledge as context
-├── 3. Content           ← Browse and manage generated content      [ROADMAP.md]
-└── 4. Workflows         ← Approval and publishing pipeline          [ROADMAP.md]
+├── 3. Content           ← Browse and manage generated content      [roadmap/README.md]
+└── 4. Workflows         ← Approval and publishing pipeline          [roadmap/README.md]
 ```
 
-Modules 1 and 2 are Phase 1. Modules 3 and 4 are defined in [ROADMAP.md](./ROADMAP.md).
+Modules 1 and 2 are Phase 1. Modules 3 and 4 are defined in [roadmap/README.md](./roadmap/README.md).
 
 ---
 
@@ -76,7 +76,7 @@ Content type specs (structure, tone, context priority) are defined in [BUSINESS_
 
 ## Module 1 Extensions: Bulk Upload, Enhanced Review, Skills
 
-> These features extend the Knowledge Base module. Full technical scope and risks are in [ROADMAP.md](./ROADMAP.md) Groups G, H, and I.
+> These features extend the Knowledge Base module. Full technical scope and risks are in [roadmap/README.md](./roadmap/README.md) Groups G, H, and I.
 
 ### Bulk Upload with AI Classification (Group G)
 
@@ -291,7 +291,7 @@ Create, review, and approve strategic narrative documents that aggregate core kn
 
 ## Module 1 Extensions: External Access (Groups J, K, L)
 
-> These features extend the Knowledge Base with programmatic access for external tools and LLMs. Full technical scope and risks are in [ROADMAP.md](./ROADMAP.md) Groups J, K, and L. Cross-cutting architecture notes (consolidation, shared auth) are in the ROADMAP.md Cross-Cutting Notes section.
+> These features extend the Knowledge Base with programmatic access for external tools and LLMs. Full technical scope and risks are in [roadmap/README.md](./roadmap/README.md) Groups J, K, and L. Cross-cutting architecture notes (consolidation, shared auth) are in the roadmap/README.md Cross-Cutting Notes section.
 
 ### Inbound MCP Server for 3rd Party Write Access (Group J)
 

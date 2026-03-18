@@ -6,12 +6,34 @@ description: Protocol for updating project docs after code changes
 
 After completing a coding task that changes project state, delegate doc updates to a sub-agent using the Task tool. Do NOT read and update docs in the current conversation — preserve context for coding.
 
+## Required Behavior For "Update Documentation" Requests
+
+When the user asks to "update documentation" (or equivalent), the sub-agent MUST:
+1. Apply normal change-to-doc mapping updates.
+2. If any roadmap item/action was built, update the roadmap with action-level completion markers (not only phase/group status) using the format defined in `roadmap-maintenance.mdc`.
+3. Update `docs/CHANGELOG.md`.
+4. Evaluate user-facing impact and update docs in `docs/user-guides/` when applicable.
+5. If user-guide updates are not applicable, include an explicit "N/A" rationale in the task report.
+
+## Required Sub-Agent Checklist
+
+The doc-update sub-agent response MUST include:
+1. What changed in code/product behavior.
+2. Exact docs updated.
+3. Roadmap actions marked complete (including completion dates used).
+4. Confirmation that `docs/CHANGELOG.md` was updated.
+5. Confirmation that user guides were updated, or "N/A" with rationale.
+6. "Last updated" date refreshed on every modified doc.
+
 ## Sub-Agent Prompt Template
 
 Provide the sub-agent with:
 1. What changed (files created/modified, new endpoints, schema changes)
 2. Which docs to update (from mapping below)
 3. Instruction to update "Last updated" date on any modified doc
+4. Instruction to always update `docs/CHANGELOG.md`
+5. Instruction to assess `docs/user-guides/` impact and either update guides or return explicit "N/A" rationale
+6. Instruction to apply roadmap action-level completion markers (with dates) where roadmap actions were completed
 
 ## Change → Doc Mapping
 
@@ -28,5 +50,5 @@ Provide the sub-agent with:
 | Group item completed or modified | Edit the specific `docs/roadmap/group-{letter}.md` |
 | Phase-level or cross-cutting change | `docs/roadmap/README.md`, `docs/roadmap/phase-2.md`, `docs/roadmap/phase-3-backlog.md`, or `docs/roadmap/cross-cutting.md` as appropriate |
 | New deferred scope | `docs/roadmap/deferred.md` |
-| Any meaningful progress | `docs/CHANGELOG.md` (prepend, newest first) |
-| New or modified user-facing feature or workflow | `docs/user-guides/<feature>.md` (create if new, update if existing) |
+| Any documentation update request | `docs/CHANGELOG.md` (prepend, newest first) — required every time docs are updated |
+| Any documentation update request | Evaluate `docs/user-guides/<feature>.md`; update if user-facing behavior changed, otherwise record explicit "N/A" rationale |

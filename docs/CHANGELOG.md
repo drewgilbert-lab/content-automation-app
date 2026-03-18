@@ -4,6 +4,26 @@
 
 ---
 
+### Content Workflow CW5–CW7 — Template and Prompt Layer — March 17, 2026
+
+**CW5 — Template registry and version management (`lib/content-workflow-templates.ts`):**
+- Template registry APIs: `registerTemplateVersion`, `listTemplateVersions`, `getTemplateVersion`, `getActiveTemplateVersion`, `setActiveTemplateVersion`, `seedDefaultWorkflowTemplates`.
+- Rendered prompt snapshots persisted as `prompt_rendered` artifacts.
+
+**CW6 — Rendered prompt artifact generation:**
+- Render and integrity APIs: `renderPromptTemplate`, `extractTemplatePlaceholders`, `ensureNoUnresolvedPlaceholders`, `buildPromptArtifactName`, `persistRenderedPromptArtifact`.
+- Variable binding, validation, and artifact naming conventions.
+
+**CW7 — Prompt integrity checks:**
+- `PromptIntegrityError` with non-retryable fail-fast codes.
+- `validateArtifactFields` in `lib/content-workflow-types.ts` enforces `prompt_rendered` payload metadata: `renderedBody`, `templateKey`, `templateVersion`, `renderHash`, `namingConventionKey`, `variables`.
+
+**Tests:** Targeted content-workflow test suites pass (`content-workflow-templates.test.ts`, `content-workflow-types.test.ts`).
+
+**Documentation:** `docs/roadmap/group-content-workflow.md` (CW5–CW7 marked implemented), `docs/CHANGELOG.md` (this entry).
+
+---
+
 ### Content Workflow CW1–CW4 — Foundation and Data Model — March 17, 2026
 
 **CW1 — Run/branch/step/artifact types (`lib/content-workflow-types.ts`):**

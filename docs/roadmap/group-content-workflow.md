@@ -397,13 +397,13 @@ Define artifact interfaces and storage adapters (Weaviate/object-store reference
 
 ## Phase 2 - Template and Prompt Layer
 
-**CW5 - Template registry and version management**  
+**CW5 - Template registry and version management** — Implemented and tested  
 Create `lib/content-workflow-templates.ts` and registry format, and persist rendered prompt snapshots as `prompt_rendered` artifacts.
 
-**CW6 - Rendered prompt artifact generation**  
+**CW6 - Rendered prompt artifact generation** — Implemented and tested  
 Implement variable binding, validation, and artifact naming conventions.
 
-**CW7 - Prompt integrity checks**  
+**CW7 - Prompt integrity checks** — Implemented and tested  
 Validate required variables and schema before execution.
 
 ## Phase 3 - Orchestration Engine

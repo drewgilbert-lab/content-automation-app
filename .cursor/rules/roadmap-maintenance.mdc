@@ -29,6 +29,15 @@ The roadmap lives in `docs/roadmap/` as a directory of per-group files with a ce
 - **Doc references**: Use `../` prefix for docs in the parent directory (e.g., `[PRD.md](../PRD.md)`)
 - **Risks table**: Every group ends with a `**Risks and Gaps:**` table
 
+## Action-Level Completion Marking (Required)
+
+When work is completed, mark completion at the action/item level, not only at the phase or group heading level.
+
+- **Canonical action format**: append ` — ✅ Done (YYYY-MM-DD)` to each completed action line.
+- **Required scope**: apply to every completed actionable entry in roadmap group files (and any roadmap action list outside group files, when present).
+- **Date source**: use the actual completion date when known; otherwise use the documentation update date and keep formatting consistent.
+- **Do not substitute phase-only marking**: section or group-level done labels may remain, but they never replace action-level completion markers.
+
 ## Adding a New Group
 
 1. Create `docs/roadmap/group-{letter}.md` following the conventions above
@@ -43,9 +52,13 @@ When a group is completed:
 
 1. Update the **Status** column in the Group Status table in `docs/roadmap/README.md`
 2. Append ` — **Done**` to the `#` heading in the group file
-3. Remove or update the corresponding row in the Remaining Work table
-4. Update `docs/SCOPE.md` development status table
+3. Mark every completed action item in the group file with ` — ✅ Done (YYYY-MM-DD)`
+4. Remove or update the corresponding row in the Remaining Work table
+5. Update `docs/SCOPE.md` development status table
 
 ## Modifying an Existing Group
 
-Edit the specific `docs/roadmap/group-{letter}.md` file directly. Do not modify the index unless the group's status or summary changes.
+Edit the specific `docs/roadmap/group-{letter}.md` file directly.
+
+- If any actions are completed, annotate each completed action with ` — ✅ Done (YYYY-MM-DD)`.
+- Do not modify the index unless the group's status or summary changes.

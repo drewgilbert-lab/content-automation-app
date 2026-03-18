@@ -276,5 +276,35 @@ export function validateArtifactFields(
     }
   }
 
+  if (artifact.artifactType === "prompt_rendered") {
+    const payload = artifact.payload as Partial<PromptRenderedPayload> | undefined;
+    if (!payload || typeof payload !== "object") {
+      errors.push("prompt_rendered payload is required");
+    } else {
+      if (!payload.renderedBody?.trim()) {
+        errors.push("prompt_rendered.payload.renderedBody is required");
+      }
+      if (!payload.templateKey?.trim()) {
+        errors.push("prompt_rendered.payload.templateKey is required");
+      }
+      if (!payload.templateVersion?.trim()) {
+        errors.push("prompt_rendered.payload.templateVersion is required");
+      }
+      if (!payload.renderHash?.trim()) {
+        errors.push("prompt_rendered.payload.renderHash is required");
+      }
+      if (!payload.namingConventionKey?.trim()) {
+        errors.push("prompt_rendered.payload.namingConventionKey is required");
+      }
+      if (
+        !payload.variables ||
+        typeof payload.variables !== "object" ||
+        Array.isArray(payload.variables)
+      ) {
+        errors.push("prompt_rendered.payload.variables must be an object");
+      }
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }

@@ -52,6 +52,14 @@ describe("content workflow type validation", () => {
       name: "prompt-a",
       version: 1,
       contentRef: "weaviate://artifact/123",
+      payload: {
+        renderedBody: "Rendered prompt body",
+        templateKey: "branch-a-transcript-research",
+        templateVersion: "1.0.0",
+        renderHash: "abc123",
+        namingConventionKey: "pillar-research",
+        variables: { theme: "pricing" },
+      },
       lineage: {
         parentArtifactIds: [],
         producedByRunId: "run-1",

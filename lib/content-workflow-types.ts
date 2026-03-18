@@ -172,7 +172,7 @@ const RUN_TRANSITIONS: Record<RunStatus, ReadonlyArray<RunStatus>> = {
   branches_running: ["fan_in_pending", "failed", "cancelled"],
   fan_in_pending: ["completed", "failed", "cancelled"],
   completed: [],
-  failed: [],
+  failed: ["branches_running"],
   cancelled: [],
 };
 
@@ -181,7 +181,7 @@ const BRANCH_TRANSITIONS: Record<BranchStatus, ReadonlyArray<BranchStatus>> = {
   running: ["retrying", "completed", "failed", "cancelled"],
   retrying: ["running", "failed", "cancelled"],
   completed: [],
-  failed: [],
+  failed: ["retrying"],
   cancelled: [],
 };
 

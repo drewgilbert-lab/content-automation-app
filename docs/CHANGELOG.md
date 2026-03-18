@@ -4,6 +4,34 @@
 
 ---
 
+### Content Workflow CW8–CW10 — Orchestration Core — March 17, 2026
+
+**CW8 — Parent run orchestrator (`lib/content-workflow-orchestrator.ts`):**
+- Added orchestration entrypoint with fan-out branch execution and fan-in completion/failure transitions.
+- Added structured workflow lifecycle events (`run.*`, `branch.*`, `step.*`, `retry.accepted`) via `lib/content-workflow-events.ts`.
+
+**CW9 — Step scheduler and dependency resolver:**
+- Added deterministic branch plans and step ordering per branch type.
+- Added dependency-aware `blocked`/`pending` reconciliation and guarded branch progression.
+
+**CW10 — Retry/timeout/idempotency framework:**
+- Added shared execution wrapper in `lib/content-workflow-executor.ts` with timeout policy classes, exponential backoff retries, and deterministic fail-fast handling.
+- Added retry APIs and orchestration APIs: `POST /api/content-workflow/runs/:id/start`, `GET /api/content-workflow/runs/:id/events`, `POST /api/content-workflow/runs/:id/retry`.
+- Extended run/branch transition rails to support retry from failed states.
+
+**Testing:**
+- Added and passed targeted suites for executor, orchestrator, and API routes:
+  - `__tests__/lib/content-workflow-executor.test.ts`
+  - `__tests__/lib/content-workflow-orchestrator.test.ts`
+  - `__tests__/api/content-workflow-runs.test.ts`
+- Full content-workflow suite pass (35 tests) covering unit + integration/API flow.
+
+**Documentation:**
+- Updated `docs/API.md`, `docs/roadmap/group-content-workflow.md`, `docs/roadmap/README.md`, and `docs/CHANGELOG.md`.
+- User guide update: N/A for this change set (internal orchestration and API capability; no end-user UI behavior changed yet).
+
+---
+
 ### Content Workflow CW5–CW7 — Template and Prompt Layer — March 17, 2026
 
 **CW5 — Template registry and version management (`lib/content-workflow-templates.ts`):**

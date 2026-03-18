@@ -42,7 +42,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | X | Context Assembly Test Coverage | Planned | [group-x.md](./group-x.md) |
 | Y | Production Redis Configuration | Planned | [group-y.md](./group-y.md) |
 | Z | CI/CD Pipeline | Planned | [group-z.md](./group-z.md) |
-| Content Workflow | Pillar Research Orchestration | CW1–CW4 Done, CW5–CW21 Pending | [group-content-workflow.md](./group-content-workflow.md) |
+| Content Workflow | Pillar Research Orchestration | CW1–CW10 Done, CW11–CW21 Pending | [group-content-workflow.md](./group-content-workflow.md) |
 
 [Cross-Cutting Notes: Groups J and K](./cross-cutting.md)
 
@@ -71,7 +71,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Production Redis Configuration | Group Y — not yet started. Upstash Redis env vars in Vercel, production validation, documentation | See [Group Y](./group-y.md) |
 | CI/CD Pipeline | Group Z — not yet started. GitHub Actions test workflow, MCP server build verification, branch protection | See [Group Z](./group-z.md) |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](../PRD.md) Module 2 |
-| Content Workflow: Pillar Research Orchestration | CW1–CW4 done (types, store, APIs, artifact contract). CW5–CW21 pending: template layer, orchestration engine, branch implementations, aggregation, reliability, testing/docs | See [Group Content Workflow](./group-content-workflow.md) |
+| Content Workflow: Pillar Research Orchestration | CW1–CW10 done (types/store/APIs/artifact contract, template layer, orchestration engine). CW11–CW21 pending: branch implementations, aggregation, reliability expansion, full-system testing/docs | See [Group Content Workflow](./group-content-workflow.md) |
 
 ### Acceptance Criteria
 

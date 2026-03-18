@@ -287,6 +287,17 @@ export async function listBranchesByRun(
     .filter((branch): branch is PillarResearchBranch => Boolean(branch));
 }
 
+export async function getBranchById(
+  branchId: string
+): Promise<PillarResearchBranch | null> {
+  const r = getRedis();
+  if (r) {
+    const branch = await r.get<PillarResearchBranch>(keyBranch(branchId));
+    return branch ?? null;
+  }
+  return fallback.branches.get(branchId) ?? null;
+}
+
 export async function setBranchStatus(
   branchId: string,
   nextStatus: BranchStatus,
@@ -347,6 +358,15 @@ export async function listStepsByRun(runId: string): Promise<PillarResearchStep[
   return ids
     .map((id) => fallback.steps.get(id))
     .filter((step): step is PillarResearchStep => Boolean(step));
+}
+
+export async function getStepById(stepId: string): Promise<PillarResearchStep | null> {
+  const r = getRedis();
+  if (r) {
+    const step = await r.get<PillarResearchStep>(keyStep(stepId));
+    return step ?? null;
+  }
+  return fallback.steps.get(stepId) ?? null;
 }
 
 export async function setStepStatus(

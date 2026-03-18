@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 17, 2026 (CW1–CW4 implemented, K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 17, 2026 (CW1–CW10 implemented, K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1233,11 +1233,11 @@ Activates, deactivates, deprecates, or restores a skill.
 
 ---
 
-## Content Workflow Routes (Group Content Workflow — CW1–CW4)
+## Content Workflow Routes (Group Content Workflow — CW1–CW10)
 
 **Status: Implemented**
 
-**Implementation files:** `app/api/content-workflow/runs/route.ts`, `app/api/content-workflow/runs/[id]/route.ts`, `app/api/content-workflow/runs/[id]/status/route.ts`, `app/api/content-workflow/runs/[id]/cancel/route.ts`
+**Implementation files:** `app/api/content-workflow/runs/route.ts`, `app/api/content-workflow/runs/[id]/route.ts`, `app/api/content-workflow/runs/[id]/status/route.ts`, `app/api/content-workflow/runs/[id]/cancel/route.ts`, `app/api/content-workflow/runs/[id]/start/route.ts`, `app/api/content-workflow/runs/[id]/events/route.ts`, `app/api/content-workflow/runs/[id]/retry/route.ts`, `lib/content-workflow-orchestrator.ts`, `lib/content-workflow-executor.ts`, `lib/content-workflow-events.ts`
 
 ### POST /api/content-workflow/runs
 
@@ -1343,6 +1343,94 @@ Cancels a run and its active branches. Transitions run status to `cancelled`.
 | 500 | `{ "error": "..." }` | Store error |
 
 **Implementation:** `app/api/content-workflow/runs/[id]/cancel/route.ts` → calls `cancelRun()` from `lib/content-workflow-store.ts`
+
+---
+
+### POST /api/content-workflow/runs/[id]/start
+
+Starts orchestration for a run. Transition behavior is idempotent: terminal runs return deduped/no-op.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Response (success — accepted):**
+- Status: `202`
+- Body: `{ "started": true, "deduped": boolean, "status": "branches_running | fan_in_pending | completed | failed | cancelled" }`
+
+**Response (success — no-op):**
+- Status: `200`
+- Body: `{ "started": false, "deduped": true, "status": "completed | failed | cancelled" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 400 | `{ "error": "..." }` | Invalid transition or input |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/start/route.ts` → calls `startRunOrchestration()` from `lib/content-workflow-orchestrator.ts`
+
+---
+
+### GET /api/content-workflow/runs/[id]/events
+
+Returns an SSE-formatted event stream payload for run lifecycle events (`run.*`, `branch.*`, `step.*`, `retry.accepted`). Supports incremental reads via `after`.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Query Parameters:**
+- `after` (optional): event ID cursor; returns events after this ID.
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `text/event-stream`
+- Body: SSE events with `id`, `event`, and `data` fields.
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 500 | `{ "error": "Failed to stream events" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/events/route.ts` → calls `getWorkflowRun()` from `lib/content-workflow-store.ts` and `listWorkflowEvents()` from `lib/content-workflow-events.ts`
+
+---
+
+### POST /api/content-workflow/runs/[id]/retry
+
+Retries failed execution targets by branch or step.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Request:**
+```json
+{
+  "branchId": "string (optional; required if stepId not provided)",
+  "stepId": "string (optional; required if branchId not provided)"
+}
+```
+
+**Response (success):**
+- Status: `202`
+- Body: `{ "accepted": true }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing target or target not retryable |
+| 404 | `{ "error": "Branch not found | Step not found | Run not found" }` | Resource not found |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/retry/route.ts` → calls `retryRunTarget()` from `lib/content-workflow-orchestrator.ts`
 
 ---
 

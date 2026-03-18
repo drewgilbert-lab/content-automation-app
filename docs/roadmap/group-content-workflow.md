@@ -383,38 +383,38 @@ Capture structured telemetry per run/branch/step:
 
 ## Phase 1 - Foundation and Data Model
 
-**CW1 - Define run/branch/step/artifact types** — Implemented and tested  
+**CW1 - Define run/branch/step/artifact types** — ✅ Done (2026-03-17)  
 Create `lib/content-workflow-types.ts` with unions, lifecycle states, and validation helpers, including canonical `ArtifactType` enum and payload contracts per artifact type.
 
-**CW2 - Build durable run store** — Implemented and tested  
+**CW2 - Build durable run store** — ✅ Done (2026-03-17)  
 Create `lib/content-workflow-store.ts` using Redis + in-memory fallback patterns from `lib/upload-session.ts`.
 
-**CW3 - Add workflow APIs (run create/get/status/cancel)** — Implemented and tested  
+**CW3 - Add workflow APIs (run create/get/status/cancel)** — ✅ Done (2026-03-17)  
 Add routes under `app/api/content-workflow/`.
 
-**CW4 - Add artifact persistence contract** — Implemented and tested  
+**CW4 - Add artifact persistence contract** — ✅ Done (2026-03-17)  
 Define artifact interfaces and storage adapters (Weaviate/object-store references) with required fields: `artifactType`, `version`, `previousArtifactId`, `lineage`.
 
 ## Phase 2 - Template and Prompt Layer
 
-**CW5 - Template registry and version management** — Implemented and tested  
+**CW5 - Template registry and version management** — ✅ Done (2026-03-17)  
 Create `lib/content-workflow-templates.ts` and registry format, and persist rendered prompt snapshots as `prompt_rendered` artifacts.
 
-**CW6 - Rendered prompt artifact generation** — Implemented and tested  
+**CW6 - Rendered prompt artifact generation** — ✅ Done (2026-03-17)  
 Implement variable binding, validation, and artifact naming conventions.
 
-**CW7 - Prompt integrity checks** — Implemented and tested  
+**CW7 - Prompt integrity checks** — ✅ Done (2026-03-17)  
 Validate required variables and schema before execution.
 
 ## Phase 3 - Orchestration Engine
 
-**CW8 - Parent run orchestrator**  
+**CW8 - Parent run orchestrator** — ✅ Done (2026-03-17)  
 Implement fan-out launch and fan-in coordination logic.
 
-**CW9 - Step scheduler and dependency resolver**  
+**CW9 - Step scheduler and dependency resolver** — ✅ Done (2026-03-17)  
 Ensure step order and block/unblock transitions are deterministic.
 
-**CW10 - Retry/timeout/idempotency framework**  
+**CW10 - Retry/timeout/idempotency framework** — ✅ Done (2026-03-17)  
 Introduce shared execution wrapper with policies.
 
 ## Phase 4 - Branch Implementations
@@ -462,6 +462,7 @@ Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user gui
 
 - `artifactType` enum is defined once and referenced across store/API/orchestrator contracts.
 - Every persisted artifact includes `artifactType`, `version`, and lineage metadata.
+- `contentType` policy is explicit: prompt artifacts use `text/plain`, markdown research/brief artifacts use `text/markdown`, and package/reference artifacts use `application/json`.
 - `prompt_rendered` artifacts include template version and render hash metadata.
 - Decision (Option A or B) is documented before implementation starts.
 - If Option B is selected, downstream propagation tasks are tracked under Group N and related groups before execution.
@@ -474,9 +475,9 @@ Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user gui
 | `GET` | `/api/content-workflow/runs/:id` | Get full run status and branch states | Implemented |
 | `GET` | `/api/content-workflow/runs/:id/status` | Get run status summary (branch/step counts, artifact count) | Implemented |
 | `POST` | `/api/content-workflow/runs/:id/cancel` | Cancel run and active branches | Implemented |
-| `POST` | `/api/content-workflow/runs/:id/start` | Start orchestration (or auto-start on create) | Planned |
-| `GET` | `/api/content-workflow/runs/:id/events` | SSE stream for progress | Planned |
-| `POST` | `/api/content-workflow/runs/:id/retry` | Retry failed branch/step according to policy | Planned |
+| `POST` | `/api/content-workflow/runs/:id/start` | Start orchestration (or auto-start on create) | Implemented |
+| `GET` | `/api/content-workflow/runs/:id/events` | SSE stream for progress | Implemented |
+| `POST` | `/api/content-workflow/runs/:id/retry` | Retry failed branch/step according to policy | Implemented |
 
 ## Risks and Gaps
 

@@ -383,16 +383,16 @@ Capture structured telemetry per run/branch/step:
 
 ## Phase 1 - Foundation and Data Model
 
-**CW1 - Define run/branch/step/artifact types**  
+**CW1 - Define run/branch/step/artifact types** — Implemented and tested  
 Create `lib/content-workflow-types.ts` with unions, lifecycle states, and validation helpers, including canonical `ArtifactType` enum and payload contracts per artifact type.
 
-**CW2 - Build durable run store**  
+**CW2 - Build durable run store** — Implemented and tested  
 Create `lib/content-workflow-store.ts` using Redis + in-memory fallback patterns from `lib/upload-session.ts`.
 
-**CW3 - Add workflow APIs (run create/get/status/cancel)**  
+**CW3 - Add workflow APIs (run create/get/status/cancel)** — Implemented and tested  
 Add routes under `app/api/content-workflow/`.
 
-**CW4 - Add artifact persistence contract**  
+**CW4 - Add artifact persistence contract** — Implemented and tested  
 Define artifact interfaces and storage adapters (Weaviate/object-store references) with required fields: `artifactType`, `version`, `previousArtifactId`, `lineage`.
 
 ## Phase 2 - Template and Prompt Layer
@@ -466,16 +466,17 @@ Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user gui
 - Decision (Option A or B) is documented before implementation starts.
 - If Option B is selected, downstream propagation tasks are tracked under Group N and related groups before execution.
 
-## API Surface (Planned)
+## API Surface
 
-| Method | Route | Purpose |
-|---|---|---|
-| `POST` | `/api/content-workflow/runs` | Create parent run from Step 1 input |
-| `GET` | `/api/content-workflow/runs/:id` | Get full run status and branch states |
-| `POST` | `/api/content-workflow/runs/:id/start` | Start orchestration (or auto-start on create) |
-| `POST` | `/api/content-workflow/runs/:id/cancel` | Cancel run and active branches |
-| `GET` | `/api/content-workflow/runs/:id/events` | SSE stream for progress |
-| `POST` | `/api/content-workflow/runs/:id/retry` | Retry failed branch/step according to policy |
+| Method | Route | Purpose | Status |
+|---|---|---|---|
+| `POST` | `/api/content-workflow/runs` | Create parent run from Step 1 input | Implemented |
+| `GET` | `/api/content-workflow/runs/:id` | Get full run status and branch states | Implemented |
+| `GET` | `/api/content-workflow/runs/:id/status` | Get run status summary (branch/step counts, artifact count) | Implemented |
+| `POST` | `/api/content-workflow/runs/:id/cancel` | Cancel run and active branches | Implemented |
+| `POST` | `/api/content-workflow/runs/:id/start` | Start orchestration (or auto-start on create) | Planned |
+| `GET` | `/api/content-workflow/runs/:id/events` | SSE stream for progress | Planned |
+| `POST` | `/api/content-workflow/runs/:id/retry` | Retry failed branch/step according to policy | Planned |
 
 ## Risks and Gaps
 

@@ -1,6 +1,36 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 4, 2026
+> Newest entries first. Last updated: March 17, 2026
+
+---
+
+### Content Workflow CW1–CW4 — Foundation and Data Model — March 17, 2026
+
+**CW1 — Run/branch/step/artifact types (`lib/content-workflow-types.ts`):**
+- Canonical `ArtifactType` union and artifact payload map.
+- Lifecycle/status enums and transition helpers for run, branch, and step.
+- Validation helpers for run creation and artifact required metadata.
+
+**CW2 — Durable workflow run store (`lib/content-workflow-store.ts`):**
+- Redis + in-memory fallback pattern (aligned with `lib/upload-session.ts`).
+- Parent run create/get/status transition/cancel support.
+- Branch and step persistence/indexing and default branch seeding.
+- Idempotency-key deduplication support.
+
+**CW3 — Workflow APIs (`app/api/content-workflow/`):**
+- `POST /api/content-workflow/runs` — create parent run.
+- `GET /api/content-workflow/runs/:id` — full run snapshot with artifacts.
+- `GET /api/content-workflow/runs/:id/status` — status summary for polling.
+- `POST /api/content-workflow/runs/:id/cancel` — cancel run and branches.
+
+**CW4 — Artifact persistence contract (`lib/content-workflow-artifacts.ts`):**
+- Append-only create/read/list operations.
+- Version-chain enforcement with `previousArtifactId`.
+- Lineage and required metadata validation.
+
+**Tests:** 18 targeted workflow tests pass across `content-workflow-types.test.ts`, `content-workflow-store.test.ts`, `content-workflow-artifacts.test.ts`, and `content-workflow-runs.test.ts`. ESLint passes on all new/changed workflow files.
+
+**Documentation:** `docs/roadmap/group-content-workflow.md` (CW1–CW4 marked implemented), `docs/API.md` (route contracts), `docs/CHANGELOG.md` (this entry).
 
 ---
 

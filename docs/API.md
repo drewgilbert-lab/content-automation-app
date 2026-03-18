@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 17, 2026 (K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 17, 2026 (CW1–CW4 implemented, K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1230,6 +1230,119 @@ Activates, deactivates, deprecates, or restores a skill.
 | 500 | `{ "error": "Failed to update skill" }` | Server/Weaviate error |
 
 **Implementation:** `app/api/skills/[id]/route.ts` → calls `activateSkill()` / `deactivateSkill()` / `deprecateSkill()` / `restoreSkill()` from `lib/skills.ts`
+
+---
+
+## Content Workflow Routes (Group Content Workflow — CW1–CW4)
+
+**Status: Implemented**
+
+**Implementation files:** `app/api/content-workflow/runs/route.ts`, `app/api/content-workflow/runs/[id]/route.ts`, `app/api/content-workflow/runs/[id]/status/route.ts`, `app/api/content-workflow/runs/[id]/cancel/route.ts`
+
+### POST /api/content-workflow/runs
+
+Creates a parent pillar research run from Step 1 input. Seeds default branches and returns the run snapshot. Idempotency-key deduplication returns 200 with existing run when key matches.
+
+**Runtime:** `nodejs`
+
+**Request:**
+```json
+{
+  "inputType": "use_case | topic_theme (required)",
+  "inputValue": "string (required)",
+  "createdBy": "string (required)",
+  "idempotencyKey": "string (optional)"
+}
+```
+
+**Response (success — created):**
+- Status: `201`
+- Body: `{ "run": PillarResearchRun, "branches": PillarResearchBranch[], "steps": PillarResearchStep[], "deduped": false }`
+
+**Response (success — deduped):**
+- Status: `200`
+- Body: Same shape with `deduped: true`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Invalid inputType or missing required fields |
+| 500 | `{ "error": "..." }` | Store error |
+
+**Implementation:** `app/api/content-workflow/runs/route.ts` → calls `createWorkflowRun()` from `lib/content-workflow-store.ts`
+
+---
+
+### GET /api/content-workflow/runs/[id]
+
+Returns full run status, branch states, steps, and artifacts for a run.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "run": PillarResearchRun, "branches": PillarResearchBranch[], "steps": PillarResearchStep[], "artifacts": PillarResearchArtifact[] }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 500 | `{ "error": "Failed to fetch run" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/route.ts` → calls `getWorkflowSnapshot()` from `lib/content-workflow-store.ts`, `listArtifactsByRun()` from `lib/content-workflow-artifacts.ts`
+
+---
+
+### GET /api/content-workflow/runs/[id]/status
+
+Returns a status summary for polling: run status, branch/step counts, artifact count, and status breakdowns.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "runId": string, "status": string, "branchCount": number, "stepCount": number, "artifactCount": number, "branchesByStatus": Record<string, number>, "stepsByStatus": Record<string, number>, "updatedAt": string }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 500 | `{ "error": "Failed to fetch run status" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/status/route.ts` → calls `getWorkflowSnapshot()` and `listArtifactsByRun()`
+
+---
+
+### POST /api/content-workflow/runs/[id]/cancel
+
+Cancels a run and its active branches. Transitions run status to `cancelled`.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "id": string, "status": "cancelled" }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 500 | `{ "error": "..." }` | Store error |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/cancel/route.ts` → calls `cancelRun()` from `lib/content-workflow-store.ts`
 
 ---
 

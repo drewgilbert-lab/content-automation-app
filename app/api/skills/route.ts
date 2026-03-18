@@ -3,6 +3,7 @@ import {
   createSkill,
   SkillNameConflictError,
   CONTENT_TYPES,
+  isValidContentType,
 } from "@/lib/skills";
 import type { SkillCreateInput } from "@/lib/skill-types";
 import { NextRequest } from "next/server";
@@ -70,11 +71,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const normalizedContentTypes = contentType.map(String);
+    const invalidContentTypes = normalizedContentTypes.filter(
+      (ct) => !isValidContentType(ct)
+    );
+    if (invalidContentTypes.length > 0) {
+      return new Response(
+        JSON.stringify({
+          error: `Invalid contentType value(s): ${invalidContentTypes.join(", ")}. Valid types: ${CONTENT_TYPES.join(", ")}`,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const input: SkillCreateInput = {
       name: String(name).trim(),
       description: String(description),
       content: String(content),
-      contentType: contentType.map(String),
+      contentType: normalizedContentTypes,
       active: active !== undefined ? Boolean(active) : undefined,
       triggerConditions: triggerConditions ? String(triggerConditions) : undefined,
       parameters: parameters ? String(parameters) : undefined,

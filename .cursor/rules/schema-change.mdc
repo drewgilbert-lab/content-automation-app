@@ -1,0 +1,93 @@
+# Schema Change Checklist
+
+Use this checklist whenever you add or modify a canonical taxonomy value:
+
+- object type (`type`, `objectType`, collection type)
+- skill content type (`contentType`)
+- workflow artifact type (`artifactType`)
+
+Do not ship schema or taxonomy changes unless every applicable section below is reviewed.
+
+## 1) Canonical Sources
+
+- `lib/knowledge-types.ts`
+  - `VALID_TYPES`
+  - type unions
+  - `getTypeLabel()`
+- `lib/skill-types.ts`
+  - `CONTENT_TYPES`
+  - `ContentType`
+  - `getContentTypeLabel()`
+  - `isValidContentType()`
+- Workflow artifact taxonomy docs and types (Group Content Workflow)
+
+## 2) Runtime Logic and Prompting
+
+- `lib/context-assembly.ts`
+  - `formatContentType()` labels
+- `lib/classifier.ts`
+  - allowed target types in prompt/validation
+- Any type-gated orchestration code (workflow scheduler, validators)
+
+## 3) Internal API Validation
+
+- Knowledge routes:
+  - `app/api/knowledge/route.ts`
+  - `app/api/knowledge/[id]/route.ts`
+- Skills routes:
+  - `app/api/skills/route.ts`
+  - `app/api/skills/[id]/route.ts`
+- Submission/review routes:
+  - `app/api/submissions/route.ts`
+  - `app/api/submissions/[id]/review/route.ts`
+  - `app/api/bulk-upload/approve/route.ts`
+
+## 4) External API Contracts
+
+- `app/api/v1/knowledge/route.ts`
+- `app/api/v1/knowledge/types/route.ts`
+- `app/api/v1/skills/route.ts`
+- `app/api/v1/skills/types/route.ts`
+- API docs:
+  - `docs/API.md`
+  - `docs/EXTERNAL_API.md`
+  - `docs/user-guides/external-api.md`
+
+## 5) MCP Contracts
+
+- `mcp-server/src/tools/create-object.ts`
+- `mcp-server/src/tools/update-object.ts`
+- `mcp-server/src/schema.ts`
+- Any MCP formatter/resource that enumerates supported types
+
+## 6) UI Surfaces
+
+- Knowledge UI:
+  - `app/knowledge/components/knowledge-list.tsx`
+  - `app/knowledge/components/type-badge.tsx`
+- Skills UI:
+  - `app/skills/components/skill-form.tsx`
+  - `app/skills/components/skill-list.tsx`
+
+## 7) Tests
+
+- Add/update unit tests for canonical enum + labels
+- Add/update API tests for valid/invalid filters and payload validation
+- Add/update MCP tests for schema and validation behavior
+- Run targeted suites before merge
+
+## 8) Documentation and Roadmap
+
+- Update taxonomy policy in:
+  - `docs/roadmap/group-n.md`
+  - `docs/roadmap/group-content-workflow.md` (if workflow-related)
+- Update implementation docs:
+  - `docs/BUSINESS_LOGIC.md`
+  - `docs/KNOWLEDGE_BASE.md`
+  - user guides affected by new values
+
+## 9) Release Safety
+
+- Verify backward compatibility for existing stored values
+- Confirm deterministic fallback labels for unknown values
+- Confirm no hardcoded stale enum copies remain

@@ -4,7 +4,7 @@ import type { AuthenticatedSystem } from '../auth.js';
 
 const VALID_TYPES = [
   'persona', 'segment', 'use_case', 'business_rule',
-  'icp', 'competitor', 'customer_evidence',
+  'icp', 'competitor', 'customer_evidence', 'skill',
 ];
 
 export function registerCreateObjectTool(
@@ -15,7 +15,7 @@ export function registerCreateObjectTool(
     'create_knowledge_object',
     'Propose a new knowledge object for review. Creates a submission that enters the admin review queue — nothing is written directly to the knowledge base.',
     {
-      objectType: z.string().describe('Knowledge object type: persona, segment, use_case, business_rule, icp, competitor, or customer_evidence'),
+      objectType: z.string().describe('Knowledge object type: persona, segment, use_case, business_rule, icp, competitor, customer_evidence, or skill'),
       name: z.string().describe('Name of the proposed object'),
       content: z.string().describe('Full markdown content for the object'),
       tags: z.array(z.string()).optional().describe('Optional tags for categorization'),
@@ -28,6 +28,13 @@ export function registerCreateObjectTool(
       industry: z.string().optional().describe('Industry for customer_evidence objects'),
       personaId: z.string().optional().describe('Persona UUID for ICP objects'),
       segmentId: z.string().optional().describe('Segment UUID for ICP objects'),
+      description: z.string().optional().describe('Description for skill objects'),
+      contentType: z.array(z.string()).optional().describe('Content types for skill objects'),
+      category: z.string().optional().describe('Category for skill objects'),
+      author: z.string().optional().describe('Author for skill objects'),
+      triggerConditions: z.string().optional().describe('Trigger conditions for skill objects'),
+      parameters: z.string().optional().describe('JSON parameters for skill objects'),
+      outputFormat: z.string().optional().describe('Output format for skill objects'),
     },
     async (args) => {
       try {
@@ -62,6 +69,25 @@ export function registerCreateObjectTool(
           };
         }
 
+        if (args.objectType === 'skill' && args.contentType !== undefined) {
+          const skillTypesModulePath = '../../../lib/skill-types.js';
+          const skillTypesMod = (await import(skillTypesModulePath)) as {
+            CONTENT_TYPES: readonly string[];
+          };
+          const invalidContentTypes = args.contentType.filter(
+            (ct) => !skillTypesMod.CONTENT_TYPES.includes(ct),
+          );
+          if (invalidContentTypes.length > 0) {
+            return {
+              content: [{
+                type: 'text' as const,
+                text: `Error: Invalid contentType value(s): ${invalidContentTypes.join(', ')}. Valid content types: ${skillTypesMod.CONTENT_TYPES.join(', ')}`,
+              }],
+              isError: true,
+            };
+          }
+        }
+
         const proposedFields: Record<string, unknown> = {
           name: args.name.trim(),
           content: args.content,
@@ -76,6 +102,15 @@ export function registerCreateObjectTool(
         if (args.industry) proposedFields.industry = args.industry;
         if (args.personaId) proposedFields.personaId = args.personaId;
         if (args.segmentId) proposedFields.segmentId = args.segmentId;
+        if (args.objectType === 'skill') {
+          if (args.description) proposedFields.description = args.description;
+          if (args.contentType) proposedFields.contentType = args.contentType;
+          if (args.category) proposedFields.category = args.category;
+          if (args.author) proposedFields.author = args.author;
+          if (args.triggerConditions) proposedFields.triggerConditions = args.triggerConditions;
+          if (args.parameters) proposedFields.parameters = args.parameters;
+          if (args.outputFormat) proposedFields.outputFormat = args.outputFormat;
+        }
 
         const submissionsModulePath = '../../../lib/submissions.js';
         const submissionsMod = (await import(submissionsModulePath)) as {

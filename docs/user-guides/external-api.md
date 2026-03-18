@@ -11,6 +11,7 @@ The API is available at `/api/v1/` and requires an API key for authentication. E
 **What you can do:**
 - List and retrieve knowledge objects (personas, segments, use cases, business rules, ICPs)
 - List and retrieve skills
+- Retrieve canonical skill taxonomy metadata (`/api/v1/skills/types`)
 - Search the knowledge base by semantic similarity
 - Check system health
 
@@ -120,11 +121,29 @@ Returns all knowledge types with object counts and descriptions.
 | `active` | No | Filter by active status (`true` / `false`) |
 | `category` | No | Filter by category |
 
+Supported `content_type` values:
+- `email`
+- `blog`
+- `social`
+- `thought_leadership`
+- `internal_doc`
+- `content_narrative`
+- `pillar_research`
+- `competitor_functionality_brief`
+- `competitor_persona_messaging_brief`
+- `market_content_brief`
+
 ### Get Skill
 
 `GET /api/v1/skills/:id`
 
 Returns full skill detail including instruction content, parameters, and metadata.
+
+### Skill Type Metadata
+
+`GET /api/v1/skills/types`
+
+Returns canonical `contentTypes` and `categories` so external clients can validate requests and render labels without hardcoding values.
 
 ### Health Check
 

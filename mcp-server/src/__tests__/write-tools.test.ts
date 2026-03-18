@@ -21,6 +21,17 @@ function captureToolHandler(
   return lastCall[lastCall.length - 1] as ToolHandler;
 }
 
+function captureToolSchema(
+  server: McpServer,
+  registerFn: (server: McpServer, auth?: AuthenticatedSystem) => void,
+  authSystem?: AuthenticatedSystem,
+): Record<string, unknown> {
+  const toolSpy = vi.spyOn(server, 'tool');
+  registerFn(server, authSystem);
+  const lastCall = toolSpy.mock.calls[toolSpy.mock.calls.length - 1];
+  return lastCall[2] as Record<string, unknown>;
+}
+
 function makeServer(): McpServer {
   return new McpServer(
     { name: 'test', version: '1.0.0' },
@@ -138,5 +149,29 @@ describe('check_submission_status', () => {
     registerCheckStatusTool(server);
     expect(toolSpy).toHaveBeenCalledTimes(1);
     expect(toolSpy.mock.calls[0][0]).toBe('check_submission_status');
+  });
+});
+
+describe('tool schemas expose skill contentType fields', () => {
+  it('create_knowledge_object schema includes skill fields', () => {
+    const schema = captureToolSchema(makeServer(), registerCreateObjectTool);
+    expect(schema).toHaveProperty('contentType');
+    expect(schema).toHaveProperty('description');
+    expect(schema).toHaveProperty('category');
+    expect(schema).toHaveProperty('author');
+    expect(schema).toHaveProperty('triggerConditions');
+    expect(schema).toHaveProperty('parameters');
+    expect(schema).toHaveProperty('outputFormat');
+  });
+
+  it('update_knowledge_object schema includes skill fields', () => {
+    const schema = captureToolSchema(makeServer(), registerUpdateObjectTool);
+    expect(schema).toHaveProperty('contentType');
+    expect(schema).toHaveProperty('description');
+    expect(schema).toHaveProperty('category');
+    expect(schema).toHaveProperty('author');
+    expect(schema).toHaveProperty('triggerConditions');
+    expect(schema).toHaveProperty('parameters');
+    expect(schema).toHaveProperty('outputFormat');
   });
 });

@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 3, 2026 (K3–K6, J1–J8, J9–J12 implemented; Group R narrative routes planned)
+> Last updated: March 17, 2026 (K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1044,7 +1044,7 @@ Returns all skills, with optional filters.
 **Runtime:** `nodejs`
 
 **Query Parameters:**
-- `contentType` (optional): Filter by content type. Valid values: `email`, `blog`, `social`, `thought_leadership`, `internal_doc`
+- `contentType` (optional): Filter by content type. Valid values: `email`, `blog`, `social`, `thought_leadership`, `internal_doc`, `content_narrative`, `pillar_research`, `competitor_functionality_brief`, `competitor_persona_messaging_brief`, `market_content_brief`
 - `active` (optional): Filter by active status. Valid values: `true`, `false`
 - `category` (optional): Filter by category
 
@@ -1617,6 +1617,88 @@ Returns available knowledge object types with counts and descriptions.
 
 ---
 
+### GET /api/v1/skills
+
+Lists skills with optional filtering.
+
+**Runtime:** `nodejs`
+
+**Headers:**
+- `X-API-Key` (required)
+
+**Query Parameters:**
+- `content_type` (optional): Filter by content type. Valid values: `email`, `blog`, `social`, `thought_leadership`, `internal_doc`, `content_narrative`, `pillar_research`, `competitor_functionality_brief`, `competitor_persona_messaging_brief`, `market_content_brief`
+- `active` (optional): `true` or `false`
+- `category` (optional): Filter by skill category
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "data": SkillListItem[], "meta": { "total": number } }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Invalid content_type ..." }` | Invalid `content_type` filter |
+| 401 | `{ "error": "Invalid or missing API key" }` | Auth failure |
+| 500 | `{ "error": "Failed to fetch skills" }` | Server error |
+
+**Implementation:** `app/api/v1/skills/route.ts` → calls `listSkills()` from `lib/skills.ts`
+
+---
+
+### GET /api/v1/skills/:id
+
+Returns a single skill by UUID.
+
+**Runtime:** `nodejs`
+
+**Headers:**
+- `X-API-Key` (required)
+
+**Path Parameters:**
+- `id` (required): Skill UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "data": SkillDetail }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 401 | `{ "error": "Invalid or missing API key" }` | Auth failure |
+| 404 | `{ "error": "Skill not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to fetch skill" }` | Server error |
+
+**Implementation:** `app/api/v1/skills/[id]/route.ts` → calls `getSkill()` from `lib/skills.ts`
+
+---
+
+### GET /api/v1/skills/types
+
+Returns canonical skill content types and categories for client-side validation.
+
+**Runtime:** `nodejs`
+
+**Headers:**
+- `X-API-Key` (required)
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "data": { "contentTypes": [{ "type": string, "displayName": string }], "categories": [{ "category": string, "displayName": string }], "notes": string[] } }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 401 | `{ "error": "Invalid or missing API key" }` | Auth failure |
+| 500 | `{ "error": "Failed to fetch skill type metadata" }` | Server error |
+
+**Implementation:** `app/api/v1/skills/types/route.ts`
+
+---
+
 ### GET /api/v1/health
 
 Health check for monitoring. Does not require API key authentication.
@@ -1666,7 +1748,7 @@ Propose a new knowledge object for review.
 **Input:**
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `objectType` | string | Yes | Knowledge type: persona, segment, use_case, business_rule, icp, competitor, customer_evidence |
+| `objectType` | string | Yes | Knowledge type: persona, segment, use_case, business_rule, icp, competitor, customer_evidence, skill |
 | `name` | string | Yes | Proposed object name |
 | `content` | string | Yes | Full markdown content |
 | `tags` | string[] | No | Tags for categorization |
@@ -1679,6 +1761,13 @@ Propose a new knowledge object for review.
 | `industry` | string | No | Industry (customer_evidence) |
 | `personaId` | string | No | Persona UUID (ICP) |
 | `segmentId` | string | No | Segment UUID (ICP) |
+| `description` | string | No | Skill description (skill only) |
+| `contentType` | string[] | No | Skill content types (skill only) |
+| `category` | string | No | Skill category (skill only) |
+| `author` | string | No | Skill author (skill only) |
+| `triggerConditions` | string | No | Skill trigger conditions (skill only) |
+| `parameters` | string | No | Skill parameters JSON (skill only) |
+| `outputFormat` | string | No | Skill output format hint (skill only) |
 
 **Returns:** `{ submissionId, status: "pending", message }`
 
@@ -1696,7 +1785,7 @@ Propose an update to an existing knowledge object.
 | `content` | string | No | Updated content |
 | `tags` | string[] | No | Updated tags |
 | `sourceDescription` | string | No | Where the update came from |
-| Other type-specific fields | various | No | subType, revenueRange, employeeRange, website, customerName, industry |
+| Other type-specific fields | various | No | subType, revenueRange, employeeRange, website, customerName, industry, skill-specific fields (`description`, `contentType`, `category`, `author`, `triggerConditions`, `parameters`, `outputFormat`) |
 
 **Returns:** `{ submissionId, status: "pending", targetObjectId, message }`
 

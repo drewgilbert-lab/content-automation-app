@@ -1,6 +1,6 @@
 # Content Engine — External REST API Developer Guide
 
-> Last updated: February 28, 2026
+> Last updated: March 17, 2026
 
 The Content Engine exposes a versioned, read-only REST API at `/api/v1/` for third-party applications to query the knowledge base programmatically.
 
@@ -179,7 +179,7 @@ List skills with optional filtering.
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `content_type` | string | — | Filter by content type: `email`, `blog`, `social`, `thought_leadership`, `internal_doc` |
+| `content_type` | string | — | Filter by content type: `email`, `blog`, `social`, `thought_leadership`, `internal_doc`, `content_narrative`, `pillar_research`, `competitor_functionality_brief`, `competitor_persona_messaging_brief`, `market_content_brief` |
 | `active` | string | — | `true` or `false` |
 | `category` | string | — | Filter by category |
 
@@ -195,6 +195,35 @@ Retrieve a single skill with full instruction content, parameters, and metadata.
 
 ```bash
 curl -H "X-API-Key: $KEY" https://host/api/v1/skills/skill-uuid
+```
+
+---
+
+### GET /api/v1/skills/types
+
+Returns canonical skill metadata for client-side validation and UI rendering.
+
+```bash
+curl -H "X-API-Key: $KEY" https://host/api/v1/skills/types
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "contentTypes": [
+      { "type": "email", "displayName": "Email" },
+      { "type": "pillar_research", "displayName": "Pillar Research" }
+    ],
+    "categories": [
+      { "category": "content_generation", "displayName": "Content Generation" }
+    ],
+    "notes": [
+      "Use these canonical values when creating or updating skills.",
+      "Values are shared across UI, API, and MCP contracts."
+    ]
+  }
+}
 ```
 
 ---

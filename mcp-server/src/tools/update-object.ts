@@ -21,6 +21,13 @@ export function registerUpdateObjectTool(
       website: z.string().optional().describe('Updated website URL'),
       customerName: z.string().optional().describe('Updated customer name'),
       industry: z.string().optional().describe('Updated industry'),
+      description: z.string().optional().describe('Updated description for skill objects'),
+      contentType: z.array(z.string()).optional().describe('Updated content types for skill objects'),
+      category: z.string().optional().describe('Updated category for skill objects'),
+      author: z.string().optional().describe('Updated author for skill objects'),
+      triggerConditions: z.string().optional().describe('Updated trigger conditions for skill objects'),
+      parameters: z.string().optional().describe('Updated parameters for skill objects'),
+      outputFormat: z.string().optional().describe('Updated output format for skill objects'),
     },
     async (args) => {
       try {
@@ -66,6 +73,25 @@ export function registerUpdateObjectTool(
           };
         }
 
+        if (objectType === 'skill' && args.contentType !== undefined) {
+          const skillTypesModulePath = '../../../lib/skill-types.js';
+          const skillTypesMod = (await import(skillTypesModulePath)) as {
+            CONTENT_TYPES: readonly string[];
+          };
+          const invalidContentTypes = args.contentType.filter(
+            (ct) => !skillTypesMod.CONTENT_TYPES.includes(ct),
+          );
+          if (invalidContentTypes.length > 0) {
+            return {
+              content: [{
+                type: 'text' as const,
+                text: `Error: Invalid contentType value(s): ${invalidContentTypes.join(', ')}. Valid content types: ${skillTypesMod.CONTENT_TYPES.join(', ')}`,
+              }],
+              isError: true,
+            };
+          }
+        }
+
         const proposedFields: Record<string, unknown> = {};
         if (args.name !== undefined) proposedFields.name = args.name;
         if (args.content !== undefined) proposedFields.content = args.content;
@@ -76,6 +102,13 @@ export function registerUpdateObjectTool(
         if (args.website !== undefined) proposedFields.website = args.website;
         if (args.customerName !== undefined) proposedFields.customerName = args.customerName;
         if (args.industry !== undefined) proposedFields.industry = args.industry;
+        if (args.description !== undefined) proposedFields.description = args.description;
+        if (args.contentType !== undefined) proposedFields.contentType = args.contentType;
+        if (args.category !== undefined) proposedFields.category = args.category;
+        if (args.author !== undefined) proposedFields.author = args.author;
+        if (args.triggerConditions !== undefined) proposedFields.triggerConditions = args.triggerConditions;
+        if (args.parameters !== undefined) proposedFields.parameters = args.parameters;
+        if (args.outputFormat !== undefined) proposedFields.outputFormat = args.outputFormat;
 
         if (Object.keys(proposedFields).length === 0) {
           return {

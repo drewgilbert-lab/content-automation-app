@@ -8,6 +8,8 @@ import {
   deprecateSkill,
   restoreSkill,
   SkillNameConflictError,
+  CONTENT_TYPES,
+  isValidContentType,
 } from "@/lib/skills";
 import type { SkillUpdateInput } from "@/lib/skill-types";
 import { NextRequest } from "next/server";
@@ -68,11 +70,34 @@ export async function PUT(
       );
     }
 
+    if (contentType !== undefined && !Array.isArray(contentType)) {
+      return new Response(
+        JSON.stringify({ error: "contentType must be an array when provided" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+    if (Array.isArray(contentType)) {
+      const normalizedContentTypes = contentType.map(String);
+      const invalidContentTypes = normalizedContentTypes.filter(
+        (ct) => !isValidContentType(ct)
+      );
+      if (invalidContentTypes.length > 0) {
+        return new Response(
+          JSON.stringify({
+            error: `Invalid contentType value(s): ${invalidContentTypes.join(", ")}. Valid types: ${CONTENT_TYPES.join(", ")}`,
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     const input: SkillUpdateInput = {};
     if (name !== undefined) input.name = String(name).trim();
     if (description !== undefined) input.description = String(description);
     if (content !== undefined) input.content = String(content);
-    if (contentType !== undefined) input.contentType = Array.isArray(contentType) ? contentType.map(String) : [];
+    if (contentType !== undefined) {
+      input.contentType = (contentType as unknown[]).map(String);
+    }
     if (active !== undefined) input.active = Boolean(active);
     if (triggerConditions !== undefined) input.triggerConditions = String(triggerConditions);
     if (parameters !== undefined) input.parameters = String(parameters);

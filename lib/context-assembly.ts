@@ -211,6 +211,12 @@ function formatContentType(ct: string): string {
     social: "a social post",
     thought_leadership: "a thought leadership piece",
     internal_doc: "an internal document",
+    content_narrative: "a content narrative",
+    pillar_research: "pillar research",
+    competitor_functionality_brief: "a competitor functionality brief",
+    competitor_persona_messaging_brief:
+      "a competitor persona and messaging brief",
+    market_content_brief: "a market content brief",
   };
   return labels[ct] || ct;
 }

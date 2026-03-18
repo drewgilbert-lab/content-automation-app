@@ -4,6 +4,11 @@ export const CONTENT_TYPES = [
   "social",
   "thought_leadership",
   "internal_doc",
+  "content_narrative",
+  "pillar_research",
+  "competitor_functionality_brief",
+  "competitor_persona_messaging_brief",
+  "market_content_brief",
 ] as const;
 
 export type ContentType = (typeof CONTENT_TYPES)[number];
@@ -99,8 +104,17 @@ export function getContentTypeLabel(type: string): string {
     social: "Social Post",
     thought_leadership: "Thought Leadership",
     internal_doc: "Internal Doc",
+    content_narrative: "Content Narrative",
+    pillar_research: "Pillar Research",
+    competitor_functionality_brief: "Competitor Functionality Brief",
+    competitor_persona_messaging_brief: "Competitor Persona + Messaging Brief",
+    market_content_brief: "Market Content Brief",
   };
   return labels[type] || type;
+}
+
+export function isValidContentType(type: string): type is ContentType {
+  return CONTENT_TYPES.includes(type as ContentType);
 }
 
 export function getCategoryLabel(category: string): string {

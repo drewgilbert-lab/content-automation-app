@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: March 3, 2026
+> Last updated: March 17, 2026
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -142,7 +142,7 @@ Stores procedural task instructions that tell the AI how to perform specific typ
 | `description` | `text` | Short summary of what this skill does — vectorized |
 | `content` | `text` | Full instruction body in markdown — vectorized (primary) |
 | `active` | `boolean` | Toggle to enable/disable; inactive skills excluded from context assembly |
-| `contentType` | `text[]` | Content types that trigger this skill (e.g. `["email", "internal_doc"]`) |
+| `contentType` | `text[]` | Content types that trigger this skill (e.g. `["email", "internal_doc", "pillar_research"]`) |
 | `triggerConditions` | `text` | Optional JSON for complex trigger logic |
 | `parameters` | `text` | Optional JSON array of `SkillParameter` objects (`{ name, type, description, required }`) |
 | `outputFormat` | `text` | Description of expected output structure |
@@ -202,7 +202,7 @@ Stores all content produced by the system with full generation metadata.
 | Property | Type | Description |
 |---|---|---|
 | `title` | `text` | Auto-generated or user-provided title |
-| `contentType` | `text` | `"email"`, `"blog"`, `"social"`, `"thought_leadership"`, `"internal_doc"` |
+| `contentType` | `text` | `"email"`, `"blog"`, `"social"`, `"thought_leadership"`, `"internal_doc"`, `"content_narrative"`, `"pillar_research"`, `"competitor_functionality_brief"`, `"competitor_persona_messaging_brief"`, `"market_content_brief"` |
 | `body` | `text` | The generated content |
 | `prompt` | `text` | The user's original generation request |
 | `status` | `text` | `"draft"`, `"submitted"`, `"in_review"`, `"approved"`, `"rejected"`, `"published"` |

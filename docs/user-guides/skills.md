@@ -1,6 +1,6 @@
 # Using the Skills Library
 
-> Last updated: February 2026
+> Last updated: March 2026
 
 ---
 
@@ -148,6 +148,11 @@ Skills are linked to one or more content types:
 - **Social Post** — LinkedIn, Twitter, and other social media content
 - **Thought Leadership** — executive perspectives, industry commentary
 - **Internal Doc** — internal memos, process documents, team communications
+- **Content Narrative** — strategic narrative artifacts for theme and messaging direction
+- **Pillar Research** — deep research deliverables for pillar workflows
+- **Competitor Functionality Brief** — capability-focused competitive analysis briefs
+- **Competitor Persona + Messaging Brief** — persona and messaging competitive synthesis briefs
+- **Market Content Brief** — market landscape and trend synthesis briefs
 
 During content generation, the system automatically selects skills that match the requested content type. A skill linked to multiple content types is eligible for any of those types.
 

@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { withApiAuth } from "@/lib/api-middleware";
-import { listSkills } from "@/lib/skills";
+import { CONTENT_TYPES, isValidContentType, listSkills } from "@/lib/skills";
 
 export const runtime = "nodejs";
 
@@ -11,6 +11,14 @@ export const GET = withApiAuth(async (req: NextRequest) => {
   const category = url.searchParams.get("category") ?? undefined;
 
   const filters: { contentType?: string; active?: boolean; category?: string } = {};
+  if (contentType && !isValidContentType(contentType)) {
+    return Response.json(
+      {
+        error: `Invalid content_type "${contentType}". Valid types: ${CONTENT_TYPES.join(", ")}`,
+      },
+      { status: 400 }
+    );
+  }
   if (contentType) filters.contentType = contentType;
   if (activeParam !== null) filters.active = activeParam === "true";
   if (category) filters.category = category;

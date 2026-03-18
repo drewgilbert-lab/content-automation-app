@@ -17,6 +17,7 @@ export {
   CONTENT_TYPES,
   SKILL_CATEGORIES,
   getContentTypeLabel,
+  isValidContentType,
   getCategoryLabel,
 } from "./skill-types";
 

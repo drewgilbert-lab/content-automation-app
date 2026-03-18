@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: March 3, 2026
+> Last updated: March 17, 2026
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -182,6 +182,8 @@ Implementation: `lib/context-assembly.ts` provides the `assembleContext()` funct
 
 ## Content Types
 
+Canonical source: `lib/skill-types.ts` (`CONTENT_TYPES`, `getContentTypeLabel()`).
+
 ### Email
 - **Purpose:** Outbound prospecting or nurture
 - **Length:** 150–300 words
@@ -216,6 +218,41 @@ Implementation: `lib/context-assembly.ts` provides the `assembleContext()` funct
 - **Structure:** Depends on template (see Campaign Brief and Ops Guide instruction files)
 - **Context priority:** Instruction template (primary), all other context as needed
 - **Tone:** Clear, structured, actionable
+
+### Content Narrative
+- **Purpose:** Strategic narrative artifacts used to align messaging and downstream generation
+- **Length:** Variable
+- **Structure:** Narrative sections (theme, audience, angle, strategic guidance)
+- **Context priority:** Strategic positioning and cross-object synthesis
+- **Tone:** Strategic, cohesive, opinionated
+
+### Pillar Research
+- **Purpose:** Long-form research synthesis used by the pillar workflow orchestration
+- **Length:** 10-15 pages typical output
+- **Structure:** Research report with citations and evidence sections
+- **Context priority:** Transcript findings, competitor and market evidence
+- **Tone:** Analytical, evidence-first
+
+### Competitor Functionality Brief
+- **Purpose:** Structured comparative analysis of competitor product capabilities
+- **Length:** Variable
+- **Structure:** Capability matrix, differentiators, gaps, implications
+- **Context priority:** Competitor research artifacts and HG positioning
+- **Tone:** Precise, comparative, defensible
+
+### Competitor Persona + Messaging Brief
+- **Purpose:** Competitive messaging and audience-positioning synthesis
+- **Length:** Variable
+- **Structure:** Persona mapping, message pillars, competitive narrative analysis
+- **Context priority:** Persona evidence, messaging extraction, branch synthesis
+- **Tone:** Strategic, audience-aware
+
+### Market Content Brief
+- **Purpose:** Market landscape synthesis feeding pillar planning and narrative generation
+- **Length:** Variable
+- **Structure:** Trends, drivers, whitespace, risk/opportunity framing
+- **Context priority:** Market research branch outputs
+- **Tone:** Insight-driven, strategic
 
 ---
 

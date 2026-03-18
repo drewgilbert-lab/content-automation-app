@@ -170,15 +170,20 @@ This workflow introduces two layers of typing:
 
 ### Current Platform Compatibility
 
-Current skill `contentType` values are defined in `lib/skill-types.ts` as:
+Current skill `contentType` values in `lib/skill-types.ts` are:
 
 - `email`
 - `blog`
 - `social`
 - `thought_leadership`
 - `internal_doc`
+- `content_narrative`
+- `pillar_research`
+- `competitor_functionality_brief`
+- `competitor_persona_messaging_brief`
+- `market_content_brief`
 
-This means workflow-specific `contentType` values are not currently first-class across all skill/API paths unless explicitly expanded.
+N10 implemented **Option B** and promoted workflow-specific `contentType` values to first-class support across shared surfaces (API, MCP, UI labels, and external type metadata endpoint).
 
 ### Proposed Workflow Content Types (When Enabled)
 

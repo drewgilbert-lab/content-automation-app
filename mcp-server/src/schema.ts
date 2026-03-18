@@ -148,7 +148,7 @@ const COLLECTIONS: Record<string, CollectionDefinition> = {
       { name: 'description', dataType: 'text', description: 'Short summary of what this skill does — vectorized' },
       { name: 'content', dataType: 'text', description: 'Full instruction body in markdown — vectorized (primary)' },
       { name: 'active', dataType: 'boolean', description: 'Toggle to enable/disable' },
-      { name: 'contentType', dataType: 'text[]', description: 'Content types that trigger this skill' },
+      { name: 'contentType', dataType: 'text[]', description: 'Content types that trigger this skill (e.g. email, blog, internal_doc, content_narrative, pillar_research)' },
       { name: 'triggerConditions', dataType: 'text', description: 'Optional JSON for complex trigger logic' },
       { name: 'parameters', dataType: 'text', description: 'Optional JSON array of SkillParameter objects' },
       { name: 'outputFormat', dataType: 'text', description: 'Description of expected output structure' },

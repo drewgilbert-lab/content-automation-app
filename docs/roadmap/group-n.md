@@ -48,3 +48,12 @@ Submission enters review queue
 
 **N7 — SKILL.md Filename Classification in Bulk Upload**
 Add a pre-AI filename check in `lib/classifier.ts`: if filename ends with `SKILL.md` (case-insensitive), set `objectType: "skill"` with `confidence: 1.0` and `needsReview: false`, skipping the Claude classification call for that document. Update `buildClassificationPrompt()` to include `skill` as a valid type with description: *"Content generation skill — prompt template, instructions, output format for producing specific content types."* Update `app/api/bulk-upload/approve/route.ts` to build skill-specific `proposedContent` with skill fields (`description`, `contentType`, `category`) when `objectType === "skill"`.
+
+**N8 — Skill Type Metadata Endpoint for External Clients**
+Expose canonical skill metadata types via the external API so clients do not hardcode accepted values. Add `GET /api/v1/skills/types` returning: supported `contentTypes`, supported `categories`, human-readable labels, and optional notes about compatibility constraints for Claude skill packages. This endpoint becomes the source of truth for external tools that create or validate skills before submission.
+
+**N9 — Internal Skill ⇄ Claude Skill Bundle Mapping**
+Define and implement a stable mapping contract between internal `Skill` objects and Claude-compatible skill bundles (`SKILL.md` + optional support files). Add normalization rules for frontmatter (`name`, `description`, invocation controls), markdown body serialization, and optional supporting-file manifests so pull/push operations are lossless where possible. Document non-lossless fields explicitly and require deterministic conversion for round-trip validation.
+
+**N10 — Cross-Group Type Propagation for Content Workflow Taxonomy**
+When Group Content Workflow introduces or promotes new `contentType` values beyond local orchestration scope (for example: `pillar_research`, `competitor_functionality_brief`, `competitor_persona_messaging_brief`, `market_content_brief`), this group governs propagation across shared touchpoints. Source taxonomy and artifact definitions live in [Group Content Workflow](./group-content-workflow.md); Group N ensures those additions are reflected in global type surfaces (`lib/skill-types.ts`, API filters, MCP schemas, classifier prompts, and UI labels) via the schema-change process from N2. This prevents workflow-local types from drifting from platform-wide enums.

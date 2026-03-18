@@ -225,6 +225,19 @@ Create a `lib/shared/` directory containing only the modules imported by the MCP
 **J22 — Comprehensive Type Checking Across Both Consumers**
 Add a CI check (or npm script) that runs `tsc --noEmit` against both the Next.js app and the MCP server in a single pass. This ensures that changes to shared modules do not break either consumer. Configure the MCP server's `tsconfig.json` to use `strict: true` and enable all strict checks (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`). Add a `typecheck` script to the root `package.json` that runs both checks: `"typecheck": "tsc --noEmit && cd mcp-server && tsc --noEmit"`. Document the convention: any PR that modifies a file in `lib/shared/` must pass the combined type check.
 
+## Phase 6: Claude Skill Interoperability
+
+This phase extends MCP contracts so skills can be exchanged with Claude-compatible package semantics, not only as internal database records.
+
+**J23 — MCP Skill Type Metadata Exposure**
+Add MCP-readable metadata for skill authoring constraints and accepted values. Extend existing schema/type surfaces (for example `get_collection_schema` and/or a dedicated metadata resource) to expose canonical skill `contentType` and `category` options plus format constraints needed by Claude-compatible skill packaging. This keeps MCP clients aligned with the same type definitions used by API and UI.
+
+**J24 — MCP Push/Pull Skill Bundle Contracts**
+Define MCP tool contract updates so skill payloads can be pushed/pulled in a Claude-compatible shape. Read paths return enough data to materialize a `SKILL.md` bundle (`name`, `description`, body content, invocation controls, optional supporting files manifest). Write paths accept validated bundle-oriented payloads and map them to submission objects without dropping critical metadata.
+
+**J25 — MCP Validation and Error Semantics for Skill Bundles**
+Add strict validation and deterministic error messages for malformed skill payloads (invalid frontmatter keys, invalid `name` format, unsupported type values, missing required fields). Errors should be machine-actionable and consistent across stdio and Streamable HTTP transports so Claude and automation clients can retry with corrected payloads.
+
 ## Risks and Gaps
 
 | Risk | Impact | Mitigation |

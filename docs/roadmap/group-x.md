@@ -47,6 +47,15 @@ Test defensive behavior:
 - **All business rules deprecated:** Assemble context where all business rules are deprecated. Verify the "Business Rules" section is omitted.
 - **Maximum skill limit:** Assemble context where auto-matching returns 10 skills but the limit is 5. Verify only the top 5 (by relevance or priority) are included.
 
+**X6 — Claude Skill Package Schema Tests**
+Add tests for canonical Claude-compatible skill packages (`SKILL.md` plus optional support files). Validate frontmatter parsing and constraints (`name`, `description`, optional invocation controls), markdown body extraction, and deterministic conversion between internal `Skill` objects and package representation. Include round-trip tests (`Skill -> package -> Skill`) and explicit assertions for expected lossy fields, if any.
+
+**X7 — API/MCP Interop Contract Tests for Skill Push/Pull**
+Add route/tool tests that verify skill payloads can be pushed and pulled using the shared contract across external API and MCP interfaces. Cover happy path, invalid-type rejection, missing required field rejection, unsupported frontmatter key rejection, and stable machine-readable error payloads. Ensure test fixtures match the standards documented for contributor-authored skills.
+
+**X8 — Env-Gated Claude Acceptance Smoke Test**
+Add an optional smoke test suite (skipped by default) that runs only when required environment variables are present. The suite should build a real skill bundle artifact from test fixtures, submit it through the configured push path, and verify the resulting payload is accepted by Claude-oriented validation rules. This test is intended as a release gate for interoperability changes, not as a mandatory local dev test.
+
 **Risks and Gaps:**
 
 | Risk | Impact | Mitigation |
@@ -56,3 +65,4 @@ Test defensive behavior:
 | Tests for narrative integration require Group R | X3 tests are partially blocked | Write X3 tests using mock narrative objects that match the planned `ContentNarrative` schema; validate against real implementation when Group R lands |
 | Context assembly function may need refactoring to be testable | Tight coupling to Weaviate makes mocking difficult | If necessary, extract a pure `buildSystemPrompt()` function that accepts pre-fetched data, making it trivially testable; keep Weaviate queries in a separate data-fetching layer |
 | Test coverage does not guarantee generation quality | Tests verify structure, not whether Claude produces good output | Tests ensure correct context is assembled; generation quality depends on prompt design (Skills) and knowledge quality — tracked separately |
+| Live Claude acceptance tests can be flaky or credential-gated | CI instability or false negatives when external access is unavailable | Keep live checks env-gated, run schema/mapping tests in default CI, and reserve live smoke for release/pre-merge validation |

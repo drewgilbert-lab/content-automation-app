@@ -7,21 +7,52 @@
 
 ## Current State
 
-The Content Engine has no design system. Every component uses inline Tailwind utility classes with hardcoded color, spacing, and typography values. There are no semantic tokens, no shared primitive components (buttons, inputs, badges), and no page layout abstractions. Components like `TypeBadge`, `StatCard`, and `ConfidenceBadge` show emergent patterns, but they are not formalized, not centralized, and not consistent with each other.
+### 1. Architecture Overview
 
-Specific issues:
+Styling currently follows a **Tailwind v4 CSS-first** approach with a single global stylesheet and high inline utility usage in feature components. Tailwind is configured via `@import "tailwindcss"` and `@theme inline` in `app/globals.css`, with PostCSS configured through `@tailwindcss/postcss`. There is no `tailwind.config.*` file, no CSS Modules/CSS-in-JS layer, and no shared class composition utility (`cn`/`clsx`) in the app code.
 
-- **Buttons** are rebuilt from scratch in every file with different padding, border-radius, font-size, and color combinations. At least 4 distinct button patterns exist across `skill-detail-actions.tsx`, `connection-form.tsx`, `document-review-card.tsx`, and `content-diff.tsx`.
-- **Inputs** use 3 different styling patterns across `connection-form.tsx`, `document-review-card.tsx`, and `tag-editor.tsx` (different padding, focus ring behavior, border-radius).
-- **Form labels** alternate between `text-xs text-gray-400` and `text-sm font-medium text-gray-300 mb-1.5` depending on which file you're in.
-- **Status badges** (active/inactive/deprecated, confidence, type) all use different sizing, padding, and color logic.
-- **Page templates** manually repeat `min-h-screen bg-gray-950` / `mx-auto max-w-5xl px-6 py-16` boilerplate on every page.
-- **Cross-feature imports** already exist (`TypeBadge` is imported by `dashboard/stat-card.tsx` and `bulk-upload/document-review-card.tsx` from `knowledge/components/`) but components live in feature-scoped directories rather than a shared location.
-- **`globals.css`** defines two CSS custom properties (`--background`, `--foreground`) that are mapped to Tailwind theme tokens but never actually used in any component.
-- **Font stack is broken**: `layout.tsx` loads Geist Sans and Geist Mono via `next/font/google`, assigns CSS variables `--font-geist-sans` and `--font-geist-mono`, and `@theme inline` maps them to `--font-sans` and `--font-mono`. But `globals.css` overrides `body` with `font-family: Arial, Helvetica, sans-serif`, so Geist fonts are loaded but never rendered.
-- **Dead dark mode code**: `globals.css` includes a `prefers-color-scheme: dark` media query, but the entire app is hardcoded to dark mode via Tailwind classes (`bg-gray-950`, `text-white`). The media query is unused.
-- **No loading states**: No shared skeleton or loading indicator components exist. Each page handles loading differently or not at all.
-- **No error boundaries**: No shared error state UI exists. Unhandled errors in server components produce default Next.js error pages.
+### 2. Findings Table
+
+| Severity | File | Pattern Found | Recommended Change |
+|---|---|---|---|
+| HIGH | `app/**/*.tsx` | Heavy repeated utility strings (`className=` used ~850 times across 48 files), especially for card/input/button shells | Introduce shared primitives (`Button`, `Input`, `Card`, `Badge`) and centralize repeated style recipes |
+| HIGH | `app/**/*.tsx` | No `cn`/`clsx`/`twMerge` usage; template-literal class composition appears 44 times | Add `clsx` + `tailwind-merge` with a shared `cn()` helper and migrate high-churn components first |
+| MEDIUM | `app/globals.css` | Minimal global architecture: no `@layer base/components/utilities`, no formal style sectioning beyond root/theme/body | Add structured `@layer` organization for base normalization and reusable semantic foundations |
+| MEDIUM | `app/globals.css`; `app/layout.tsx` | `next/font` variables are configured in `layout.tsx`, but body font is hardcoded to Arial/Helvetica in globals | Switch body font to `var(--font-sans)` to align runtime rendering with font token intent |
+| MEDIUM | `package.json`; repo root | No `prettier-plugin-tailwindcss` or tailwind class-order enforcement tooling present | Add Prettier + Tailwind plugin to normalize utility order and reduce style-review churn |
+| MEDIUM | `app/**/*.tsx` | Responsive usage is sparse and uneven (`sm`: 8, `md`: 1, `lg`: 10, `xl`: 0) | Define and enforce a breakpoint strategy per component/layout type |
+| LOW | `postcss.config.mjs` | PostCSS pipeline only includes `@tailwindcss/postcss` | Document expected plugin policy and add explicit plugins only if browser support requirements demand it |
+| LOW | `app/layout.tsx` | Global CSS import is correctly centralized at root layout (`import "./globals.css"`) | Keep this pattern and codify “root-only global CSS imports” in standards docs |
+
+### 3. Anti-Patterns Detected
+
+- No shared class-composition utility (`cn`/`clsx`/`cva`) in active app code: **0** matches
+- Repeated utility bundles (duplication hotspots):
+  - `rounded-xl border border-gray-800 bg-gray-900`: **43** occurrences
+  - `w-full rounded-lg border border-gray-700 bg-gray-800`: **31** occurrences
+  - `transition-colors`: **69** occurrences
+- Template-literal class composition (`className={\`...\`}`): **44** occurrences
+- Utility-heavy styling footprint: `className=` in **48/49** TSX files, **~850** total occurrences
+- Palette concentration on raw gray classes: **~791** `gray-*` class references
+- Sparse upper-breakpoint usage: **0** `xl:` and **0** `2xl:` usage in scanned components
+
+### 4. Quick Wins
+
+1. Add `clsx` + `tailwind-merge` and a shared `cn()` helper.
+2. Add Prettier with `prettier-plugin-tailwindcss` for deterministic class ordering.
+3. Update `app/globals.css` body font to `var(--font-sans)` to match `next/font` configuration.
+4. Extract high-repeat utility shells into low-risk primitives (`CardShell`, `FieldShell`, `PrimaryButton`).
+5. Define a baseline responsive convention (`sm/md/lg`) and apply it to high-traffic surfaces first.
+
+### 5. Architectural Recommendations
+
+1. Establish a token-and-primitive styling layer (`globals.css` semantic tokens + `app/components/ui` primitives).
+2. Move repeated visual variants to contract-driven APIs (size/intent/state variant maps) instead of ad hoc per-feature class strings.
+3. Standardize styling governance:
+   - class composition (`cn`)
+   - class ordering enforcement (Prettier Tailwind plugin)
+   - responsive conventions and accessibility style baselines
+4. Execute a phased migration across high-change modules (`connections`, `queue`, `knowledge`) before long-tail cleanup.
 
 ## Architecture Decisions
 
@@ -385,6 +416,451 @@ Establish coding standard in `docs/UI_STANDARDS.md`:
 3. **Cross-feature threshold**: if a component is imported by 2+ feature directories, it should be moved to `app/components/ui/`.
 4. **Page layout rule**: all new pages must use `PageLayout` and include a route-level `error.tsx`.
 
+**S21 — Visual Design Audit Remediation Sprint**
+Validate and close remaining gaps from the top 5 visual design audit improvements after S1-S20, and track measurable outcomes:
+
+1. **Primitive extraction pass**: ship `Button`, `Input`, `Select`, `Textarea`, and `Badge` primitives and migrate the highest-traffic forms/actions in `knowledge`, `skills`, and `connections`.
+2. **Semantic token pass**: expand `app/globals.css` token coverage (surface, border, text hierarchy, status) and replace repeated raw palette class recipes in shared surfaces.
+3. **Page shell normalization pass**: introduce a shared page layout/container wrapper and migrate page-level shells that currently duplicate `max-w-*` + spacing boilerplate.
+4. **Accessibility baseline pass**: enforce focus-visible styling, label-control association, and required ARIA states for custom interactive controls (including drop zones, tab-like filters, and icon actions).
+5. **Badge/status consolidation pass**: centralize status/type badge styling into one shared mapping component to eliminate cross-feature drift.
+
+Acceptance checks for S21:
+
+- Repeated button/input class recipes in targeted modules reduced by at least 60%.
+- At least 80% of page shells use the shared layout/container abstraction.
+- `aria-*` coverage on custom interactive controls increased and validated via automated checks (axe/lighthouse) plus keyboard smoke test.
+- Contrast-risk combinations flagged by static scan reduced in affected components.
+- `docs/UI_STANDARDS.md` updated with enforceable review rules tied to this audit.
+
+**S22 — UX Pattern Remediation Execution**
+Implement the missing UX patterns identified in the UX audit and normalize interaction behavior across feature-local components.
+
+Execution scope:
+
+1. **State coverage parity**: add consistent loading, empty, error, and success states for list/detail/form surfaces that currently diverge by feature.
+2. **Interaction baseline**: standardize button/control behavior across hover, focus-visible, active, disabled, and loading states.
+3. **Responsive hardening**: apply consistent breakpoint strategy for dense form/review/table-like layouts and add mobile-safe interaction spacing.
+4. **Accessibility primitives**: introduce shared accessible dialog, tabs/filter controls, and field validation semantics.
+5. **Feedback infrastructure**: establish reusable dynamic status announcements for async operations and define a standard global notification approach.
+
+Acceptance checks for S22:
+
+- Critical accessibility gaps in drop zones and modal dialogs are resolved with keyboard and assistive-technology-compatible patterns.
+- At least 3 high-traffic feature areas (`knowledge`, `queue`, `connections`) adopt shared UX primitives for forms/actions/dialogs.
+- Breakpoint coverage expands beyond sparse `sm`/`lg` usage in key workflow components.
+- Dynamic async workflows expose standardized status feedback for both visual users and screen readers.
+- `docs/UI_STANDARDS.md` includes enforceable UX pattern requirements derived from this audit.
+
+**S23 — CSS and Styling Architecture Remediation**
+Implement the styling architecture improvements identified in the CSS audit so the codebase moves from repeated inline utility strings to a maintainable token-and-primitive model.
+
+Execution scope:
+
+1. **Class composition standardization**: add a shared `cn()` utility based on `clsx` + `tailwind-merge` and migrate high-change components first.
+2. **Duplication reduction**: extract repeated shell patterns (inputs/cards/buttons) into shared primitives and reduce literal class string duplication across feature modules.
+3. **Class ordering enforcement**: add `prettier-plugin-tailwindcss` and project formatting config for deterministic utility ordering.
+4. **Global style architecture hardening**: align `globals.css` with structured base/component conventions and ensure `next/font` token usage is applied consistently.
+5. **Responsive and accessibility styling baseline**: standardize breakpoint usage and focus-visible patterns in shared primitives and high-traffic forms.
+
+Acceptance checks for S23:
+
+- A shared `cn()` utility is introduced and adopted in targeted high-churn components.
+- Repeated input/card/button class recipes are reduced by at least 50% in `knowledge`, `skills`, and `connections` components.
+- Class-order tooling is configured and active in local formatting workflow.
+- Body font stack uses font tokens from `next/font` (no conflicting hardcoded fallback override).
+- Responsive and focus-visible conventions are documented in `docs/UI_STANDARDS.md` and applied to migrated primitives.
+
+**S24 — Vibe Code Design Drift Audit (Prompt #5)**
+Analyze design drift and inconsistency patterns commonly introduced during rapid AI-assisted coding.
+
+### Drift Score
+
+**8/10**
+
+The UI layer shows high drift: inline utility duplication (`className=` in 48/49 TSX files; ~850 total), no shared `app/components/ui` primitives, repeated modal/button/form recipes across features, and sparse shared accessibility conventions (`focus-visible` usage absent in scanned components).
+
+### Consolidation Opportunities
+
+- **Detail action bars + confirm flows**
+  - `app/knowledge/components/detail-actions.tsx`
+  - `app/skills/components/skill-detail-actions.tsx`
+  - `app/connections/components/connection-detail-actions.tsx`
+- **Form shell patterns**
+  - `app/knowledge/components/knowledge-form.tsx`
+  - `app/skills/components/skill-form.tsx`
+  - `app/connections/components/connection-form.tsx`
+- **Badge family unification**
+  - `app/knowledge/components/type-badge.tsx`
+  - `app/bulk-upload/components/confidence-badge.tsx`
+  - status pill variants in queue/details pages
+- **Cross-feature reusable components stranded in feature dirs**
+  - `app/knowledge/components/markdown-renderer.tsx`
+  - `app/queue/components/visual-diff.tsx`
+  - `app/bulk-upload/components/file-drop-zone.tsx`
+
+### Convention Violations
+
+- **Design-system bypass / inline utility sprawl**
+  - `className=` in **48/49** TSX files; template-literal composition in **44** instances
+- **Missing shared primitive layer**
+  - `app/components/ui` primitive files: effectively absent for production use
+  - repeated card/input style recipes across feature directories
+- **Accessibility convention drift**
+  - `focus-visible` pattern absent in scanned app TSX
+  - limited ARIA state patterns for dynamic/modality flows
+- **Cross-feature coupling**
+  - reusable UI imported across feature boundaries from feature-local folders
+
+### Recommended Component Library Extractions (3+ usage)
+
+- `Card` / `Surface` primitive
+- `Input` / `Select` / `Textarea` primitives
+- `Button` variant system (`primary/secondary/danger/ghost`)
+- `ConfirmDialog`
+- `AlertBanner` (`error/warning/success/info`)
+
+### Priority Actions (Top 5, impact-to-effort)
+
+1. Ship `Button/Input/Select/Textarea/FormField` primitives and migrate top 3 forms.
+2. Extract `ConfirmDialog` and `AlertBanner` for all destructive/review flows.
+3. Centralize cross-feature shared components into `app/components/ui`.
+4. Add `cn()` utility (`clsx` + `tailwind-merge`) and class-order tooling.
+5. Establish accessibility baseline in primitives (`focus-visible`, dialog semantics, async announcements).
+
+**S25 — Comprehensive Design Audit (Prompt #6)**
+Perform a full design + frontend architecture audit across A-F areas.
+
+### Summary Dashboard
+
+| Audit Area | Score (1-10) | Critical Issues | Key Strength |
+|---|---:|---:|---|
+| A Design System Foundation | 3 | 4 | Group S roadmap is explicit and phased |
+| B Visual Consistency | 5 | 3 | Dark visual direction is mostly coherent |
+| C UX Implementation | 5 | 3 | Core workflows are functionally complete |
+| D Accessibility | 3 | 5 | Some local accessibility patterns exist |
+| E Styling Architecture | 4 | 4 | Tailwind v4 baseline is cleanly centralized |
+| F Vibe Code Quality | 6 | 2 | Strong TypeScript/domain logic quality |
+
+### Detailed Findings
+
+#### A. Design System Foundation (3/10)
+- **Score justification**: no shared primitives/layout layer implemented yet; token architecture remains partial despite roadmap design.
+- **Critical findings (must fix)**:
+  - missing core primitives and layout abstractions
+  - token intent not consistently enforced in implementation
+  - global error/not-found boundaries missing
+- **Improvement opportunities (should fix)**:
+  - formalize docs (`DESIGN_TOKENS`, `COMPONENTS`, `UI_STANDARDS`)
+  - keep domain wrappers but back them with shared primitives
+- **Nice-to-haves (could fix)**:
+  - visual references and migration helper scripts
+
+#### B. Visual Consistency (5/10)
+- **Score justification**: shared dark style exists, but repeated per-feature style recipes diverge in details.
+- **Critical findings (must fix)**:
+  - duplicate button/input/badge implementations for similar intent
+  - inconsistent status styling across modules
+- **Improvement opportunities (should fix)**:
+  - unify action variants and status badges via shared primitives
+- **Nice-to-haves (could fix)**:
+  - visual regression checks for high-traffic workflows
+
+#### C. UX Implementation (5/10)
+- **Score justification**: workflows are complete, but loading/empty/error/success patterns are inconsistent by feature.
+- **Critical findings (must fix)**:
+  - no shared loading/error-state system
+  - confirmation UX duplicated in multiple modules
+- **Improvement opportunities (should fix)**:
+  - normalize state matrix and async feedback patterns
+- **Nice-to-haves (could fix)**:
+  - URL-persisted filters/search and richer success feedback
+
+#### D. Accessibility (3/10)
+- **Score justification**: some labels/aria use exists, but baseline contracts are incomplete for forms/modals/custom interactions.
+- **Critical findings (must fix)**:
+  - weak label-control linkage consistency
+  - custom modal semantics/focus handling not standardized
+  - no explicit async live announcements pattern
+- **Improvement opportunities (should fix)**:
+  - accessible primitives and automated a11y validation checks
+- **Nice-to-haves (could fix)**:
+  - reduced-motion support and skip-link/landmark improvements
+
+#### E. Styling Architecture (4/10)
+- **Score justification**: single global CSS + Tailwind v4 setup is clean, but governance/tooling/composition patterns are missing.
+- **Critical findings (must fix)**:
+  - copy/paste utility bundles dominate styling composition
+  - missing class composition utility and class ordering enforcement
+- **Improvement opportunities (should fix)**:
+  - semantic token expansion + `cn()` adoption in high-churn components
+- **Nice-to-haves (could fix)**:
+  - static checks for forbidden raw palette patterns in new code
+
+#### F. Vibe Code Quality (6/10)
+- **Score justification**: functional correctness and TS quality are reasonable, but UI composition is too monolithic/duplicated.
+- **Critical findings (must fix)**:
+  - oversized workflow components reduce maintainability
+- **Improvement opportunities (should fix)**:
+  - split presentational vs orchestration concerns
+  - centralize repeated maps/constants
+- **Nice-to-haves (could fix)**:
+  - fixture/story-driven regression safeguards
+
+### Action Plan
+
+#### This Week (critical fixes, quick wins)
+
+| Description | Files Affected | Effort | Expected Impact |
+|---|---|---|---|
+| Fix font stack mismatch and baseline theme usage | `app/globals.css`, `app/layout.tsx` | S | Immediate visual correctness |
+| Add semantic token baseline | `app/globals.css` | M | Foundation for consistent styling |
+| Create core primitives | `app/components/ui/*` | M | Reduces drift and duplication |
+| Add baseline a11y contracts in primitives | `app/components/ui/*`, key forms | M | Closes high-risk usability gaps |
+
+#### This Sprint (medium-effort improvements)
+
+| Description | Files Affected | Effort | Expected Impact |
+|---|---|---|---|
+| Add `PageLayout`, loading/error shared states | `app/components/layout/*`, `app/components/ui/*`, route error files | M | UX consistency + resilience |
+| Migrate high-traffic pages/forms to shared patterns | `knowledge/skills/connections/queue/dashboard` pages/components | M | Consistent structure and behavior |
+| Standardize confirm dialogs and async status feedback | detail actions, queue flows | S | Reliable destructive/review UX |
+| Add styling governance tooling (`cn`, class order) | `package.json`, utils + formatting config | S | Prevents future drift |
+
+#### This Quarter (architectural changes)
+
+| Description | Files Affected | Effort | Expected Impact |
+|---|---|---|---|
+| Consolidate cross-feature organisms/components | `app/components/ui/*` + feature imports | L | Long-term maintainability |
+| Accessibility hardening pass with measurable checks | high-traffic interactive surfaces | L | Compliance + usability gains |
+| Complete design system governance docs | docs + rules files | M | Durable standards enforcement |
+| Refactor oversized workflow components | bulk-upload and queue review components | L | Better change safety and velocity |
+
+**S26 — Design Debt Backlog Translation (Prompt #7)**
+Translate audit findings into a deduplicated, dependency-aware backlog.
+
+### Backlog Summary
+
+- **Total items**: 12
+- **Workstream breakdown**:
+  - WS1: 2
+  - WS2: 2
+  - WS3: 2
+  - WS4: 2
+  - WS5: 3
+  - WS6: 1
+- **Estimated total effort**: ~8-14 working days (parallelizable)
+- **Critical path**: token and baseline foundation -> class/tooling guardrails -> shared primitives -> a11y contracts + migration -> layout normalization -> cross-feature consolidation.
+
+### Quick Wins (No Dependencies, Effort <= 2)
+
+- `WS1-001` Fix font/theme baseline in globals/layout
+- `WS5-001` Add shared `cn()` utility (`clsx` + `tailwind-merge`)
+- `WS5-002` Add Tailwind class-order formatting plugin
+
+### Prioritized Backlog
+
+---
+**WS1-001: Fix font/theme baseline in globals**
+- **Workstream**: WS1
+- **Impact**: 5 ; resolves active typography mismatch and baseline drift
+- **Effort**: 1 ; focused `globals.css`/`layout.tsx` update
+- **Priority Score**: 5.0
+- **Blocked By**: None
+- **Files Affected**: `app/globals.css`, `app/layout.tsx`
+- **Definition of Done**:
+  - body uses tokenized font path (`var(--font-sans)`)
+  - baseline theme declarations are simplified and coherent
+  - build and core routes render correctly
+- **Implementation Notes**: keep non-visual behavior unchanged.
+---
+
+---
+**WS5-001: Add shared `cn()` class composition utility**
+- **Workstream**: WS5
+- **Impact**: 5 ; reduces divergence in conditional styling patterns
+- **Effort**: 1 ; add deps + helper and migrate first wave
+- **Priority Score**: 5.0
+- **Blocked By**: None
+- **Files Affected**: `package.json`, shared utils file, high-churn components
+- **Definition of Done**:
+  - `clsx` + `tailwind-merge` installed
+  - shared `cn()` helper exists and is used in at least 3 target components
+  - no UI regressions in migrated files
+- **Implementation Notes**: target template-literal heavy components first.
+---
+
+---
+**WS5-002: Enforce Tailwind class ordering in formatter**
+- **Workstream**: WS5
+- **Impact**: 4 ; stabilizes code review and style consistency
+- **Effort**: 1 ; minimal config + tooling rollout
+- **Priority Score**: 4.0
+- **Blocked By**: None
+- **Files Affected**: `package.json`, Prettier config, docs standards
+- **Definition of Done**:
+  - formatter plugin is configured and usable
+  - class ordering is deterministic in changed files
+  - standards doc references formatting expectation
+- **Implementation Notes**: avoid whole-repo reformat in same PR.
+---
+
+---
+**WS1-002: Define semantic token taxonomy and token docs**
+- **Workstream**: WS1
+- **Impact**: 5 ; unlocks consistent component standardization
+- **Effort**: 2 ; token model + documentation
+- **Priority Score**: 2.5
+- **Blocked By**: WS1-001
+- **Files Affected**: `app/globals.css`, `docs/DESIGN_TOKENS.md`
+- **Definition of Done**:
+  - semantic token categories exist (surface/border/text/action/status)
+  - token utilities resolve in app styles
+  - documentation maps intent to values
+- **Implementation Notes**: additive rollout before broad migrations.
+---
+
+---
+**WS2-001: Build core primitives**
+- **Workstream**: WS2
+- **Impact**: 5 ; largest reduction in duplicated UI patterns
+- **Effort**: 3 ; implement and type core primitive set
+- **Priority Score**: 1.67
+- **Blocked By**: WS1-002, WS5-001
+- **Files Affected**: `app/components/ui/{button,input,select,textarea,form-field,badge}.tsx`
+- **Definition of Done**:
+  - primitives support baseline variants/states
+  - primitives consume semantic tokens
+  - examples/usage references are available
+- **Implementation Notes**: keep API surface minimal but extensible.
+---
+
+---
+**WS3-001: Apply accessibility baseline to primitives**
+- **Workstream**: WS3
+- **Impact**: 5 ; closes highest-risk keyboard/screen-reader gaps
+- **Effort**: 2 ; semantic wiring + focus contracts
+- **Priority Score**: 2.5
+- **Blocked By**: WS2-001
+- **Files Affected**: `app/components/ui/*`, key form modules
+- **Definition of Done**:
+  - focus-visible standard is applied
+  - label/input associations are correct in migrated forms
+  - error semantics include ARIA-invalid/description links
+- **Implementation Notes**: solve at primitive layer to propagate fixes.
+---
+
+---
+**WS2-002: Migrate high-traffic forms/actions to primitives**
+- **Workstream**: WS2
+- **Impact**: 5 ; removes majority of duplicated ad hoc form/action styling
+- **Effort**: 3 ; targeted migrations with behavior parity checks
+- **Priority Score**: 1.67
+- **Blocked By**: WS2-001, WS3-001
+- **Files Affected**: `knowledge-form`, `skill-form`, `connection-form`, detail action components
+- **Definition of Done**:
+  - targeted modules use shared primitives
+  - repeated style recipe count drops significantly (>=60% in target files)
+  - user workflows remain functionally identical
+- **Implementation Notes**: preserve DOM/logic where possible.
+---
+
+---
+**WS4-001: Introduce shared page shell and state components**
+- **Workstream**: WS4
+- **Impact**: 4 ; normalizes loading/error/layout experience
+- **Effort**: 3 ; add layout + loading/error primitives + route boundaries
+- **Priority Score**: 1.33
+- **Blocked By**: WS2-001
+- **Files Affected**: layout/ui shared components + route error/not-found files
+- **Definition of Done**:
+  - `PageLayout`, spinner/skeleton/error components are implemented
+  - global error and not-found handlers use shared patterns
+  - core routes render with shared shell support
+- **Implementation Notes**: align styles with tokenized design direction.
+---
+
+---
+**WS4-002: Migrate pages to shared layout and responsive standards**
+- **Workstream**: WS4
+- **Impact**: 4 ; improves consistency and mobile behavior predictability
+- **Effort**: 3 ; page-level migration + breakpoint normalization
+- **Priority Score**: 1.33
+- **Blocked By**: WS4-001, WS2-002
+- **Files Affected**: `knowledge`, `skills`, `connections`, `queue`, `dashboard`, `bulk-upload` page files
+- **Definition of Done**:
+  - most core pages use shared layout abstraction (>=80%)
+  - explicit `sm/md/lg` behavior exists for dense workflows
+  - smoke checks pass at primary viewport sizes
+- **Implementation Notes**: prioritize queue/bulk-upload/connection forms first.
+---
+
+---
+**WS3-002: Standardize accessible dialogs and async status feedback**
+- **Workstream**: WS3
+- **Impact**: 4 ; resolves repeated modal and async a11y drift
+- **Effort**: 2 ; shared dialog + live status pattern
+- **Priority Score**: 2.0
+- **Blocked By**: WS2-001, WS3-001
+- **Files Affected**: confirm/action components + async workflow modules
+- **Definition of Done**:
+  - destructive flows use one dialog pattern with keyboard/focus semantics
+  - async operations expose standardized status announcements
+  - behavior is consistent across targeted features
+- **Implementation Notes**: migrate highest-risk destructive flows first.
+---
+
+---
+**WS6-001: Consolidate cross-feature shared components into common UI**
+- **Workstream**: WS6
+- **Impact**: 4 ; reduces coupling and long-term maintenance overhead
+- **Effort**: 2 ; move components + update imports + temporary shims
+- **Priority Score**: 2.0
+- **Blocked By**: WS2-002, WS4-002
+- **Files Affected**: `markdown-renderer`, `visual-diff`, `tag-editor` + import sites
+- **Definition of Done**:
+  - shared components live in `app/components/ui`
+  - old feature paths have safe re-export compatibility during migration
+  - no broken imports/build failures
+- **Implementation Notes**: move highest reuse components first.
+---
+
+---
+**WS5-003: Codify governance and enforcement rules**
+- **Workstream**: WS5
+- **Impact**: 3 ; prevents reintroduction of drift post-migration
+- **Effort**: 2 ; standards docs + enforcement guidance
+- **Priority Score**: 1.5
+- **Blocked By**: WS1-002, WS2-002, WS3-002
+- **Files Affected**: `docs/UI_STANDARDS.md`, `docs/COMPONENTS.md`, `docs/CHANGELOG.md`, `.cursor/rules/start.mdc`
+- **Definition of Done**:
+  - token-first and primitive-first rules are documented and actionable
+  - accessibility/responsive baseline requirements are explicit
+  - docs reflect shipped primitives and migration status
+- **Implementation Notes**: use as closure gate for S21-S26 completion.
+---
+
+### Dependency Map
+
+WS1-001: Fix font/theme baseline  
+└── WS1-002: Define semantic token taxonomy  
+    └── WS2-001: Build core primitives  
+        ├── WS3-001: Apply accessibility baseline to primitives  
+        │   ├── WS2-002: Migrate high-traffic forms/actions  
+        │   │   └── WS4-002: Migrate pages to shared layout/responsive standards  
+        │   │       └── WS6-001: Consolidate cross-feature shared components  
+        │   └── WS3-002: Standardize accessible dialogs and async status feedback  
+        └── WS4-001: Introduce shared page shell and state components  
+            └── WS4-002: Migrate pages to shared layout/responsive standards  
+
+WS5-001: Add `cn()` utility  
+└── WS2-001: Build core primitives  
+
+WS5-002: Enforce class ordering (parallel guardrail)  
+
+WS5-003: Codify governance and enforcement rules  
+└── Blocked by WS1-002, WS2-002, WS3-002
+
 ---
 
 ## Risks and Gaps
@@ -397,6 +873,9 @@ Establish coding standard in `docs/UI_STANDARDS.md`:
 | Migration effort competes with feature work | Group S delays Groups R, Q, or other priorities | Phases are independent. Phase 1 (tokens + fixes) is < 1 day of work. Phase 2 (atoms) is 1-2 days. Phases 3-4 can be deferred or done incrementally as part of feature work. |
 | `TypeBadge` wrapper approach adds indirection | Two components (`Badge` + `TypeBadge`) for one visual element | The indirection is minimal (TypeBadge becomes ~10 lines) and avoids a mass import rewrite. Long-term, callers can switch to `<Badge>` directly if they prefer. |
 | Error boundaries mask bugs during development | Developers might not notice errors during local dev | Error boundaries log to console before rendering the fallback. In development mode, Next.js already shows its error overlay before the boundary catches. |
+| UX remediation scope grows beyond targeted high-impact components | S22 could expand into an open-ended refactor and delay roadmap delivery | Time-box S22 to critical/high findings first, apply feature-by-feature rollout, and require measurable acceptance checks before expanding scope. |
+| CSS architecture remediation introduces broad churn in frequently edited components | Large-scale class refactors can create regressions and merge friction | Sequence S23 after S21/S22 foundations, prioritize high-duplication components first, and enforce incremental migration with visual and lint verification per batch. |
+| Backlog translation scope sprawl across overlapping audits | S24-S26 can duplicate findings and dilute execution focus | Enforce deduplication in S26, keep a single prioritized backlog, and map every item to WS1-WS6 with explicit dependency chains. |
 
 **Open Questions:**
 
@@ -412,8 +891,8 @@ Establish coding standard in `docs/UI_STANDARDS.md`:
 2. **S4 → S5 → S6 → S7 → S8 → S9** (Phase 2: atoms, migration, validation) — highest-impact visual consistency improvement; 1-2 days
 3. **S10 → S11 → S12 → S13 → S14** (Phase 3: layout, loading, errors, migration, validation) — structural consistency; 1-2 days
 4. **S15 → S16 → S17 → S18 → S19** (Phase 4: centralization, organisms, migration, validation) — consolidation; 1-2 days
-5. **S20** (Phase 5: documentation) — after all other phases; < 1 day
+5. **S20 → S21 → S22 → S23 → S24 → S25 → S26** (Phase 5: documentation + audit closure + UX remediation + CSS architecture hardening + drift/comprehensive/backlog synthesis) — after Phases 1-4; 5-7 days
 
-Phases 1-2 are sequential (atoms consume tokens). Phases 3-4 can be done in parallel or in either order, as they are independent of each other. Both depend on Phase 2 (they use the atoms). Phase 5 runs last.
+Phases 1-2 are sequential (atoms consume tokens). Phases 3-4 can be done in parallel or in either order, as they are independent of each other. Both depend on Phase 2 (they use the atoms). Phase 5 (S20 + S21 + S22 + S23 + S24 + S25 + S26) runs last.
 
-**Total estimated effort: 5-8 days**, spread across sprints or interleaved with feature work. Phase 1 should be done immediately as it fixes actual bugs (broken font stack) and unblocks all subsequent phases.
+**Total estimated effort: 10-17 days**, spread across sprints or interleaved with feature work. Phase 1 should be done immediately as it fixes actual bugs (broken font stack) and unblocks all subsequent phases.

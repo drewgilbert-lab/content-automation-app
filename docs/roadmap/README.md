@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: March 4, 2026
+> Last updated: March 17, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -42,6 +42,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | X | Context Assembly Test Coverage | Planned | [group-x.md](./group-x.md) |
 | Y | Production Redis Configuration | Planned | [group-y.md](./group-y.md) |
 | Z | CI/CD Pipeline | Planned | [group-z.md](./group-z.md) |
+| Content Workflow | Pillar Research Orchestration | Planned | [group-content-workflow.md](./group-content-workflow.md) |
 
 [Cross-Cutting Notes: Groups J and K](./cross-cutting.md)
 
@@ -53,23 +54,24 @@ Each step below is independently shippable. Steps within a group can be built in
 
 | Module | What's Left | Requirements |
 |---|---|---|
-| Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) deferred | See [PRD.md](../PRD.md) Module 1 |
-| Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process | See [Group N](./group-n.md) |
+| Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) deferred; I7 Claude skill package compatibility standards planned | See [Group I](./group-i.md) |
+| Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process, skill-type metadata exposure, and internal skill ⇄ Claude bundle mapping | See [Group N](./group-n.md) |
 | Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, shared TagEditor | See [Group O](./group-o.md) |
 | Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See [Group P](./group-p.md) |
 | Knowledge-Linked Skills | Group M — not yet started | See [Group M](./group-m.md) |
 | Weaviate Query Agent | Group Q — not yet started. Query Agent retrieval + Claude synthesis, Ask UI, collection registry | See [Group Q](./group-q.md) |
 | Content Narratives | Group R — not yet started. Strategic narrative layer between knowledge and content generation, AI-assisted creation, review workflow, context assembly integration, staleness detection | See [Group R](./group-r.md) |
 | Design System Foundation | Group S — not yet started. Semantic tokens, shared primitives (Button, Input, Badge, FormField), page layout, error boundaries, organism consolidation | See [Group S](./group-s.md) |
-| MCP Server Observability & Hardening | J17–J22 Pending (Phase 4: Observability & Monitoring, Phase 5: Shared Library Hardening) | See [Group J](./group-j.md) |
+| MCP Server Observability, Hardening, and Claude Skill Interop | J17–J25 Pending (Phase 4: Observability, Phase 5: Shared Library Hardening, Phase 6: Claude Skill Interoperability) | See [Group J](./group-j.md) |
 | Content Generation Cost Tracking | Group T — not yet started. Token counting, cost metadata, generation cost dashboard, budget alerts | See [Group T](./group-t.md) |
 | Context Window Budget Management | Group U — not yet started. Content length limits, token budget allocation, smart truncation, context budget visibility | See [Group U](./group-u.md) |
 | Structured Logging | Group V — not yet started. Structured JSON logging (`pino`), request logging middleware, domain event logging, operational logging | See [Group V](./group-v.md) |
 | Authentication & User Management | Group W — not yet started. Google OAuth, RBAC, admin user management, permission sets, user attribution | See [Group W](./group-w.md) |
-| Context Assembly Test Coverage | Group X — not yet started. Unit tests for `assembleContext()` covering all assembly modes, edge cases, and truncation behavior | See [Group X](./group-x.md) |
+| Context Assembly and Skill Interop Test Coverage | Group X — not yet started. Unit tests for `assembleContext()`, Claude skill package schema/mapping tests, and env-gated acceptance smoke checks | See [Group X](./group-x.md) |
 | Production Redis Configuration | Group Y — not yet started. Upstash Redis env vars in Vercel, production validation, documentation | See [Group Y](./group-y.md) |
 | CI/CD Pipeline | Group Z — not yet started. GitHub Actions test workflow, MCP server build verification, branch protection | See [Group Z](./group-z.md) |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](../PRD.md) Module 2 |
+| Content Workflow: Pillar Research Orchestration | New group — not yet started. Parent/child orchestration with three parallel branches (competitor functionality, competitor persona+messaging, market), deep research automation, artifact lineage, fan-out/fan-in aggregation, retries, idempotency, and context budget controls | See [Group Content Workflow](./group-content-workflow.md) |
 
 ### Acceptance Criteria
 

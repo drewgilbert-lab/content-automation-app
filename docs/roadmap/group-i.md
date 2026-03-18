@@ -59,6 +59,9 @@ Build `scripts/migrate-instruction-templates.ts`. Reads all `BusinessRule` objec
 **I6 — Skill Testing Interface** (future)
 Build `/skills/[id]/test` page where a user can run a skill against sample inputs and preview the generated output. Accepts a content type, optional parameters, and sample context. Calls the generation pipeline with the selected skill and displays the result. Enables validation before activating a skill in production. Includes side-by-side comparison of output with and without the skill applied.
 
+**I7 — Claude Skill Package Compatibility Standard** (planned extension)
+Define a canonical Claude-compatible skill package format and enforce it as the authoring standard for new skill content in this repo. The canonical artifact is a folder containing `SKILL.md` with YAML frontmatter and markdown instructions, plus optional supporting files (`reference.md`, `examples/`, `scripts/`). Baseline requirements: `name` (lowercase letters/numbers/hyphens, max 64 chars), `description` (clear activation guidance), optional invocation controls (`disable-model-invocation`, `user-invocable`), and optional execution controls (`allowed-tools`, `context`, `agent`). Add a translation contract between internal `Skill` objects and package format so skills can be pushed/pulled via MCP/API without losing metadata. Publish contributor guidance for creating new skills content in-repo (folder naming, frontmatter validation, supporting-file references, and compatibility checks before merge).
+
 **Risks and Gaps:**
 
 | Risk | Impact | Mitigation |
@@ -73,3 +76,4 @@ Build `/skills/[id]/test` page where a user can run a skill against sample input
 | Skill maintenance — skills become stale | Outdated skills produce poor output | Staleness alerts (same 90-day threshold as knowledge objects); usage tracking; deprecation workflow |
 | Skill composability — skills referencing other skills | Circular dependencies, ordering issues | `dependsOn` field with circular dependency detection; resolve dependencies before injection; defer full chaining to a future enhancement |
 | Skill parameter handling | Parameters add complexity to the generation UI | Start with skills that take no parameters; add parameter UI incrementally; validate parameter types at runtime |
+| Claude format drift | Internal skill representation diverges from Claude-compatible package expectations | Canonical `SKILL.md` schema, bidirectional mapping tests, and pre-merge validation for package compatibility |

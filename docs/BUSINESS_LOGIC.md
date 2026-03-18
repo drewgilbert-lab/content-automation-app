@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: March 17, 2026
+> Last updated: March 17, 2026 (CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -291,6 +291,37 @@ customer_evidence ────────────────► all conten
 | Marketing | Enterprise, Mid-Market, Commercial | ICP Segmentation, Inbound Marketing Automation, Signal-based Prioritization |
 | RevOps | Enterprise, Mid-Market | Predictive Account Scoring, Territory Coverage Optimization, B2B Data Enrichment |
 | Strategy | Strategic, Enterprise | Market Sizing, Whitespace Analysis, Revenue Growth Intelligence Platform |
+
+---
+
+## Pillar Research Workflow — Token and Context Budget Policy (CW17)
+
+The content workflow enforces token and context budgets to prevent context overflow in multi-artifact aggregation. Policy is defined per step type and artifact type.
+
+**Budget exceed policies:**
+- `truncate` — cut text at max token boundary; preserves head of content.
+- `summarize` — replace middle content with `[summary: middle content omitted to fit token budget]`; preserves head and tail.
+- `fail` — throw `BudgetExceededError`; step fails, no retry (deterministic).
+
+**Step-level budgets:** Each step type has `maxInputTokens`, `maxOutputTokens`, and `onExceed`. Defaults: transcript research (2500/4500, summarize), extract entities (1800/1200, fail), aggregates (2800/4200, truncate), market research (2500/4200, summarize).
+
+**Artifact-level output budgets:** Per `artifactType`, `maxOutputTokens` and `onExceed` are enforced when persisting artifacts. Artifacts that exceed budget are adjusted (truncate/summarize) or cause failure (fail) before storage. Metadata records `outputTokenBudget`, `outputTokenPolicy`, `outputTokens`, `outputTokensOriginal`, `outputAdjusted`.
+
+**Hierarchical aggregation constraints:** Aggregate per-competitor docs into branch brief first; final aggregation consumes branch briefs, not raw competitor docs. Artifact references (IDs) are passed between steps instead of full payloads to avoid pushing prior outputs through every call.
+
+---
+
+## Pillar Research Workflow — Fan-In and Final Package (CW14–CW16)
+
+The content workflow orchestration (Group Content Workflow) produces pillar-ready outputs through a strict fan-in process:
+
+1. **Branch aggregate validation (CW14):** Before fan-in completion, the orchestrator validates that each branch (A: competitor functionality, B: competitor personas + messaging, C: market research) has produced its required aggregate artifact. Missing artifacts cause explicit validation failure with an error summary; the run transitions to `failed` and no final package is assembled.
+
+2. **Final package assembly and lineage (CW15):** When all three branch aggregates are present, the assembler builds a `final_pillar_package` artifact. The payload contains content refs for `functionalityBriefRef`, `personaMessagingBriefRef`, and `marketBriefRef`, plus an optional `finalAggregationRef`. Lineage records `parentArtifactIds` pointing to the three branch aggregate artifacts, enabling traceability from final package back to source briefs.
+
+3. **Downstream handoff contract (CW16):** The `GET /api/content-workflow/runs/[id]/package` endpoint returns the latest final package payload and artifact metadata. Future workflows (including Group R Content Narratives) consume these refs to pull branch briefs for narrative generation or other downstream use. The `run.package_assembled` event is emitted on successful assembly.
+
+**Test and validation coverage (CW20–CW21):** The workflow has full test matrix coverage for lifecycle transitions, retries, branch isolation, fan-in correctness, artifact-type validation, and artifact lineage integrity. All content-workflow tests pass.
 
 ---
 

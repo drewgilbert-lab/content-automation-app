@@ -2,19 +2,31 @@ import {
   executeWithPolicy,
   type WorkflowExecutionPolicy,
 } from "./content-workflow-executor";
+import { assembleFinalPillarPackage } from "./content-workflow-assembler";
+import { workflowBranchStepHandlers } from "./content-workflow-branches";
+import {
+  enforceTextBudget,
+  estimateArtifactPayloadTokens,
+  resolveStepTokenBudget,
+} from "./content-workflow-budget";
 import { publishWorkflowEvent } from "./content-workflow-events";
+import { listArtifactsByRun } from "./content-workflow-artifacts";
 import {
   getBranchById,
   getStepById,
   getWorkflowRun,
+  listWorkflowRuns,
   listBranchesByRun,
   listStepsByRun,
   setBranchStatus,
   setStepStatus,
+  updateRunReplayMetadata,
   updateRunStatus,
   upsertBranch,
   upsertStep,
 } from "./content-workflow-store";
+import { logWorkflow, listWorkflowLogs } from "./content-workflow-telemetry";
+import { validateBranchAggregateArtifacts } from "./content-workflow-validators";
 import type {
   BranchType,
   PillarResearchBranch,
@@ -43,6 +55,9 @@ export interface StartOrchestrationResult {
 interface RetryTarget {
   branchId?: string;
   stepId?: string;
+  replayFromStepId?: string;
+  reason?: string;
+  requestedBy?: string;
 }
 
 const BRANCH_PLANS: BranchPlan[] = [
@@ -123,6 +138,19 @@ type StepHandler = (input: {
 
 const stepHandlers = new Map<string, StepHandler>();
 const activeRuns = new Set<string>();
+let defaultStepHandlersRegistered = false;
+
+function ensureDefaultStepHandlersRegistered(): void {
+  if (defaultStepHandlersRegistered) {
+    return;
+  }
+  for (const [stepType, handler] of Object.entries(workflowBranchStepHandlers)) {
+    if (!stepHandlers.has(stepType)) {
+      stepHandlers.set(stepType, handler);
+    }
+  }
+  defaultStepHandlersRegistered = true;
+}
 
 function branchSortOrder(type: BranchType): number {
   return BRANCH_PLANS.findIndex((plan) => plan.branchType === type);
@@ -160,6 +188,15 @@ function getHandler(stepType: string): StepHandler {
   );
 }
 
+function sortStepsForBranch(
+  branchType: BranchType,
+  steps: PillarResearchStep[]
+): PillarResearchStep[] {
+  return [...steps].sort(
+    (a, b) => stepSortOrder(branchType, a.stepType) - stepSortOrder(branchType, b.stepType)
+  );
+}
+
 async function initializeStepsForRun(runId: string): Promise<void> {
   const branches = await listBranchesByRun(runId);
   const existingSteps = await listStepsByRun(runId);
@@ -193,6 +230,7 @@ async function initializeStepsForRun(runId: string): Promise<void> {
         attempt: 0,
         maxRetries: DEFAULT_EXECUTION_POLICY.maxRetries,
         startedAt: new Date().toISOString(),
+        tokenBudget: resolveStepTokenBudget(stepPlan.stepType),
       });
     }
   }
@@ -231,7 +269,10 @@ async function getNextRunnableStep(
   const steps = (await listStepsByRun(runId))
     .filter((step) => step.branchId === branch.id)
     .filter((step) => step.status === "pending")
-    .sort((a, b) => stepSortOrder(branch.branchType, a.stepType) - stepSortOrder(branch.branchType, b.stepType));
+    .sort(
+      (a, b) =>
+        stepSortOrder(branch.branchType, a.stepType) - stepSortOrder(branch.branchType, b.stepType)
+    );
   return steps[0] ?? null;
 }
 
@@ -240,11 +281,22 @@ async function runStep(
   branch: PillarResearchBranch,
   step: PillarResearchStep
 ): Promise<void> {
+  const startedAt = Date.now();
   await setStepStatus(step.id, "running");
   publishWorkflowEvent(runId, "step.started", {
     branchId: branch.id,
     stepId: step.id,
     stepType: step.stepType,
+  });
+  logWorkflow({
+    level: "info",
+    event: "step.started",
+    runId,
+    branchId: branch.id,
+    branchType: branch.branchType,
+    stepId: step.id,
+    stepType: step.stepType,
+    status: "running",
   });
 
   await upsertBranch({
@@ -255,6 +307,8 @@ async function runStep(
 
   const policy = getStepPolicy(branch.branchType, step.stepType);
   const handler = getHandler(step.stepType);
+  const run = await getWorkflowRun(runId);
+  const budget = step.tokenBudget ?? resolveStepTokenBudget(step.stepType);
   const result = await executeWithPolicy(
     {
       runId,
@@ -263,10 +317,15 @@ async function runStep(
     },
     policy,
     async ({ attempt }) => {
+      const inputText = [run?.inputValue ?? "", branch.branchType, step.stepType].join("\n");
+      const inputBudget = enforceTextBudget(inputText, budget.maxInputTokens, budget.onExceed);
+      const beforeIds = new Set((await listArtifactsByRun(runId)).map((artifact) => artifact.id));
+
       await upsertStep({
         ...step,
         status: "running",
         attempt,
+        tokenBudget: budget,
       });
 
       await handler({
@@ -275,6 +334,25 @@ async function runStep(
         step,
         attempt,
       });
+
+      const stepArtifacts = (await listArtifactsByRun(runId)).filter(
+        (artifact) => artifact.stepId === step.id && !beforeIds.has(artifact.id)
+      );
+      const outputTokens = stepArtifacts.reduce(
+        (acc, artifact) => acc + estimateArtifactPayloadTokens(artifact),
+        0
+      );
+      if (budget.onExceed === "fail" && outputTokens > budget.maxOutputTokens) {
+        throw new Error(
+          `Token budget exceeded for step output: ${outputTokens} > ${budget.maxOutputTokens}`
+        );
+      }
+
+      return {
+        inputTokens: inputBudget.tokenCount,
+        outputTokens,
+        outputAdjusted: stepArtifacts.some((artifact) => Boolean(artifact.metadata?.outputAdjusted)),
+      };
     }
   );
 
@@ -285,12 +363,32 @@ async function runStep(
       attempt: result.attempts,
       completedAt: new Date().toISOString(),
       lastError: undefined,
+      tokenUsage: {
+        inputTokens: Number(result.metrics?.inputTokens ?? 0),
+        outputTokens: Number(result.metrics?.outputTokens ?? 0),
+        outputTokensOriginal: Number(result.metrics?.outputTokens ?? 0),
+        budgetAdjustedOutput: Boolean(result.metrics?.outputAdjusted ?? false),
+      },
     });
     publishWorkflowEvent(runId, "step.completed", {
       branchId: branch.id,
       stepId: step.id,
       stepType: step.stepType,
       attempts: result.attempts,
+      metrics: result.metrics ?? {},
+    });
+    logWorkflow({
+      level: "info",
+      event: "step.completed",
+      runId,
+      branchId: branch.id,
+      branchType: branch.branchType,
+      stepId: step.id,
+      stepType: step.stepType,
+      attempt: result.attempts,
+      durationMs: Date.now() - startedAt,
+      status: "completed",
+      metrics: result.metrics,
     });
     return;
   }
@@ -315,11 +413,27 @@ async function runStep(
     errorClass: result.errorClass,
     errorMessage: result.errorMessage,
   });
+  logWorkflow({
+    level: "error",
+    event: "step.failed",
+    runId,
+    branchId: branch.id,
+    branchType: branch.branchType,
+    stepId: step.id,
+    stepType: step.stepType,
+    attempt: result.attempts,
+    durationMs: Date.now() - startedAt,
+    status: nextStatus,
+    failureClass: result.errorClass,
+    message: result.errorMessage,
+    metrics: result.metrics,
+  });
 
   throw new Error(result.errorMessage ?? "Step failed");
 }
 
 async function runBranch(runId: string, branch: PillarResearchBranch): Promise<void> {
+  const startedAt = Date.now();
   if (branch.status === "completed" || branch.status === "cancelled") {
     return;
   }
@@ -335,6 +449,14 @@ async function runBranch(runId: string, branch: PillarResearchBranch): Promise<v
     branchId: branch.id,
     branchType: branch.branchType,
   });
+  logWorkflow({
+    level: "info",
+    event: "branch.started",
+    runId,
+    branchId: branch.id,
+    branchType: branch.branchType,
+    status: "running",
+  });
 
   while (true) {
     const next = await getNextRunnableStep(runId, branch);
@@ -348,6 +470,16 @@ async function runBranch(runId: string, branch: PillarResearchBranch): Promise<v
           branchId: branch.id,
           branchType: branch.branchType,
         });
+        logWorkflow({
+          level: "error",
+          event: "branch.failed",
+          runId,
+          branchId: branch.id,
+          branchType: branch.branchType,
+          status: "failed",
+          durationMs: Date.now() - startedAt,
+          message: "One or more steps failed",
+        });
         throw new Error(`Branch ${branch.id} failed`);
       }
 
@@ -356,6 +488,15 @@ async function runBranch(runId: string, branch: PillarResearchBranch): Promise<v
         publishWorkflowEvent(runId, "branch.completed", {
           branchId: branch.id,
           branchType: branch.branchType,
+        });
+        logWorkflow({
+          level: "info",
+          event: "branch.completed",
+          runId,
+          branchId: branch.id,
+          branchType: branch.branchType,
+          status: "completed",
+          durationMs: Date.now() - startedAt,
         });
         return;
       }
@@ -376,12 +517,23 @@ async function runBranch(runId: string, branch: PillarResearchBranch): Promise<v
         branchType: branch.branchType,
         error: message,
       });
+      logWorkflow({
+        level: "error",
+        event: "branch.failed",
+        runId,
+        branchId: branch.id,
+        branchType: branch.branchType,
+        status: "failed",
+        durationMs: Date.now() - startedAt,
+        message,
+      });
       throw error;
     }
   }
 }
 
 async function finalizeRun(runId: string): Promise<void> {
+  const startedAt = Date.now();
   const branches = await listBranchesByRun(runId);
   const allCompleted = branches.every((branch) => branch.status === "completed");
   const anyFailed = branches.some((branch) => branch.status === "failed");
@@ -390,20 +542,81 @@ async function finalizeRun(runId: string): Promise<void> {
   if (allCompleted) {
     await updateRunStatus(runId, "fan_in_pending");
     publishWorkflowEvent(runId, "run.fan_in_pending", {});
+
+    const validation = await validateBranchAggregateArtifacts(runId, branches);
+    if (!validation.valid) {
+      const errorSummary = validation.errors.join("; ");
+      await updateRunStatus(runId, "failed", errorSummary || "Fan-in validation failed");
+      publishWorkflowEvent(runId, "run.failed", {
+        error: errorSummary || "Fan-in validation failed",
+      });
+      logWorkflow({
+        level: "error",
+        event: "run.failed",
+        runId,
+        status: "failed",
+        durationMs: Date.now() - startedAt,
+        message: errorSummary || "Fan-in validation failed",
+      });
+      return;
+    }
+
+    try {
+      const finalPackage = await assembleFinalPillarPackage(runId, validation.artifactsByBranchId);
+      publishWorkflowEvent(runId, "run.package_assembled", {
+        artifactId: finalPackage.id,
+      });
+    } catch (error) {
+      const errorSummary = error instanceof Error ? error.message : "Final package assembly failed";
+      await updateRunStatus(runId, "failed", errorSummary);
+      publishWorkflowEvent(runId, "run.failed", { error: errorSummary });
+      logWorkflow({
+        level: "error",
+        event: "run.failed",
+        runId,
+        status: "failed",
+        durationMs: Date.now() - startedAt,
+        message: errorSummary,
+      });
+      return;
+    }
+
     await updateRunStatus(runId, "completed");
     publishWorkflowEvent(runId, "run.completed", {});
+    logWorkflow({
+      level: "info",
+      event: "run.completed",
+      runId,
+      status: "completed",
+      durationMs: Date.now() - startedAt,
+    });
     return;
   }
 
   if (anyCancelled) {
     await updateRunStatus(runId, "cancelled");
     publishWorkflowEvent(runId, "run.cancelled", {});
+    logWorkflow({
+      level: "warn",
+      event: "run.cancelled",
+      runId,
+      status: "cancelled",
+      durationMs: Date.now() - startedAt,
+    });
     return;
   }
 
   if (anyFailed) {
     await updateRunStatus(runId, "failed", "At least one branch failed");
     publishWorkflowEvent(runId, "run.failed", {});
+    logWorkflow({
+      level: "error",
+      event: "run.failed",
+      runId,
+      status: "failed",
+      durationMs: Date.now() - startedAt,
+      message: "At least one branch failed",
+    });
   }
 }
 
@@ -434,7 +647,47 @@ async function orchestrateRun(runId: string): Promise<void> {
   }
 }
 
+async function resetBranchStepsForReplay(
+  runId: string,
+  branch: PillarResearchBranch,
+  replayFromStepId?: string,
+  reason?: string
+): Promise<void> {
+  const steps = sortStepsForBranch(
+    branch.branchType,
+    (await listStepsByRun(runId)).filter((step) => step.branchId === branch.id)
+  );
+  if (steps.length === 0) {
+    return;
+  }
+  const replayFromIndex = replayFromStepId
+    ? steps.findIndex((step) => step.id === replayFromStepId)
+    : 0;
+  if (replayFromStepId && replayFromIndex < 0) {
+    throw new Error("Replay start step not found in branch");
+  }
+  const from = Math.max(0, replayFromIndex);
+  for (let idx = from; idx < steps.length; idx += 1) {
+    const step = steps[idx];
+    const dependencyInReplayWindow = step.dependsOnStepIds.some((depId) => {
+      const depIndex = steps.findIndex((candidate) => candidate.id === depId);
+      return depIndex >= from;
+    });
+    await upsertStep({
+      ...step,
+      status: dependencyInReplayWindow ? "blocked" : "pending",
+      attempt: 0,
+      completedAt: undefined,
+      lastError: undefined,
+      tokenUsage: undefined,
+      replayedFromStepId: replayFromStepId,
+      replayReason: reason,
+    });
+  }
+}
+
 export async function startRunOrchestration(runId: string): Promise<StartOrchestrationResult> {
+  ensureDefaultStepHandlersRegistered();
   const run = await getWorkflowRun(runId);
   if (!run) {
     throw new Error("Run not found");
@@ -451,6 +704,12 @@ export async function startRunOrchestration(runId: string): Promise<StartOrchest
   if (run.status === "created") {
     await updateRunStatus(runId, "branches_running");
     publishWorkflowEvent(runId, "run.started", {});
+    logWorkflow({
+      level: "info",
+      event: "run.started",
+      runId,
+      status: "branches_running",
+    });
   }
 
   queueMicrotask(() => {
@@ -459,6 +718,13 @@ export async function startRunOrchestration(runId: string): Promise<StartOrchest
       await updateRunStatus(runId, "failed", message);
       publishWorkflowEvent(runId, "run.failed", {
         error: message,
+      });
+      logWorkflow({
+        level: "error",
+        event: "run.failed",
+        runId,
+        status: "failed",
+        message,
       });
     });
   });
@@ -475,6 +741,7 @@ export async function retryRunTarget(
   runId: string,
   target: RetryTarget
 ): Promise<{ accepted: boolean }> {
+  ensureDefaultStepHandlersRegistered();
   const run = await getWorkflowRun(runId);
   if (!run) {
     throw new Error("Run not found");
@@ -487,6 +754,7 @@ export async function retryRunTarget(
     throw new Error("Either stepId or branchId is required");
   }
 
+  const replayAt = new Date().toISOString();
   if (target.stepId) {
     const step = await getStepById(target.stepId);
     if (!step || step.runId !== runId) {
@@ -499,43 +767,88 @@ export async function retryRunTarget(
     await upsertStep({
       ...step,
       status: "pending",
+      attempt: 0,
+      completedAt: undefined,
       lastError: undefined,
+      replayReason: target.reason,
+      replayedFromStepId: target.replayFromStepId,
+      tokenUsage: undefined,
     });
     const branch = await getBranchById(step.branchId);
-    if (branch && branch.status === "failed") {
-      await setBranchStatus(branch.id, "retrying");
-      await setBranchStatus(branch.id, "running");
+    if (branch && (branch.status === "failed" || branch.status === "retrying")) {
+      await upsertBranch({
+        ...branch,
+        status: "running",
+        lastError: undefined,
+        lastReplayAt: replayAt,
+        replayFromStepId: target.replayFromStepId ?? step.id,
+      });
     }
     await updateRunStatus(runId, "branches_running");
+    await updateRunReplayMetadata(runId, {
+      lastReplayAt: replayAt,
+      lastReplayReason: target.reason,
+    });
     publishWorkflowEvent(runId, "retry.accepted", {
       stepId: target.stepId,
+      reason: target.reason,
+      requestedBy: target.requestedBy,
+    });
+    logWorkflow({
+      level: "warn",
+      event: "retry.accepted",
+      runId,
+      branchId: step.branchId,
+      stepId: target.stepId,
+      status: "accepted",
+      message: target.reason,
+      metrics: {
+        requestedBy: target.requestedBy ?? "",
+      },
     });
   } else if (target.branchId) {
     const branch = await getBranchById(target.branchId);
     if (!branch || branch.runId !== runId) {
       throw new Error("Branch not found");
     }
-    if (branch.status !== "failed") {
+    if (branch.status !== "failed" && branch.status !== "retrying") {
       throw new Error("Only failed branches can be retried");
     }
-    await setBranchStatus(branch.id, "retrying");
 
-    const steps = (await listStepsByRun(runId)).filter((step) => step.branchId === branch.id);
-    for (const step of steps) {
-      if (step.status === "failed" || step.status === "blocked") {
-        await upsertStep({
-          ...step,
-          status: step.dependsOnStepIds.length > 0 ? "blocked" : "pending",
-          lastError: undefined,
-        });
-      }
-    }
-    await setBranchStatus(branch.id, "running");
+    await resetBranchStepsForReplay(runId, branch, target.replayFromStepId, target.reason);
+    await upsertBranch({
+      ...branch,
+      status: "running",
+      lastError: undefined,
+      lastReplayAt: replayAt,
+      replayFromStepId: target.replayFromStepId,
+    });
     await updateRunStatus(runId, "branches_running");
+    await updateRunReplayMetadata(runId, {
+      lastReplayAt: replayAt,
+      lastReplayReason: target.reason,
+    });
     publishWorkflowEvent(runId, "retry.accepted", {
       branchId: target.branchId,
+      replayFromStepId: target.replayFromStepId,
+      reason: target.reason,
+      requestedBy: target.requestedBy,
+    });
+    logWorkflow({
+      level: "warn",
+      event: "retry.accepted",
+      runId,
+      branchId: target.branchId,
+      status: "accepted",
+      message: target.reason,
+      metrics: {
+        replayFromStepId: target.replayFromStepId ?? "",
+        requestedBy: target.requestedBy ?? "",
+      },
     });
   }
+
+  await updateRunStatus(runId, "branches_running", undefined);
 
   queueMicrotask(() => {
     void orchestrateRun(runId).catch(async (error) => {
@@ -544,10 +857,69 @@ export async function retryRunTarget(
       publishWorkflowEvent(runId, "run.failed", {
         error: message,
       });
+      logWorkflow({
+        level: "error",
+        event: "run.failed",
+        runId,
+        status: "failed",
+        message,
+      });
     });
   });
 
   return { accepted: true };
+}
+
+export async function getRunDiagnostics(runId: string): Promise<{
+  run: Awaited<ReturnType<typeof getWorkflowRun>>;
+  branches: Awaited<ReturnType<typeof listBranchesByRun>>;
+  steps: Awaited<ReturnType<typeof listStepsByRun>>;
+  logs: ReturnType<typeof listWorkflowLogs>;
+}> {
+  const run = await getWorkflowRun(runId);
+  if (!run) {
+    throw new Error("Run not found");
+  }
+  const [branches, steps] = await Promise.all([
+    listBranchesByRun(runId),
+    listStepsByRun(runId),
+  ]);
+  return {
+    run,
+    branches,
+    steps,
+    logs: listWorkflowLogs(runId),
+  };
+}
+
+export async function listFailedRunsWithDiagnostics(): Promise<
+  Array<{
+    runId: string;
+    startedAt: string;
+    errorSummary?: string;
+    failedBranchCount: number;
+    failedStepCount: number;
+    lastReplayAt?: string;
+  }>
+> {
+  const runs = await listWorkflowRuns("failed");
+  const entries = await Promise.all(
+    runs.map(async (run) => {
+      const [branches, steps] = await Promise.all([
+        listBranchesByRun(run.id),
+        listStepsByRun(run.id),
+      ]);
+      return {
+        runId: run.id,
+        startedAt: run.startedAt,
+        errorSummary: run.errorSummary,
+        failedBranchCount: branches.filter((branch) => branch.status === "failed").length,
+        failedStepCount: steps.filter((step) => step.status === "failed").length,
+        lastReplayAt: run.lastReplayAt,
+      };
+    })
+  );
+  return entries.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 }
 
 export function registerWorkflowStepHandler(stepType: string, handler: StepHandler): void {
@@ -556,4 +928,5 @@ export function registerWorkflowStepHandler(stepType: string, handler: StepHandl
 
 export function _clearWorkflowStepHandlers(): void {
   stepHandlers.clear();
+  defaultStepHandlersRegistered = false;
 }

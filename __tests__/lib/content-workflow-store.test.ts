@@ -7,7 +7,10 @@ import {
   getRunByIdempotencyKey,
   getWorkflowSnapshot,
   listBranchesByRun,
+  listWorkflowRuns,
   setBranchStatus,
+  setStepStatus,
+  updateRunReplayMetadata,
   updateRunStatus,
   upsertStep,
 } from "@/lib/content-workflow-store";
@@ -69,6 +72,59 @@ describe("content workflow store", () => {
     );
   });
 
+  it("supports retry transition from failed to branches_running", async () => {
+    const { run } = await createWorkflowRun({
+      inputType: "use_case",
+      inputValue: "retry path",
+      createdBy: "tester",
+    });
+
+    await updateRunStatus(run.id, "failed", "forced failure");
+    const retried = await updateRunStatus(run.id, "branches_running");
+
+    expect(retried?.status).toBe("branches_running");
+  });
+
+  it("enforces branch and step transition validity", async () => {
+    const { run } = await createWorkflowRun({
+      inputType: "topic_theme",
+      inputValue: "transition rails",
+      createdBy: "tester",
+    });
+
+    const [branch] = await listBranchesByRun(run.id);
+    expect(branch).toBeTruthy();
+
+    await setBranchStatus(branch.id, "running");
+    await setBranchStatus(branch.id, "failed", "forced failure");
+    await setBranchStatus(branch.id, "retrying");
+    await setBranchStatus(branch.id, "running");
+
+    await expect(setBranchStatus(branch.id, "pending")).rejects.toThrow(
+      "Invalid branch status transition"
+    );
+
+    const step = await upsertStep({
+      id: "step-transition-1",
+      runId: run.id,
+      branchId: branch.id,
+      stepType: "A1",
+      status: "blocked",
+      dependsOnStepIds: [],
+      attempt: 0,
+      maxRetries: 3,
+      startedAt: new Date().toISOString(),
+    });
+
+    await setStepStatus(step.id, "pending");
+    await setStepStatus(step.id, "running");
+    await setStepStatus(step.id, "completed");
+
+    await expect(setStepStatus(step.id, "retrying")).rejects.toThrow(
+      "Invalid step status transition"
+    );
+  });
+
   it("cancels active branches and steps", async () => {
     const { run } = await createWorkflowRun({
       inputType: "topic_theme",
@@ -97,5 +153,32 @@ describe("content workflow store", () => {
     expect(snapshot?.run.status).toBe("cancelled");
     expect(snapshot?.branches.some((b) => b.status === "cancelled")).toBe(true);
     expect(snapshot?.steps.some((s) => s.status === "cancelled")).toBe(true);
+  });
+
+  it("lists runs and updates replay metadata", async () => {
+    const first = await createWorkflowRun({
+      inputType: "use_case",
+      inputValue: "theme 1",
+      createdBy: "tester",
+      idempotencyKey: "list-runs-1",
+    });
+    const second = await createWorkflowRun({
+      inputType: "topic_theme",
+      inputValue: "theme 2",
+      createdBy: "tester",
+      idempotencyKey: "list-runs-2",
+    });
+    await updateRunStatus(second.run.id, "branches_running");
+    await updateRunReplayMetadata(second.run.id, {
+      lastReplayAt: "2026-03-17T00:00:00.000Z",
+      lastReplayReason: "manual replay",
+    });
+
+    const allRuns = await listWorkflowRuns();
+    expect(allRuns.length).toBeGreaterThanOrEqual(2);
+    const replayed = allRuns.find((run) => run.id === second.run.id);
+    expect(replayed?.lastReplayReason).toBe("manual replay");
+    const createdRuns = await listWorkflowRuns("created");
+    expect(createdRuns.some((run) => run.id === first.run.id)).toBe(true);
   });
 });

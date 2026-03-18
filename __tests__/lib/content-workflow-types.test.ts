@@ -38,6 +38,36 @@ describe("content workflow type validation", () => {
     expect(isTerminalRunStatus("cancelled")).toBe(true);
   });
 
+  it("rejects invalid run transitions", () => {
+    expect(canTransitionRunStatus("completed", "failed")).toBe(false);
+    expect(canTransitionRunStatus("completed", "branches_running")).toBe(false);
+    expect(canTransitionRunStatus("failed", "completed")).toBe(false);
+    expect(canTransitionRunStatus("failed", "cancelled")).toBe(false);
+    expect(canTransitionRunStatus("cancelled", "created")).toBe(false);
+  });
+
+  it("allows valid retry transition: failed -> branches_running", () => {
+    expect(canTransitionRunStatus("failed", "branches_running")).toBe(true);
+  });
+
+  it("rejects invalid branch transitions", () => {
+    expect(canTransitionBranchStatus("completed", "running")).toBe(false);
+    expect(canTransitionBranchStatus("failed", "running")).toBe(false);
+    expect(canTransitionBranchStatus("completed", "retrying")).toBe(false);
+    expect(canTransitionBranchStatus("cancelled", "pending")).toBe(false);
+  });
+
+  it("allows valid retry transition: failed -> retrying (branch)", () => {
+    expect(canTransitionBranchStatus("failed", "retrying")).toBe(true);
+  });
+
+  it("rejects invalid step transitions", () => {
+    expect(canTransitionStepStatus("completed", "retrying")).toBe(false);
+    expect(canTransitionStepStatus("failed", "running")).toBe(false);
+    expect(canTransitionStepStatus("failed", "retrying")).toBe(false);
+    expect(canTransitionStepStatus("cancelled", "pending")).toBe(false);
+  });
+
   it("enforces branch and step transition rails", () => {
     expect(canTransitionBranchStatus("pending", "running")).toBe(true);
     expect(canTransitionBranchStatus("completed", "running")).toBe(false);
@@ -83,5 +113,21 @@ describe("content workflow type validation", () => {
 
     expect(result.valid).toBe(false);
     expect(result.errors.length).toBeGreaterThan(0);
+  });
+
+  it("rejects invalid artifactType", () => {
+    const result = validateArtifactFields({
+      artifactType: "invalid_type" as never,
+      name: "test",
+      version: 1,
+      contentRef: "object://test",
+      lineage: {
+        parentArtifactIds: [],
+        producedByRunId: "run-1",
+      },
+    });
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.join(" ")).toContain("artifactType must be one of");
   });
 });

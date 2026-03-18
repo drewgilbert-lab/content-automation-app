@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: March 3, 2026
+> Last updated: March 17, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.
@@ -563,6 +563,36 @@ The upload session store (`lib/upload-session.ts`) originally used an in-memory 
 
 ---
 
+## ADR-018: Content Workflow Telemetry and Metrics (CW18)
+
+**Status:** Decided (implemented)
+
+**Context:**
+The content workflow orchestration (Group Content Workflow) needs structured observability for run/branch/step lifecycle, failure diagnostics, and operational dashboards. Long-running workflows require logs and metrics without blocking execution.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| External logging service (Datadog, LogDNA) | Full-featured; adds dependency and cost; overkill for Phase 1 |
+| Structured JSON to stdout + in-memory aggregation | Simple; works in serverless; no new infra; logs visible in Vercel/Railway |
+| Redis-backed log store | Persistent; requires Redis; adds latency and complexity |
+
+**Decision:** Structured JSON logs to stdout with `scope: "content-workflow"`, plus in-memory per-run log aggregation (`globalThis`) for diagnostics API. Metrics snapshot computed on demand from run/branch/step store.
+
+**Rationale:**
+- stdout logs are captured by Vercel/Railway and can be shipped to external log aggregators later
+- In-memory aggregation is sufficient for single-instance dev and low-volume Phase 1; aligns with ADR-012 pattern
+- Metrics snapshot (`GET /api/content-workflow/metrics`) aggregates from durable run store — no separate metrics DB
+- `GET /api/content-workflow/runs/failed` and `GET /api/content-workflow/runs/:id/diagnostics` provide dead-letter and replay tooling
+
+**Implications:**
+- `lib/content-workflow-telemetry.ts` provides `logWorkflow()`, `listWorkflowLogs()`, `getWorkflowMetricsSnapshot()`
+- Log entries include `runId`, `branchId`, `stepId`, `event`, `level`, `durationMs`, `failureClass`, `metrics`
+- Platform-wide structured logging (Group V) may later replace or augment this workflow-specific approach
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -584,6 +614,7 @@ The upload session store (`lib/upload-session.ts`) originally used an in-memory 
 | ADR-015 | MCP Server Architecture (J1-J4) | Mar 2026 | Decided (implemented) |
 | ADR-016 | `force-dynamic` on Data-Fetching Pages | Mar 2026 | Decided (implemented) |
 | ADR-017 | Upload Session Store — Redis Migration | Mar 2026 | Decided (implemented) |
+| ADR-018 | Content Workflow Telemetry and Metrics (CW18) | Mar 2026 | Decided (implemented) |
 
 ---
 

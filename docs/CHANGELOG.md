@@ -4,6 +4,100 @@
 
 ---
 
+### Content Workflow CW20–CW21 — Test Matrix and Documentation — March 17, 2026
+
+**CW20 — Test matrix (unit/integration/e2e):**
+- Added CW20 test matrix coverage in content workflow test files: lifecycle transitions, retries, branch isolation, fan-in validation, artifact type validation, and lineage integrity.
+- All content-workflow tests pass.
+
+**CW21 — Documentation updates:**
+- Marked CW20 and CW21 complete in `docs/roadmap/group-content-workflow.md` with action-level completion markers.
+- Updated `docs/roadmap/README.md`: Content Workflow status now reflects CW20–CW21 done with CW11–CW19 still pending in roadmap tracking.
+- Updated `docs/API.md`: Content Workflow routes header CW1–CW21; added test matrix status note.
+- Updated `docs/BUSINESS_LOGIC.md`: CW20/CW21 test and validation coverage note; refreshed last-updated.
+- Updated `docs/CHANGELOG.md` (this entry).
+
+**User guide update:** N/A — Content workflow is internal orchestration; no end-user UI or user guide exists yet.
+
+---
+
+### Content Workflow CW17–CW19 — Budget Enforcement, Telemetry, Failure Operations — March 17, 2026
+
+**CW17 — Context/token budget enforcement:**
+- Added `lib/content-workflow-budget.ts` with `TokenBudgetPolicy`, `BudgetExceedPolicy` (truncate/summarize/fail), `enforceTextBudget()`, `enforceArtifactOutputBudget()`.
+- Step-level and artifact-level token budgets with per-type policies.
+- Extended `lib/content-workflow-types.ts` with step token budget/usage and replay metadata fields.
+- Extended `lib/content-workflow-artifacts.ts` with artifact output budget enforcement metadata.
+- Orchestrator and executor propagate execution metrics and enforce step budgets.
+
+**CW18 — Structured logging and metrics:**
+- Added `lib/content-workflow-telemetry.ts` with `logWorkflow()`, `listWorkflowLogs()`, `getWorkflowMetricsSnapshot()`.
+- Structured JSON logs to stdout with `scope: "content-workflow"`; in-memory per-run aggregation for diagnostics.
+- Added `GET /api/content-workflow/metrics` returning active runs by status, average duration, branch failure rates, top failing steps, token usage by branch.
+
+**CW19 — Failure operations and replay tools:**
+- Added `GET /api/content-workflow/runs/failed` listing failed runs with diagnostics.
+- Added `GET /api/content-workflow/runs/[id]/diagnostics` returning failed branches, failed steps, and logs.
+- Extended `POST /api/content-workflow/runs/[id]/retry` to accept `replayFromStepId`, `reason`, `requestedBy` for replay-from-checkpoint and audit metadata.
+- Store: `listWorkflowRuns()`, `updateRunReplayMetadata()` for replay support.
+
+**Documentation:** `docs/roadmap/group-content-workflow.md` (CW17–CW19 marked complete), `docs/roadmap/README.md`, `docs/API.md` (metrics, failed, diagnostics, retry payload), `docs/BUSINESS_LOGIC.md` (budget policy), `docs/TECH_DECISIONS.md` (ADR-018 workflow telemetry), `docs/CHANGELOG.md`.
+- User guide update: N/A (internal orchestration APIs; no end-user UI for content workflow yet).
+
+---
+
+### Content Workflow CW14–CW16 — Fan-In Validation, Final Package Assembly, Package API — March 17, 2026
+
+**CW14 — Branch aggregate validators:**
+- Added `lib/content-workflow-validators.ts` with `validateBranchAggregateArtifacts()`.
+- Strict validation before fan-in: each branch must have its required aggregate artifact (functionality_content_brief, competitor_persona_messaging_content_brief, market_content_brief).
+- Returns explicit error summary on validation failure.
+
+**CW15 — Final package assembler:**
+- Added `lib/content-workflow-assembler.ts` with `assembleFinalPillarPackage()` and `getLatestFinalPillarPackage()`.
+- Persists `final_pillar_package` artifact with lineage `parentArtifactIds` pointing to the three branch aggregates.
+- Payload includes `functionalityBriefRef`, `personaMessagingBriefRef`, `marketBriefRef`, and `finalAggregationRef`.
+
+**CW16 — Downstream handoff contract:**
+- Orchestrator `finalizeRun` validates branch aggregates, assembles package, fails with explicit error summary on validation/assembly failure, and emits `run.package_assembled` event.
+- Added `GET /api/content-workflow/runs/[id]/package` returning latest final package payload + artifact metadata for downstream workflows (e.g. Group R narratives).
+
+**Testing:**
+- Added `__tests__/lib/content-workflow-validators.test.ts`, `__tests__/lib/content-workflow-assembler.test.ts`.
+- Updated orchestrator and content-workflow API tests.
+
+**Documentation:** `docs/roadmap/group-content-workflow.md` (CW14–CW16 marked complete), `docs/API.md` (package endpoint), `docs/BUSINESS_LOGIC.md` (fan-in validation, assembly, handoff), `docs/CHANGELOG.md`.
+- User guide update: N/A (internal orchestration; no end-user UI for content workflow yet).
+
+---
+
+### Content Workflow CW11–CW13 — Branch Implementations — March 17, 2026
+
+**CW11 — Branch A (competitor functionality):**
+- Added `lib/content-workflow-branches.ts` with concrete step handlers for transcript/shared extraction, competitor fan-out (concurrency limit 5), and branch aggregate creation.
+- Branch A flow: transcript research → extraction → per-competitor jobs → aggregate functionality brief.
+
+**CW12 — Branch B (competitor personas + messaging):**
+- Implemented end-to-end B flow with branch-specific template family.
+- Per-competitor persona/messaging research and aggregate brief creation.
+
+**CW13 — Branch C (market research):**
+- Implemented market workflow as independent branch.
+- Market branch draft/final brief flow.
+
+**Orchestrator updates:**
+- Updated `lib/content-workflow-orchestrator.ts` to auto-register default branch step handlers on start/retry.
+- Reset handler registration on `_clearWorkflowStepHandlers`.
+
+**Testing:**
+- Added `__tests__/lib/content-workflow-branches.test.ts`.
+- Updated `__tests__/lib/content-workflow-orchestrator.test.ts`.
+
+**Documentation:** `docs/roadmap/group-content-workflow.md` (CW11–CW13 marked complete), `docs/roadmap/README.md`, `docs/CHANGELOG.md`.
+- User guide update: N/A (internal orchestration; no end-user UI for content workflow yet).
+
+---
+
 ### Content Workflow CW8–CW10 — Orchestration Core — March 17, 2026
 
 **CW8 — Parent run orchestrator (`lib/content-workflow-orchestrator.ts`):**

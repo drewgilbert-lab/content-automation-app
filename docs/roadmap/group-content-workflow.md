@@ -452,10 +452,10 @@ Add branch rerun, step replay, and dead-letter diagnostics.
 
 ## Phase 7 - Testing and Documentation
 
-**CW20 - Test matrix (unit/integration/e2e)**  
+**CW20 - Test matrix (unit/integration/e2e)** — ✅ Done (2026-03-17)  
 Cover all lifecycle transitions, retries, branch isolation, fan-in correctness, artifact-type validation, and artifact lineage integrity.
 
-**CW21 - Documentation updates**  
+**CW21 - Documentation updates** — ✅ Done (2026-03-17)  
 Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user guides, including explicit `artifactType` and `contentType` policy.
 
 ## Taxonomy Acceptance Criteria
@@ -474,10 +474,14 @@ Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user gui
 | `POST` | `/api/content-workflow/runs` | Create parent run from Step 1 input | Implemented |
 | `GET` | `/api/content-workflow/runs/:id` | Get full run status and branch states | Implemented |
 | `GET` | `/api/content-workflow/runs/:id/status` | Get run status summary (branch/step counts, artifact count) | Implemented |
+| `GET` | `/api/content-workflow/runs/:id/package` | Get latest final pillar package payload + artifact metadata | Implemented |
 | `POST` | `/api/content-workflow/runs/:id/cancel` | Cancel run and active branches | Implemented |
 | `POST` | `/api/content-workflow/runs/:id/start` | Start orchestration (or auto-start on create) | Implemented |
 | `GET` | `/api/content-workflow/runs/:id/events` | SSE stream for progress | Implemented |
-| `POST` | `/api/content-workflow/runs/:id/retry` | Retry failed branch/step according to policy | Implemented |
+| `POST` | `/api/content-workflow/runs/:id/retry` | Retry failed branch/step (supports replayFromStepId, reason, requestedBy) | Implemented |
+| `GET` | `/api/content-workflow/metrics` | Get workflow metrics snapshot (active runs, failure rates, token usage) | Implemented |
+| `GET` | `/api/content-workflow/runs/failed` | List failed runs with diagnostics | Implemented |
+| `GET` | `/api/content-workflow/runs/:id/diagnostics` | Get run diagnostics (failed branches/steps, logs) | Implemented |
 
 ## Risks and Gaps
 

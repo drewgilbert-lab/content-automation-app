@@ -86,4 +86,58 @@ describe("content workflow executor", () => {
     expect(result.errorClass).toBe("deterministic");
     expect(result.attempts).toBe(1);
   });
+
+  it("exhausts retries and returns failure when all attempts fail", async () => {
+    const execute = vi
+      .fn()
+      .mockRejectedValue(Object.assign(new Error("network unavailable"), { retryable: true }));
+
+    const result = await executeWithPolicy(
+      {
+        runId: "run-1",
+        branchId: "branch-1",
+        step,
+      },
+      {
+        timeoutMs: 500,
+        maxRetries: 2,
+        baseDelayMs: 1,
+      },
+      execute
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.errorClass).toBe("retryable");
+    expect(result.attempts).toBe(3);
+    expect(execute).toHaveBeenCalledTimes(3);
+  });
+
+  it("applies exponential backoff between retry attempts", async () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, "setTimeout");
+    const execute = vi
+      .fn()
+      .mockRejectedValueOnce(Object.assign(new Error("network"), { retryable: true }))
+      .mockRejectedValueOnce(Object.assign(new Error("rate limit"), { retryable: true }))
+      .mockResolvedValueOnce(undefined);
+
+    const result = await executeWithPolicy(
+      {
+        runId: "run-1",
+        branchId: "branch-1",
+        step,
+      },
+      {
+        timeoutMs: 500,
+        maxRetries: 3,
+        baseDelayMs: 5,
+      },
+      execute
+    );
+
+    expect(result.success).toBe(true);
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 5);
+    expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 10);
+
+    setTimeoutSpy.mockRestore();
+  });
 });

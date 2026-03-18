@@ -4,6 +4,7 @@ import {
   type PillarResearchArtifact,
   validateArtifactFields,
 } from "./content-workflow-types";
+import { enforceArtifactOutputBudget } from "./content-workflow-budget";
 
 const ARTIFACT_KEY_PREFIX = "content-workflow:artifact:";
 const RUN_ARTIFACT_INDEX_PREFIX = "content-workflow:run-artifacts:";
@@ -98,11 +99,13 @@ export type CreateArtifactInput<T extends ArtifactType = ArtifactType> = Omit<
 export async function createArtifact<T extends ArtifactType>(
   input: CreateArtifactInput<T>
 ): Promise<PillarResearchArtifact<T>> {
-  const artifact: PillarResearchArtifact<T> = {
+  const artifactBase: PillarResearchArtifact<T> = {
     ...input,
     id: input.id ?? crypto.randomUUID(),
     createdAt: input.createdAt ?? new Date().toISOString(),
   };
+  const enforced = enforceArtifactOutputBudget(artifactBase);
+  const artifact = enforced.artifact;
 
   const validation = validateArtifactFields(
     artifact as Partial<PillarResearchArtifact>

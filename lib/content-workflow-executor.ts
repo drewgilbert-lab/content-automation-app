@@ -20,6 +20,7 @@ export interface ExecutionResult {
   attempts: number;
   errorClass?: WorkflowErrorClass;
   errorMessage?: string;
+  metrics?: Record<string, number | string | boolean>;
 }
 
 export interface StepExecutionError extends Error {
@@ -68,10 +69,11 @@ function delay(ms: number): Promise<void> {
 export async function executeWithPolicy(
   context: Omit<StepExecutionContext, "attempt">,
   policy: WorkflowExecutionPolicy,
-  execute: (ctx: StepExecutionContext) => Promise<void>
+  execute: (ctx: StepExecutionContext) => Promise<Record<string, number | string | boolean> | void>
 ): Promise<ExecutionResult> {
   let attempt = 1;
   let lastError: unknown = null;
+  let lastMetrics: Record<string, number | string | boolean> | undefined;
 
   while (attempt <= policy.maxRetries + 1) {
     try {
@@ -80,10 +82,13 @@ export async function executeWithPolicy(
           ...context,
           attempt,
         })
-      );
+      ).then((metrics) => {
+        lastMetrics = metrics ?? undefined;
+      });
       return {
         success: true,
         attempts: attempt,
+        metrics: lastMetrics,
       };
     } catch (error) {
       lastError = error;
@@ -108,5 +113,6 @@ export async function executeWithPolicy(
     attempts: policy.maxRetries + 1,
     errorClass: classifyExecutionError(lastError),
     errorMessage: lastError instanceof Error ? lastError.message : "Step execution failed",
+    metrics: lastMetrics,
   };
 }

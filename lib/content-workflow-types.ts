@@ -31,6 +31,12 @@ export const BRANCH_TYPES = [
 
 export type BranchType = (typeof BRANCH_TYPES)[number];
 
+export const BRANCH_AGGREGATE_ARTIFACT_TYPES = {
+  competitor_functionality: "functionality_content_brief",
+  competitor_persona_messaging: "competitor_persona_messaging_content_brief",
+  market_research: "market_content_brief",
+} as const satisfies Record<BranchType, ArtifactType>;
+
 export const BRANCH_STATUSES = [
   "pending",
   "running",
@@ -67,6 +73,8 @@ export interface PillarResearchRun {
   completedAt?: string;
   idempotencyKey: string;
   errorSummary?: string;
+  lastReplayAt?: string;
+  lastReplayReason?: string;
 }
 
 export interface PillarResearchBranch {
@@ -79,6 +87,23 @@ export interface PillarResearchBranch {
   startedAt: string;
   completedAt?: string;
   lastError?: string;
+  lastReplayAt?: string;
+  replayFromStepId?: string;
+}
+
+export type BudgetExceedPolicy = "truncate" | "summarize" | "fail";
+
+export interface StepTokenBudget {
+  maxInputTokens: number;
+  maxOutputTokens: number;
+  onExceed: BudgetExceedPolicy;
+}
+
+export interface StepTokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  outputTokensOriginal?: number;
+  budgetAdjustedOutput?: boolean;
 }
 
 export interface PillarResearchStep {
@@ -93,6 +118,10 @@ export interface PillarResearchStep {
   startedAt: string;
   completedAt?: string;
   lastError?: string;
+  tokenBudget?: StepTokenBudget;
+  tokenUsage?: StepTokenUsage;
+  replayedFromStepId?: string;
+  replayReason?: string;
 }
 
 export interface ExtractedEntitySetPayload {

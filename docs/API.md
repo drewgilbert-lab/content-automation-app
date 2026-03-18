@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 17, 2026 (CW1–CW10 implemented, K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 17, 2026 (CW1–CW21 implemented including full test matrix; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1233,11 +1233,11 @@ Activates, deactivates, deprecates, or restores a skill.
 
 ---
 
-## Content Workflow Routes (Group Content Workflow — CW1–CW10)
+## Content Workflow Routes (Group Content Workflow — CW1–CW21)
 
-**Status: Implemented**
+**Status: Implemented** — Full test matrix (lifecycle, retries, branch isolation, fan-in, artifact validation, lineage) passing.
 
-**Implementation files:** `app/api/content-workflow/runs/route.ts`, `app/api/content-workflow/runs/[id]/route.ts`, `app/api/content-workflow/runs/[id]/status/route.ts`, `app/api/content-workflow/runs/[id]/cancel/route.ts`, `app/api/content-workflow/runs/[id]/start/route.ts`, `app/api/content-workflow/runs/[id]/events/route.ts`, `app/api/content-workflow/runs/[id]/retry/route.ts`, `lib/content-workflow-orchestrator.ts`, `lib/content-workflow-executor.ts`, `lib/content-workflow-events.ts`
+**Implementation files:** `app/api/content-workflow/runs/route.ts`, `app/api/content-workflow/runs/[id]/route.ts`, `app/api/content-workflow/runs/[id]/status/route.ts`, `app/api/content-workflow/runs/[id]/package/route.ts`, `app/api/content-workflow/runs/[id]/cancel/route.ts`, `app/api/content-workflow/runs/[id]/start/route.ts`, `app/api/content-workflow/runs/[id]/events/route.ts`, `app/api/content-workflow/runs/[id]/retry/route.ts`, `app/api/content-workflow/metrics/route.ts`, `app/api/content-workflow/runs/failed/route.ts`, `app/api/content-workflow/runs/[id]/diagnostics/route.ts`, `lib/content-workflow-orchestrator.ts`, `lib/content-workflow-executor.ts`, `lib/content-workflow-events.ts`, `lib/content-workflow-validators.ts`, `lib/content-workflow-assembler.ts`, `lib/content-workflow-telemetry.ts`, `lib/content-workflow-budget.ts`
 
 ### POST /api/content-workflow/runs
 
@@ -1404,7 +1404,7 @@ Returns an SSE-formatted event stream payload for run lifecycle events (`run.*`,
 
 ### POST /api/content-workflow/runs/[id]/retry
 
-Retries failed execution targets by branch or step.
+Retries failed execution targets by branch or step. Supports replay-from-checkpoint with optional metadata.
 
 **Runtime:** `nodejs`
 
@@ -1415,7 +1415,10 @@ Retries failed execution targets by branch or step.
 ```json
 {
   "branchId": "string (optional; required if stepId not provided)",
-  "stepId": "string (optional; required if branchId not provided)"
+  "stepId": "string (optional; required if branchId not provided)",
+  "replayFromStepId": "string (optional — checkpoint step to replay from)",
+  "reason": "string (optional — reason for retry)",
+  "requestedBy": "string (optional — who requested the retry)"
 }
 ```
 
@@ -1431,6 +1434,134 @@ Retries failed execution targets by branch or step.
 | 404 | `{ "error": "Branch not found | Step not found | Run not found" }` | Resource not found |
 
 **Implementation:** `app/api/content-workflow/runs/[id]/retry/route.ts` → calls `retryRunTarget()` from `lib/content-workflow-orchestrator.ts`
+
+---
+
+### GET /api/content-workflow/metrics
+
+Returns a workflow metrics snapshot for operational dashboards.
+
+**Runtime:** `nodejs`
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "activeRunsByStatus": { "created": 0, "branches_running": 0, "completed": 0, "failed": 0, "cancelled": 0 },
+  "averageRunDurationMs": 0,
+  "branchFailureRates": { "functionality": 0, "persona_messaging": 0, "market": 0 },
+  "topFailingSteps": [{ "stepType": "string", "failureCount": 0 }],
+  "tokenUsageByBranch": { "branchId": 0 },
+  "failedRuns": 0,
+  "totalRuns": 0
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 500 | `{ "error": "Failed to fetch workflow metrics" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/metrics/route.ts` → calls `getWorkflowMetricsSnapshot()` from `lib/content-workflow-telemetry.ts`
+
+---
+
+### GET /api/content-workflow/runs/failed
+
+Lists all failed runs with diagnostics for dead-letter inspection.
+
+**Runtime:** `nodejs`
+
+**Response (success):**
+- Status: `200`
+- Body: `{ "count": number, "runs": FailedRunWithDiagnostics[] }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 500 | `{ "error": "Failed to list failed runs" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/runs/failed/route.ts` → calls `listFailedRunsWithDiagnostics()` from `lib/content-workflow-orchestrator.ts`
+
+---
+
+### GET /api/content-workflow/runs/[id]/diagnostics
+
+Returns run diagnostics: failed branches, failed steps, and structured logs for a specific run.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "run": { "id": "string", "status": "string", "errorSummary": "string", ... },
+  "failedBranches": [{ "id": "string", "branchType": "string", "status": "failed", "lastError": "string", ... }],
+  "failedSteps": [{ "id": "string", "stepType": "string", "status": "failed", ... }],
+  "logs": [{ "id": "string", "timestamp": "string", "level": "string", "event": "string", "message": "string", ... }]
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 500 | `{ "error": "Failed to fetch run diagnostics" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/diagnostics/route.ts` → calls `getRunDiagnostics()` from `lib/content-workflow-orchestrator.ts`
+
+---
+
+### GET /api/content-workflow/runs/[id]/package
+
+Returns the latest final pillar package for a completed run. Includes artifact metadata and payload with content refs for downstream workflows (e.g. Group R narratives).
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Run UUID
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "runId": "string",
+  "packageArtifact": {
+    "id": "string",
+    "name": "string",
+    "version": "number",
+    "artifactType": "final_pillar_package",
+    "contentRef": "string",
+    "createdAt": "string",
+    "lineage": { "parentArtifactIds": ["string"], "producedByRunId": "string" }
+  },
+  "payload": {
+    "functionalityBriefRef": "string",
+    "personaMessagingBriefRef": "string",
+    "marketBriefRef": "string",
+    "finalAggregationRef": "string"
+  }
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Run not found" }` | Run ID not found |
+| 404 | `{ "error": "Final package not found" }` | Run has no assembled final package |
+| 500 | `{ "error": "Failed to fetch run package" }` | Server error |
+
+**Implementation:** `app/api/content-workflow/runs/[id]/package/route.ts` → calls `getLatestFinalPillarPackage()` from `lib/content-workflow-assembler.ts`
 
 ---
 

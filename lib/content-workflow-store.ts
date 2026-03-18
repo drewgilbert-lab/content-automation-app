@@ -22,6 +22,7 @@ const STEP_KEY_PREFIX = `${STORE_KEY_PREFIX}step:`;
 const IDEMPOTENCY_KEY_PREFIX = `${STORE_KEY_PREFIX}idempotency:`;
 const RUN_BRANCH_INDEX_PREFIX = `${STORE_KEY_PREFIX}run-branches:`;
 const RUN_STEP_INDEX_PREFIX = `${STORE_KEY_PREFIX}run-steps:`;
+const RUN_INDEX_KEY = `${STORE_KEY_PREFIX}runs`;
 const RUN_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 let redis: Redis | null = null;
@@ -46,6 +47,7 @@ function getRedis(): Redis | null {
 
 interface InMemoryStore {
   runs: Map<string, PillarResearchRun>;
+  runIds: string[];
   branches: Map<string, PillarResearchBranch>;
   steps: Map<string, PillarResearchStep>;
   idempotency: Map<string, string>;
@@ -60,6 +62,7 @@ const g = globalThis as unknown as {
 if (!g.__contentWorkflowStore) {
   g.__contentWorkflowStore = {
     runs: new Map<string, PillarResearchRun>(),
+    runIds: [],
     branches: new Map<string, PillarResearchBranch>(),
     steps: new Map<string, PillarResearchStep>(),
     idempotency: new Map<string, string>(),
@@ -163,9 +166,13 @@ export async function createWorkflowRun(
   if (r) {
     await writeWithTtl(r, keyRun(run.id), run);
     await writeWithTtl(r, keyIdempotency(normalizedIdempotency), run.id);
+    await appendIndex(r, RUN_INDEX_KEY, run.id);
   } else {
     fallback.runs.set(run.id, run);
     fallback.idempotency.set(normalizedIdempotency, run.id);
+    if (!fallback.runIds.includes(run.id)) {
+      fallback.runIds.push(run.id);
+    }
   }
 
   await ensureDefaultBranches(run.id);
@@ -199,6 +206,31 @@ export async function getWorkflowRun(id: string): Promise<PillarResearchRun | nu
   return fallback.runs.get(id) ?? null;
 }
 
+export async function listWorkflowRuns(
+  status?: RunStatus
+): Promise<PillarResearchRun[]> {
+  const r = getRedis();
+  let runs: PillarResearchRun[] = [];
+  if (r) {
+    const ids = await readJsonArray(r, RUN_INDEX_KEY);
+    if (ids.length === 0) {
+      return [];
+    }
+    const records = await Promise.all(ids.map((id) => r.get<PillarResearchRun>(keyRun(id))));
+    runs = records.filter((run): run is PillarResearchRun => Boolean(run));
+  } else {
+    runs = fallback.runIds
+      .map((id) => fallback.runs.get(id))
+      .filter((run): run is PillarResearchRun => Boolean(run));
+  }
+
+  const ordered = runs.sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+  if (!status) {
+    return ordered;
+  }
+  return ordered.filter((run) => run.status === status);
+}
+
 export async function updateRunStatus(
   runId: string,
   nextStatus: RunStatus,
@@ -225,6 +257,28 @@ export async function updateRunStatus(
     fallback.runs.set(runId, updated);
   }
 
+  return updated;
+}
+
+export async function updateRunReplayMetadata(
+  runId: string,
+  metadata: { lastReplayAt: string; lastReplayReason?: string }
+): Promise<PillarResearchRun | null> {
+  const run = await getWorkflowRun(runId);
+  if (!run) {
+    return null;
+  }
+  const updated: PillarResearchRun = {
+    ...run,
+    lastReplayAt: metadata.lastReplayAt,
+    ...(metadata.lastReplayReason ? { lastReplayReason: metadata.lastReplayReason } : {}),
+  };
+  const r = getRedis();
+  if (r) {
+    await writeWithTtl(r, keyRun(runId), updated);
+  } else {
+    fallback.runs.set(runId, updated);
+  }
   return updated;
 }
 
@@ -429,6 +483,7 @@ export async function _clearWorkflowStore(): Promise<void> {
   }
 
   fallback.runs.clear();
+  fallback.runIds = [];
   fallback.branches.clear();
   fallback.steps.clear();
   fallback.idempotency.clear();

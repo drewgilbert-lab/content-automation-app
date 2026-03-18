@@ -25,7 +25,17 @@ export async function POST(
 
     const stepId = typeof body.stepId === "string" ? body.stepId : undefined;
     const branchId = typeof body.branchId === "string" ? body.branchId : undefined;
-    const result = await retryRunTarget(id, { stepId, branchId });
+    const replayFromStepId =
+      typeof body.replayFromStepId === "string" ? body.replayFromStepId : undefined;
+    const reason = typeof body.reason === "string" ? body.reason : undefined;
+    const requestedBy = typeof body.requestedBy === "string" ? body.requestedBy : undefined;
+    const result = await retryRunTarget(id, {
+      stepId,
+      branchId,
+      replayFromStepId,
+      reason,
+      requestedBy,
+    });
 
     return new Response(JSON.stringify(result), {
       status: 202,

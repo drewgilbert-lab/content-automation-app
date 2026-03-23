@@ -1,11 +1,11 @@
 import { getDashboardData } from "@/lib/dashboard";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("viewer");
     if (authResult instanceof Response) return authResult;
 
     const data = await getDashboardData();

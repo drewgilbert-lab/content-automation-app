@@ -2,14 +2,14 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { parseDocument } from "@/lib/document-parser";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     await params;

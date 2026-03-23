@@ -73,6 +73,7 @@ export interface SkillDetail {
   deprecated: boolean;
   createdAt: string;
   updatedAt: string;
+  updatedBy?: string;
   usageCount: number;
 }
 
@@ -104,6 +105,7 @@ export interface SkillUpdateInput {
   tags?: string[];
   category?: string;
   author?: string;
+  updatedBy?: string;
   sourceKnowledgeObjects?: SkillKnowledgeLink[];
 }
 

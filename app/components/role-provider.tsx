@@ -1,17 +1,19 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
-
-type Role = "admin" | "contributor";
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import type { UserRole } from "@/lib/user-types";
+import { hasMinimumRole } from "@/lib/user-types";
 
 interface RoleContextType {
-  role: Role;
-  setRole: (role: Role) => void;
+  role: UserRole;
+  loading: boolean;
+  hasRole: (minimumRole: UserRole) => boolean;
 }
 
 const RoleContext = createContext<RoleContextType>({
-  role: "admin",
-  setRole: () => {},
+  role: "viewer",
+  loading: true,
+  hasRole: () => false,
 });
 
 export function useRole() {
@@ -19,22 +21,36 @@ export function useRole() {
 }
 
 export function RoleProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>("admin");
+  const [role, setRole] = useState<UserRole>("viewer");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("content-engine-role");
-    if (stored === "admin" || stored === "contributor") {
-      setRoleState(stored);
+    let cancelled = false;
+    async function fetchRole() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled && data.role) {
+            setRole(data.role);
+          }
+        }
+      } catch {
+        // Fall back to viewer on error
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
+    fetchRole();
+    return () => { cancelled = true; };
   }, []);
 
-  const setRole = useCallback((newRole: Role) => {
-    setRoleState(newRole);
-    localStorage.setItem("content-engine-role", newRole);
-  }, []);
+  function hasRole(minimumRole: UserRole): boolean {
+    return hasMinimumRole(role, minimumRole);
+  }
 
   return (
-    <RoleContext.Provider value={{ role, setRole }}>
+    <RoleContext.Provider value={{ role, loading, hasRole }}>
       {children}
     </RoleContext.Provider>
   );

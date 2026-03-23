@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 23, 2026 (Group W Phase 1 authentication added; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 23, 2026 (Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -13,6 +13,8 @@ All internal routes below are relative to this base URL in production. The exter
 ### Internal API Routes (`/api/*` except `/api/v1/*`)
 
 All internal API routes require a valid Auth.js session. Unauthenticated requests receive a `401` JSON response. Each route handler calls `requireAuth()` from `lib/auth.ts` at the top of every handler.
+
+> All internal API routes enforce role-based access control via `requireRole()`. Minimum role requirements: viewer (read operations), contributor (create/edit, bulk upload), editor (review/approve submissions, AI merge), admin (user management, connected systems).
 
 ### External API Routes (`/api/v1/*`)
 
@@ -1899,6 +1901,34 @@ Rotates the API key for a connected system. Generates a new key, invalidates the
 | 500 | `{ "error": "Failed to rotate API key" }` | Server error |
 
 **Implementation:** `app/api/connections/[id]/rotate-key/route.ts` → calls `generateApiKey()` from `lib/api-auth.ts`
+
+---
+
+## Admin routes (Group W Phase 2)
+
+### Admin Routes
+
+#### `GET /api/admin/users`
+List all users. Requires `admin` role.
+
+**Response:** `{ users: UserRecord[] }`
+
+#### `GET /api/admin/users/[id]`
+Get a single user by ID. Requires `admin` role.
+
+**Response:** `{ user: UserRecord }`
+
+#### `PATCH /api/admin/users/[id]`
+Update a user's role or active status. Requires `admin` role. Admins cannot modify their own role.
+
+**Request body:** `{ role?: "admin" | "editor" | "contributor" | "viewer", active?: boolean }`
+
+**Response:** `{ user: UserRecord }`
+
+#### `GET /api/auth/me`
+Get the current authenticated user's info. No minimum role required (any authenticated user).
+
+**Response:** `{ id, email, name, role, active }`
 
 ---
 

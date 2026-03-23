@@ -203,6 +203,14 @@ export function SubmissionReview({
               <p className="text-sm text-gray-400">{formatDate(submission.reviewedAt)}</p>
             </div>
           )}
+          {submission.status !== "pending" && submission.reviewedBy && (
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                Reviewed By
+              </p>
+              <p className="mt-1 text-sm text-gray-300">{submission.reviewedBy}</p>
+            </div>
+          )}
           {submission.sourceChannel && (
             <div>
               <p className="text-sm font-medium text-gray-300">Source</p>

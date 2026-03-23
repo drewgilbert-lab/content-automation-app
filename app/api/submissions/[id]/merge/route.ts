@@ -10,14 +10,14 @@ import {
   buildSkillRefreshPrompt,
 } from "@/lib/merge";
 import { streamMessage } from "@/lib/claude";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("editor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;

@@ -30,6 +30,8 @@ function personaSchema(): CollectionConfig {
       { name: "sourceFile", dataType: dataType.TEXT },
       { name: "createdAt", dataType: dataType.DATE },
       { name: "updatedAt", dataType: dataType.DATE },
+      { name: "createdBy", dataType: dataType.TEXT },
+      { name: "updatedBy", dataType: dataType.TEXT },
     ],
   };
 }
@@ -46,6 +48,8 @@ function segmentSchema(): CollectionConfig {
       { name: "sourceFile", dataType: dataType.TEXT },
       { name: "createdAt", dataType: dataType.DATE },
       { name: "updatedAt", dataType: dataType.DATE },
+      { name: "createdBy", dataType: dataType.TEXT },
+      { name: "updatedBy", dataType: dataType.TEXT },
     ],
   };
 }
@@ -60,6 +64,8 @@ function useCaseSchema(): CollectionConfig {
       { name: "sourceFile", dataType: dataType.TEXT },
       { name: "createdAt", dataType: dataType.DATE },
       { name: "updatedAt", dataType: dataType.DATE },
+      { name: "createdBy", dataType: dataType.TEXT },
+      { name: "updatedBy", dataType: dataType.TEXT },
     ],
   };
 }
@@ -73,6 +79,8 @@ function icpSchema(): CollectionConfig {
       { name: "tags", dataType: dataType.TEXT_ARRAY },
       { name: "createdAt", dataType: dataType.DATE },
       { name: "updatedAt", dataType: dataType.DATE },
+      { name: "createdBy", dataType: dataType.TEXT },
+      { name: "updatedBy", dataType: dataType.TEXT },
     ],
   };
 }
@@ -88,6 +96,8 @@ function businessRuleSchema(): CollectionConfig {
       { name: "sourceFile", dataType: dataType.TEXT },
       { name: "createdAt", dataType: dataType.DATE },
       { name: "updatedAt", dataType: dataType.DATE },
+      { name: "createdBy", dataType: dataType.TEXT },
+      { name: "updatedBy", dataType: dataType.TEXT },
     ],
   };
 }

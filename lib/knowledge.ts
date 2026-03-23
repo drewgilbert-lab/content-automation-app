@@ -115,6 +115,14 @@ async function fetchCollectionObjects(
     deprecated: obj.properties.deprecated === true,
     createdAt: dateToString(obj.properties.createdAt),
     updatedAt: dateToString(obj.properties.updatedAt),
+    createdBy:
+      obj.properties.createdBy != null
+        ? String(obj.properties.createdBy)
+        : undefined,
+    updatedBy:
+      obj.properties.updatedBy != null
+        ? String(obj.properties.updatedBy)
+        : undefined,
   }));
 }
 
@@ -195,6 +203,14 @@ export async function getKnowledgeObject(
           deprecated: obj.properties.deprecated === true,
           createdAt: dateToString(obj.properties.createdAt),
           updatedAt: dateToString(obj.properties.updatedAt),
+          createdBy:
+            obj.properties.createdBy != null
+              ? String(obj.properties.createdBy)
+              : undefined,
+          updatedBy:
+            obj.properties.updatedBy != null
+              ? String(obj.properties.updatedBy)
+              : undefined,
           subType: obj.properties.subType
             ? String(obj.properties.subType)
             : undefined,
@@ -369,6 +385,8 @@ export async function createKnowledgeObject(
       deprecated: false,
       createdAt: now,
       updatedAt: now,
+      createdBy: input.createdBy ?? "",
+      updatedBy: input.createdBy ?? "",
     };
 
     if (input.type === "segment") {
@@ -446,6 +464,8 @@ export async function updateKnowledgeObject(
     if (input.website !== undefined) properties.website = input.website;
     if (input.customerName !== undefined) properties.customerName = input.customerName;
     if (input.industry !== undefined) properties.industry = input.industry;
+    if (input.updatedBy !== undefined)
+      properties.updatedBy = input.updatedBy ?? "";
 
     await collection.data.update({ id, properties });
 

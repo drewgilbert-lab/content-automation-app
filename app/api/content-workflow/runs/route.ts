@@ -9,7 +9,7 @@ import {
   isInputType,
   type CreateRunInput,
 } from "@/lib/content-workflow-types";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -20,7 +20,7 @@ function jsonError(message: string, status = 400): Response {
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
     const body = await req.json();
     const { inputType, inputValue, createdBy, idempotencyKey } = body ?? {};

@@ -53,6 +53,7 @@ export interface SubmissionDetail {
   status: SubmissionStatus;
   reviewComment?: string;
   reviewNote?: string;
+  reviewedBy?: string;
   createdAt: string;
   reviewedAt?: string;
   sourceChannel?: SourceChannel;

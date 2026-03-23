@@ -126,6 +126,7 @@ export async function getSkill(id: string): Promise<SkillDetail | null> {
         tags: (obj.properties.tags as string[]) ?? [],
         category: String(obj.properties.category ?? ""),
         author: String(obj.properties.author ?? ""),
+        updatedBy: String(obj.properties.updatedBy ?? ""),
         sourceFile: obj.properties.sourceFile
           ? String(obj.properties.sourceFile)
           : undefined,
@@ -181,6 +182,7 @@ export async function createSkill(input: SkillCreateInput): Promise<string> {
       tags: input.tags ?? [],
       category: input.category ?? "",
       author: input.author ?? "",
+      updatedBy: "",
       deprecated: false,
       createdAt: now,
       updatedAt: now,
@@ -233,6 +235,7 @@ export async function updateSkill(
     if (input.tags !== undefined) properties.tags = input.tags;
     if (input.category !== undefined) properties.category = input.category;
     if (input.author !== undefined) properties.author = input.author;
+    if (input.updatedBy !== undefined) properties.updatedBy = input.updatedBy;
     if (input.sourceKnowledgeObjects !== undefined) {
       properties.sourceKnowledgeObjects = JSON.stringify(input.sourceKnowledgeObjects);
     }

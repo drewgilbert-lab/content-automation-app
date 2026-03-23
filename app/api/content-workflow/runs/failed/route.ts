@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { listFailedRunsWithDiagnostics } from "@/lib/content-workflow-orchestrator";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -13,7 +13,7 @@ function jsonError(message: string, status = 400): Response {
 
 export async function GET(_req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("viewer");
     if (authResult instanceof Response) return authResult;
     const failedRuns = await listFailedRunsWithDiagnostics();
     return new Response(

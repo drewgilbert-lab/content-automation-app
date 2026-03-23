@@ -81,6 +81,13 @@ const navItems = [
     available: true,
   },
   {
+    title: "User Management",
+    description: "Manage users, assign roles, and control platform access.",
+    href: "/admin/users",
+    icon: "◈",
+    available: true,
+  },
+  {
     title: "Content",
     description: "Browse, create, and manage generated content across all formats.",
     href: "/content",

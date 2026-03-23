@@ -1,12 +1,12 @@
 import { streamMessage } from "@/lib/claude";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const { message, systemPrompt } = await req.json();

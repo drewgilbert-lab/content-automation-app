@@ -14,7 +14,7 @@ alwaysApply: true
 | Framework | Next.js 16, App Router, TypeScript |
 | Styling | Tailwind CSS v4 |
 | Vector DB | Weaviate Cloud (`weaviate-client` v3) |
-| LLM | Anthropic Claude (`claude-opus-4-5`) via `lib/claude.ts` |
+| LLM | Anthropic Claude (`claude-haiku-4-5` in `lib/claude.ts` / `lib/classifier.ts`; ADR-013) |
 | Auth | Auth.js v5 (`next-auth@beta`) with Google OAuth, JWT sessions |
 | Deploy | Vercel (`content-automation-app-zeta.vercel.app`) |
 | MCP Deploy | Railway (`content-automation-app.up.railway.app`) |
@@ -26,6 +26,9 @@ app/
   page.tsx                — Dashboard with connection status badges
   layout.tsx              — Root layout, Geist font, SessionProvider
   api/auth/[...nextauth]/route.ts — Auth.js route handler (GET, POST)
+  api/auth/me/route.ts — GET current user info
+  api/admin/users/route.ts — GET list (admin only)
+  api/admin/users/[id]/route.ts — GET detail, PATCH update role/active (admin only)
   api/chat/route.ts       — POST, streams Claude response
   api/knowledge/route.ts  — GET list, POST create
   api/knowledge/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore
@@ -79,6 +82,7 @@ app/
   narratives/components/ — NarrativeList, NarrativeForm, NarrativeDetailActions (planned, Group R)
   auth/signin/page.tsx    — Sign-in page (server component, dark theme, error handling)
   auth/signin/signin-button.tsx — Google sign-in button (client component)
+  admin/users/page.tsx — Admin user management page
   connections/page.tsx    — Connected Systems list page
   connections/[id]/page.tsx — Connected System detail page
   connections/new/page.tsx — Create connection form page
@@ -98,6 +102,7 @@ lib/
   auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions, requireAuth(), requireRole(), getCurrentUser()
   user-types.ts           — UserRole, UserRecord, ROLE_HIERARCHY, VALID_ROLES, isValidRole(), hasMinimumRole()
   users.ts                — User CRUD: getOrCreateUser(), getUserByEmail(), listUsers(), updateUserRole(), deactivateUser(); 5-min cache
+  permissions.ts          — Permission matrix, hasPermission(), requiresReviewQueue(), getPermissions()
   api-auth.ts             — generateApiKey(), hashApiKey(), validateApiKey(), refreshApiKeyCache(); globalThis cache with 5-min TTL
   api-middleware.ts       — withApiAuth() HOF for /api/v1/ routes; key validation, security headers, CORS, request logging
   weaviate.ts             — withWeaviate<T>(fn), checkWeaviateConnection()
@@ -175,7 +180,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | MCP Server (Read + Write) | J1-J12 Done (Phase 1 Read + Phase 2 Write), J13+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
 | Knowledge-Linked Skills | Done (Group M) |
-| Authentication & User Management | W1-W4 Done (Phase 1), W5-W9 Pending |
+| Authentication & User Management | W1–W7 Done (Phase 1+2), W8–W9 Pending |
 | Content Narratives | Planned (Group R) |
 | Design System Foundation | Planned (Group S) |
 | Generate (content creation) | Pending |

@@ -2,12 +2,12 @@ import { NextRequest } from "next/server";
 import { parseDocuments } from "@/lib/document-parser";
 import { createSession, updateSessionStatus } from "@/lib/upload-session";
 import { DEFAULT_LIMITS } from "@/lib/document-parser-types";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  const authResult = await requireAuth();
+  const authResult = await requireRole("contributor");
   if (authResult instanceof Response) return authResult;
 
   let formData: FormData;

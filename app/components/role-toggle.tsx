@@ -2,34 +2,34 @@
 
 import { useRole } from "./role-provider";
 
+const ROLE_COLORS: Record<string, string> = {
+  admin: "bg-red-600/20 text-red-400 border-red-600/30",
+  editor: "bg-blue-600/20 text-blue-400 border-blue-600/30",
+  contributor: "bg-green-600/20 text-green-400 border-green-600/30",
+  viewer: "bg-gray-600/20 text-gray-400 border-gray-600/30",
+};
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  editor: "Editor",
+  contributor: "Contributor",
+  viewer: "Viewer",
+};
+
 export function RoleToggle() {
-  const { role, setRole } = useRole();
+  const { role, loading } = useRole();
+
+  if (loading) {
+    return <div className="h-6 w-16 animate-pulse rounded bg-gray-800" />;
+  }
 
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-gray-500">Role:</span>
-      <div className="flex rounded-lg border border-gray-700 overflow-hidden">
-        <button
-          onClick={() => setRole("admin")}
-          className={`px-3 py-1 text-xs font-medium transition-colors ${
-            role === "admin"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-800 text-gray-400 hover:text-gray-300"
-          }`}
-        >
-          Admin
-        </button>
-        <button
-          onClick={() => setRole("contributor")}
-          className={`px-3 py-1 text-xs font-medium transition-colors ${
-            role === "contributor"
-              ? "bg-blue-600 text-white"
-              : "bg-gray-800 text-gray-400 hover:text-gray-300"
-          }`}
-        >
-          Contributor
-        </button>
-      </div>
-    </div>
+    <span
+      className={`inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium ${
+        ROLE_COLORS[role] ?? ROLE_COLORS.viewer
+      }`}
+    >
+      {ROLE_LABELS[role] ?? role}
+    </span>
   );
 }

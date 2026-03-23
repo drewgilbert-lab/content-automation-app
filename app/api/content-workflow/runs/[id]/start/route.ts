@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { startRunOrchestration } from "@/lib/content-workflow-orchestrator";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -16,7 +16,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
     const { id } = await params;
     const result = await startRunOrchestration(id);

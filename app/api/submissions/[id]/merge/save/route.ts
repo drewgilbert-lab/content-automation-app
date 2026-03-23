@@ -5,14 +5,14 @@ import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject, updateKnowledgeObject } from "@/lib/knowledge";
 import { triggerSkillRefreshCheck, updateSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("editor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -54,13 +54,14 @@ export async function POST(
     }
 
     if (submission.objectType === "skill") {
-      await updateSkill(submission.targetObjectId, { content: mergedContent });
+      await updateSkill(submission.targetObjectId, { content: mergedContent, updatedBy: authResult.email });
     } else {
       const currentObject = await getKnowledgeObject(submission.targetObjectId);
       const oldContent = currentObject?.content ?? "";
 
       await updateKnowledgeObject(submission.targetObjectId, {
         content: mergedContent,
+        updatedBy: authResult.email,
       });
 
       if (oldContent) {
@@ -78,7 +79,7 @@ export async function POST(
       const collection = client.collections.use("Submission");
       await collection.data.update({
         id,
-        properties: { status: "accepted", reviewedAt: now },
+        properties: { status: "accepted", reviewedAt: now, reviewedBy: authResult.email },
       });
     });
 

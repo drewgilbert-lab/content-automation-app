@@ -9,14 +9,14 @@ import {
 } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
 import { triggerSkillRefreshCheck } from "@/lib/skills";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("editor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -59,7 +59,8 @@ export async function POST(
       id,
       action,
       comment ? String(comment).trim() : undefined,
-      note ? String(note) : undefined
+      note ? String(note) : undefined,
+      authResult.email
     );
 
     if (

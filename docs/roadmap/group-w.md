@@ -23,9 +23,9 @@ Add a user avatar and name display to the app layout (`app/layout.tsx` or a shar
 **W4 — User Record Creation — ✅ Done (2026-03-23)**
 Create a `User` Weaviate collection to store user records. Properties: `email` (text, unique), `name` (text), `avatarUrl` (text), `role` (text — `"admin"`, `"editor"`, `"contributor"`, `"viewer"`), `active` (boolean), `lastLoginAt` (date), `createdAt` (date), `updatedAt` (date). On first sign-in, auto-create a user record with `role: "contributor"` (default). On subsequent sign-ins, update `lastLoginAt`. The first user to sign in is auto-assigned `role: "admin"`. Create `lib/users.ts` with CRUD operations: `getOrCreateUser(email, name, avatarUrl)`, `listUsers()`, `updateUserRole(id, role)`, `deactivateUser(id)`.
 
-## Phase 2 — Role-Based Access Control (W5–W7)
+## Phase 2 — Role-Based Access Control (W5–W7) — **Done**
 
-**W5 — Permission Model**
+**W5 — Permission Model — ✅ Done (2026-03-23)**
 Define four roles with explicit permission sets:
 
 | Permission | Admin | Editor | Contributor | Viewer |
@@ -45,10 +45,10 @@ The Admin role has full platform access including user management and system con
 
 Store the permission matrix in `lib/permissions.ts` as a typed constant. `requireRole()` checks the user's role against the required permission. The review queue remains the gatekeeper for all content changes — Contributors create submissions, Editors and Admins approve them.
 
-**W6 — Admin User Management UI**
+**W6 — Admin User Management UI — ✅ Done (2026-03-23)**
 Build `/admin/users` page (accessible only to `admin` role). Features: list all users with name, email, role badge, last login date, and active/inactive status. Actions per user: change role (dropdown with Admin, Editor, Contributor, Viewer options), activate/deactivate. Search by name or email. Build `GET /api/admin/users` and `PATCH /api/admin/users/[id]` routes protected by `requireRole("admin")`. Include a "Invite User" flow that sends an email with a sign-in link (or simply document that users self-register on first Google sign-in and an admin assigns their role).
 
-**W7 — User Attribution on Actions**
+**W7 — User Attribution on Actions — ✅ Done (2026-03-23)**
 Add `createdBy` and `updatedBy` fields to submissions, knowledge objects, and skills. When a user creates or edits content, record their email or user ID. Display the author in the review queue ("Submitted by drew@company.com"), knowledge detail pages ("Last edited by..."), and the submission detail page. This provides accountability and enables per-user activity tracking. Update `createSubmission()`, `createKnowledgeObject()`, `updateKnowledgeObject()`, `createSkill()`, and `updateSkill()` to accept an optional `userId` parameter.
 
 ## Phase 3 — Advanced Access Control (W8–W9)

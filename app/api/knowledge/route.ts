@@ -6,14 +6,14 @@ import {
   type KnowledgeType,
 } from "@/lib/knowledge";
 import type { KnowledgeCreateInput } from "@/lib/knowledge-types";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("viewer");
     if (authResult instanceof Response) return authResult;
 
     const type = req.nextUrl.searchParams.get("type") ?? undefined;
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const body = await req.json();
@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
       industry: industry ? String(industry) : undefined,
       personaId: personaId ? String(personaId) : undefined,
       segmentId: segmentId ? String(segmentId) : undefined,
+      createdBy: authResult.email,
     };
 
     const id = await createKnowledgeObject(input);

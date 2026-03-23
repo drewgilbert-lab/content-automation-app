@@ -12,7 +12,7 @@ import type {
   ClassificationErrorEvent,
   ClassificationDoneEvent,
 } from "@/lib/classification-types";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 function validateDocuments(
   docs: unknown
@@ -59,7 +59,7 @@ function sseEncode(event: string, data: object): string {
 }
 
 export async function POST(req: NextRequest) {
-  const authResult = await requireAuth();
+  const authResult = await requireRole("contributor");
   if (authResult instanceof Response) return authResult;
 
   let body: Record<string, unknown>;

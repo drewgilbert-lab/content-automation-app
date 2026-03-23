@@ -15,6 +15,8 @@ export interface KnowledgeListItem {
   deprecated: boolean;
   createdAt: string;
   updatedAt: string;
+  createdBy?: string;
+  updatedBy?: string;
 }
 
 export interface CrossReference {
@@ -39,6 +41,8 @@ export interface KnowledgeDetail {
   customerName?: string;
   industry?: string;
   sourceFile?: string;
+  createdBy?: string;
+  updatedBy?: string;
   crossReferences: Record<string, CrossReference[]>;
 }
 
@@ -63,6 +67,7 @@ export interface KnowledgeCreateInput {
   industry?: string;
   personaId?: string;
   segmentId?: string;
+  createdBy?: string;
 }
 
 export interface KnowledgeUpdateInput {
@@ -75,6 +80,7 @@ export interface KnowledgeUpdateInput {
   website?: string;
   customerName?: string;
   industry?: string;
+  updatedBy?: string;
 }
 
 export const VALID_TYPES: KnowledgeType[] = [

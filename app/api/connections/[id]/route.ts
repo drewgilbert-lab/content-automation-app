@@ -8,7 +8,7 @@ import {
 } from "@/lib/connections";
 import type { ConnectedSystemUpdateInput } from "@/lib/connection-types";
 import { NextRequest } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -17,7 +17,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("admin");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -45,7 +45,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("admin");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -102,7 +102,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("admin");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -132,7 +132,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("admin");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;

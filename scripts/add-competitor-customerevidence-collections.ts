@@ -34,6 +34,8 @@ async function addCollections() {
           { name: "deprecated", dataType: "boolean" as const },
           { name: "createdAt", dataType: "date" as const },
           { name: "updatedAt", dataType: "date" as const },
+          { name: "createdBy", dataType: "text" as const },
+          { name: "updatedBy", dataType: "text" as const },
         ],
       });
       console.log("Created Competitor collection successfully.");
@@ -57,6 +59,8 @@ async function addCollections() {
           { name: "deprecated", dataType: "boolean" as const },
           { name: "createdAt", dataType: "date" as const },
           { name: "updatedAt", dataType: "date" as const },
+          { name: "createdBy", dataType: "text" as const },
+          { name: "updatedBy", dataType: "text" as const },
         ],
       });
       console.log("Created CustomerEvidence collection successfully.");

@@ -5,13 +5,13 @@ import {
 } from "@/lib/connections";
 import type { ConnectedSystemCreateInput } from "@/lib/connection-types";
 import { NextRequest } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("admin");
     if (authResult instanceof Response) return authResult;
 
     const activeParam = req.nextUrl.searchParams.get("active");
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("admin");
     if (authResult instanceof Response) return authResult;
 
     const body = await req.json();

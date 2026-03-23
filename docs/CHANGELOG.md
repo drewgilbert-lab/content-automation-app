@@ -4,6 +4,14 @@
 
 ---
 
+## 2026-03-23
+
+### Group W Phase 2 — Role-Based Access Control (W5–W7)
+
+- **W5 — Permission Model**: Created `lib/permissions.ts` with typed permission matrix and role-permission mapping. Migrated all internal API routes from `requireAuth()` to `requireRole()` with appropriate minimum roles (viewer/contributor/editor/admin). Updated client-side `RoleProvider` to fetch real user role from server via `/api/auth/me`. `RoleToggle` now displays the authenticated user's role badge.
+- **W6 — Admin User Management UI**: Built `GET /api/admin/users` and `PATCH /api/admin/users/[id]` routes (admin-only). Created `/admin/users` page with user table, role dropdowns, activate/deactivate toggle, search by name/email, self-demotion protection, and mobile-responsive card layout. Added User Management nav card to dashboard.
+- **W7 — User Attribution**: Added `createdBy`/`updatedBy` fields to knowledge object types and CRUD functions. Added `reviewedBy` to submission types and review workflow. Added `updatedBy` to skill types and update functions. All mutating API routes now pass the session user's email into CRUD operations. Knowledge detail, skill detail, and submission review pages display attribution metadata.
+
 ### 2026-03-23 — Fix: Railway Build
 
 - Reverted `lib/skills.ts` import from `@/lib/weaviate.ts` to `./weaviate` to fix `tsconfig.lib.json` compilation failure

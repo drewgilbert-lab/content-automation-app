@@ -154,6 +154,24 @@ export default async function KnowledgeDetailPage({
                   {formatDate(obj.updatedAt)}
                 </p>
               </div>
+
+              {obj.createdBy && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Created By
+                  </p>
+                  <p className="mt-1 text-sm text-gray-300">{obj.createdBy}</p>
+                </div>
+              )}
+
+              {obj.updatedBy && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Last Edited By
+                  </p>
+                  <p className="mt-1 text-sm text-gray-300">{obj.updatedBy}</p>
+                </div>
+              )}
             </div>
 
             {/* Relationships */}

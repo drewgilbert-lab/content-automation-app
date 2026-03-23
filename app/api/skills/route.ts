@@ -6,14 +6,14 @@ import {
   isValidContentType,
 } from "@/lib/skills";
 import type { SkillCreateInput } from "@/lib/skill-types";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("viewer");
     if (authResult instanceof Response) return authResult;
 
     const contentType = req.nextUrl.searchParams.get("contentType") ?? undefined;
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const body = await req.json();
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
       outputFormat: outputFormat ? String(outputFormat) : undefined,
       tags: Array.isArray(tags) ? tags.map(String) : [],
       category: category ? String(category) : undefined,
-      author: author ? String(author) : undefined,
+      author: author ? String(author) : authResult.email,
     };
 
     const id = await createSkill(input);

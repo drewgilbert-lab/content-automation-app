@@ -49,7 +49,8 @@ export function KnowledgeForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { role } = useRole();
+  const { role, hasRole } = useRole();
+  const useReviewQueue = !hasRole("editor");
 
   const personas = allObjects.filter((o) => o.type === "persona");
   const segments = allObjects.filter((o) => o.type === "segment");
@@ -76,8 +77,7 @@ export function KnowledgeForm({
         .filter(Boolean);
 
       try {
-        // Contributor: route through submission queue
-        if (role === "contributor") {
+        if (useReviewQueue) {
           const body: Record<string, unknown> = { name: name.trim(), content, tags };
           if (mode === "create") body.type = type;
           if (type === "segment" || initialData?.type === "segment") {
@@ -199,6 +199,7 @@ export function KnowledgeForm({
       segmentId,
       router,
       role,
+      useReviewQueue,
     ]
   );
 
@@ -461,7 +462,7 @@ export function KnowledgeForm({
         >
           {saving
             ? "Saving..."
-            : role === "contributor"
+            : useReviewQueue
               ? "Submit for Review"
               : mode === "create"
                 ? "Create"

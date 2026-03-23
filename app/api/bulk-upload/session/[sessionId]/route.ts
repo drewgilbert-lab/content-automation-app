@@ -1,5 +1,5 @@
 import { getSerializedSession } from "@/lib/upload-session";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -7,7 +7,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ sessionId: string }> }
 ) {
-  const authResult = await requireAuth();
+  const authResult = await requireRole("contributor");
   if (authResult instanceof Response) return authResult;
 
   const { sessionId } = await params;

@@ -12,11 +12,11 @@ import {
   type SubmissionObjectType,
   type SourceChannel,
 } from "@/lib/submissions";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("viewer");
     if (authResult instanceof Response) return authResult;
 
     const type = req.nextUrl.searchParams.get("type") ?? undefined;
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const body = await req.json();
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     const { sourceChannel, sourceAppId, sourceDescription } = body;
 
     const input = {
-      submitter: String(submitter).trim(),
+      submitter: authResult.email || String(submitter).trim(),
       objectType: objectType as SubmissionObjectType,
       objectName: String(objectName).trim(),
       submissionType: submissionType as SubmissionType,

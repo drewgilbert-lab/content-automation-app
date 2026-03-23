@@ -180,6 +180,9 @@ export async function getSubmission(
         reviewedAt: obj.properties.reviewedAt
           ? dateToString(obj.properties.reviewedAt)
           : undefined,
+        reviewedBy: obj.properties.reviewedBy
+          ? String(obj.properties.reviewedBy)
+          : undefined,
         sourceChannel: (obj.properties.sourceChannel
           ? String(obj.properties.sourceChannel)
           : undefined) as SourceChannel | undefined,
@@ -202,7 +205,8 @@ export async function reviewSubmission(
   id: string,
   action: ReviewAction,
   comment?: string,
-  note?: string
+  note?: string,
+  reviewedBy?: string
 ): Promise<{
   id: string;
   status: SubmissionStatus;
@@ -267,7 +271,11 @@ export async function reviewSubmission(
       const collection = client.collections.use("Submission");
       await collection.data.update({
         id,
-        properties: { status: "accepted", reviewedAt: now },
+        properties: {
+          status: "accepted",
+          reviewedAt: now,
+          ...(reviewedBy ? { reviewedBy } : {}),
+        },
       });
     });
 
@@ -283,6 +291,7 @@ export async function reviewSubmission(
           status: "rejected",
           reviewComment: comment!,
           reviewedAt: now,
+          ...(reviewedBy ? { reviewedBy } : {}),
         },
       });
     });
@@ -298,6 +307,7 @@ export async function reviewSubmission(
       properties: {
         status: "deferred",
         ...(note ? { reviewNote: note } : {}),
+        ...(reviewedBy ? { reviewedBy } : {}),
       },
     });
   });

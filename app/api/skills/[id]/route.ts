@@ -12,7 +12,7 @@ import {
   isValidContentType,
 } from "@/lib/skills";
 import type { SkillUpdateInput } from "@/lib/skill-types";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -22,7 +22,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("viewer");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -50,7 +50,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -99,7 +99,7 @@ export async function PUT(
       }
     }
 
-    const input: SkillUpdateInput = {};
+    const input: SkillUpdateInput = { updatedBy: authResult.email };
     if (name !== undefined) input.name = String(name).trim();
     if (description !== undefined) input.description = String(description);
     if (content !== undefined) input.content = String(content);
@@ -177,7 +177,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("editor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;
@@ -218,7 +218,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;

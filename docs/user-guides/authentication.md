@@ -39,7 +39,46 @@ Every user is assigned one of four roles:
 | **Contributor** | Content submission: create/edit via review queue, bulk upload, view all content |
 | **Viewer** | Read-only: browse knowledge, skills, narratives, and dashboards |
 
-In Phase 1, roles are stored but not yet enforced at the permission level. All authenticated users have full access. Phase 2 (W5–W7) will add role-based permission enforcement.
+Your current role is displayed as a badge next to your avatar in the application header.
+
+### Permission Details
+
+| Permission | Admin | Editor | Contributor | Viewer |
+|---|---|---|---|---|
+| View knowledge objects, skills, narratives | Yes | Yes | Yes | Yes |
+| Create/edit knowledge objects and skills | Yes | Yes (direct) | Yes (via review queue) | No |
+| Upload documents (bulk upload) | Yes | Yes | Yes | No |
+| Review and approve submissions | Yes | Yes | No | No |
+| AI Merge on submissions | Yes | Yes | No | No |
+| Manage connected systems and API keys | Yes | No | No | No |
+| Manage users and roles | Yes | No | No | No |
+
+Contributors create content through the review queue — their changes must be approved by an Editor or Admin before being applied. Editors and Admins can create and edit content directly without going through the review queue.
+
+---
+
+## User Management (Admin Only)
+
+Admins can manage users at **User Management** (accessible from the dashboard or at `/admin/users`). This page allows admins to:
+
+- View all registered users with their name, email, role, last login, and active status
+- Search for users by name or email
+- Change a user's role using the role dropdown
+- Activate or deactivate users
+
+Users self-register on first Google sign-in. An admin then assigns the appropriate role. Admins cannot demote their own role (self-protection).
+
+---
+
+## User Attribution
+
+All content changes are attributed to the user who made them:
+
+- **Knowledge objects** display "Created By" and "Last Edited By" on the detail page sidebar
+- **Skills** display "Last Edited By" on the detail page sidebar
+- **Submissions** display the submitter and, once reviewed, "Reviewed By" on the review page
+
+Attribution uses the user's email address from their Google session. Historical objects created before attribution was enabled will show no author information.
 
 ---
 

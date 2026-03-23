@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
-import { requireAuth } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 
 const KNOWLEDGE_COLLECTIONS = [
   "Persona",
@@ -30,7 +30,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const authResult = await requireAuth();
+    const authResult = await requireRole("contributor");
     if (authResult instanceof Response) return authResult;
 
     const { id } = await params;

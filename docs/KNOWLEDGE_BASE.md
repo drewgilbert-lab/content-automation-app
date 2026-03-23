@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: March 23, 2026 (Group W — User collection added)
+> Last updated: March 23, 2026 (Group W — User collection; Phase 2 audit fields on knowledge objects, submissions, skills)
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -21,6 +21,8 @@ Each knowledge object type maps to a Weaviate collection. Collections must be cr
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 Cross-references:
 - `hasSegments` → `Segment[]` (which segments this persona most commonly appears in)
@@ -41,6 +43,8 @@ Cross-references:
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 Cross-references:
 - `hasPersonas` → `Persona[]` (which personas operate within this segment)
@@ -59,6 +63,8 @@ Cross-references:
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 ---
 
@@ -72,6 +78,8 @@ Cross-references:
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 Cross-references:
 - `persona` → `Persona` (the target persona for this ICP)
@@ -91,6 +99,8 @@ Cross-references:
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 ---
 
@@ -107,6 +117,8 @@ Stores competitive intelligence about rival products or companies. Injected as c
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 No cross-references in this phase.
 
@@ -127,6 +139,8 @@ Stores customer proof points and named references. Injected to ground generated 
 | `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
 
 No cross-references in this phase.
 
@@ -156,6 +170,7 @@ Stores procedural task instructions that tell the AI how to perform specific typ
 | `deprecated` | `boolean` | Soft-delete flag |
 | `createdAt` | `date` | Creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
+| `updatedBy` | `text` | Email of the user who last modified this skill |
 
 Cross-references:
 - Referenced by `GeneratedContent ──usedSkills──► Skill[]`
@@ -279,6 +294,7 @@ Stores pending knowledge base submissions for the review queue. Not vectorized.
 | `sourceDescription` | text | Free-text describing where the content came from (provided by MCP client). Added by Group J. |
 | `createdAt` | date | Submission timestamp |
 | `reviewedAt` | date | Review timestamp |
+| `reviewedBy` | text | Email of the user who reviewed this submission |
 
 No cross-references. No vectorization.
 

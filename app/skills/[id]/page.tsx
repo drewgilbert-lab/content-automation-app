@@ -233,6 +233,15 @@ export default async function SkillDetailPage({
                   {formatDate(skill.updatedAt)}
                 </p>
               </div>
+
+              {skill.updatedBy && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Last Edited By
+                  </p>
+                  <p className="mt-1 text-sm text-gray-300">{skill.updatedBy}</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

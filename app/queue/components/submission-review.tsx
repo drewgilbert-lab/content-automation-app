@@ -416,14 +416,14 @@ export function SubmissionReview({
                 <p className="text-sm font-medium text-gray-300 mb-2">Updated Knowledge Object</p>
                 <MarkdownRenderer content={proposedContent.content ?? ""} />
               </div>
-              {(proposedContent as Record<string, unknown>).integrationPrompt && (
+              {(proposedContent as Record<string, unknown>).integrationPrompt ? (
                 <div className="border-t border-gray-800 pt-6 mt-6">
                   <p className="text-sm font-medium text-gray-300 mb-2">Integration Prompt</p>
                   <p className="text-sm text-gray-400 italic">
                     {String((proposedContent as Record<string, unknown>).integrationPrompt)}
                   </p>
                 </div>
-              )}
+              ) : null}
             </div>
           )}
 

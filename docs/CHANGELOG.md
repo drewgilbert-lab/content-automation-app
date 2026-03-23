@@ -4,6 +4,38 @@
 
 ---
 
+### Group W Phase 1 — Authentication Foundation (W1–W4) — March 23, 2026
+
+**W1 — NextAuth.js Integration with Google Provider:**
+- Installed `next-auth@beta` (Auth.js v5) with Google OAuth provider.
+- Created `app/api/auth/[...nextauth]/route.ts` for Auth.js route handling (GET, POST).
+- Created `lib/auth.ts` with Auth.js configuration: Google provider, JWT session strategy (1-hour maxAge), domain restriction via `ALLOWED_DOMAINS`/`ALLOWED_EMAILS` env vars.
+- Exports: `handlers`, `auth`, `signIn`, `signOut`, `requireAuth()`, `requireRole()`, `getCurrentUser()`.
+- Created sign-in page at `app/auth/signin/page.tsx` (server component, dark theme, error handling) with `app/auth/signin/signin-button.tsx` (Google sign-in button, client component).
+
+**W2 — Session Middleware and Route Protection:**
+- Created `middleware.ts` using Auth.js `auth()` wrapper. Redirects unauthenticated page requests to `/auth/signin`. Returns 401 JSON for unauthenticated API requests. Public paths: `/auth/*`, `/api/auth/*`, `/api/v1/*`.
+- Added `requireAuth()` import and call to all 33 internal API route files (`/api/knowledge`, `/api/skills`, `/api/submissions`, `/api/dashboard`, `/api/connections`, `/api/bulk-upload`, `/api/chat`, `/api/content-workflow`).
+- External API routes (`/api/v1/*`) unaffected — continue using API key auth (Group K).
+
+**W3 — User Session UI:**
+- Created `app/components/session-provider.tsx` (SessionProvider wrapper, client component) and `app/components/user-menu.tsx` (UserMenu dropdown with avatar, name, sign out).
+- Updated `app/layout.tsx` to wrap content with SessionProvider alongside existing RoleProvider.
+- Updated `app/page.tsx` to show UserMenu alongside RoleToggle in header.
+
+**W4 — User Record Creation:**
+- Created `lib/user-types.ts` with `UserRole` type (`"admin"|"editor"|"contributor"|"viewer"`), `UserRecord` interface, `UserCreateInput`, `UserUpdateInput`, `ROLE_HIERARCHY`, `VALID_ROLES`, `isValidRole()`, `hasMinimumRole()`.
+- Created `lib/users.ts` with User CRUD using Weaviate (`withWeaviate` pattern): auto-creates `User` collection on first sign-in, `getOrCreateUser()` (first user = admin or honors `ADMIN_EMAIL`), `getUserByEmail()`, `getUserById()`, `listUsers()`, `updateUser()`, `updateUserRole()`, `deactivateUser()`, `activateUser()`, `getUserCached()`/`refreshUserCache()`/`invalidateUserCache()` with 5-minute TTL `globalThis` cache.
+- New `User` Weaviate collection (non-vectorized): email, name, avatarUrl, role, active, lastLoginAt, createdAt, updatedAt.
+
+**Environment variables added:** `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `ALLOWED_DOMAINS`, `ALLOWED_EMAILS`, `ADMIN_EMAIL` (added to `.env.example`).
+
+**Dependency added:** `next-auth@beta` in `package.json`.
+
+**Documentation:** `docs/KNOWLEDGE_BASE.md` (User collection schema), `docs/API.md` (auth section and endpoints), `docs/TECH_DECISIONS.md` (ADR-019), `docs/SCOPE.md` (Authentication module status), `docs/roadmap/group-w.md` (W1–W4 marked complete), `docs/roadmap/README.md` (Group W status updated), `docs/user-guides/authentication.md` (new user guide), `docs/CHANGELOG.md` (this entry).
+
+---
+
 ### Group W Documentation — 4-Role RBAC Model — March 23, 2026
 
 Updated the Group W (Authentication & User Management) roadmap and all related documentation to replace the 3-role model (Admin, Contributor, Viewer) with a 4-role model:

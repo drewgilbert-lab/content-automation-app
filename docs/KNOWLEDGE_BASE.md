@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: March 23, 2026
+> Last updated: March 23, 2026 (Group W — User collection added)
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -237,6 +237,25 @@ Stores external system registrations and their API key metadata for the External
 | `updatedAt` | `date` | Last modification timestamp |
 
 No cross-references.
+
+---
+
+### Collection: `User`
+
+Stores authenticated user records for multi-user access control (Group W). Not vectorized. Auto-created on first user sign-in via `lib/users.ts`.
+
+| Property | Type | Description |
+|---|---|---|
+| `email` | `text` | User's email address (unique identifier) |
+| `name` | `text` | Display name from Google profile |
+| `avatarUrl` | `text` | Google profile picture URL |
+| `role` | `text` | `"admin"`, `"editor"`, `"contributor"`, or `"viewer"` |
+| `active` | `boolean` | Active flag; inactive users are denied access on every request |
+| `lastLoginAt` | `date` | Last successful sign-in timestamp |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+No cross-references. First user to sign in is auto-assigned `admin` role (overridable via `ADMIN_EMAIL` env var). Subsequent users default to `contributor`. User records are cached in-memory with a 5-minute TTL (`globalThis` pattern per ADR-012).
 
 ---
 

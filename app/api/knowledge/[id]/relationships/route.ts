@@ -1,4 +1,5 @@
 import { addRelationship, removeRelationship } from "@/lib/knowledge";
+import { requireAuth } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -8,6 +9,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { targetId, relationshipType } = body;
@@ -40,6 +44,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { targetId, relationshipType } = body;

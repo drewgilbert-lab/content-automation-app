@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SessionProvider } from "@/app/components/session-provider";
 import { RoleProvider } from "@/app/components/role-provider";
 import "./globals.css";
 
@@ -28,9 +29,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <RoleProvider>
-          {children}
-        </RoleProvider>
+        <SessionProvider>
+          <RoleProvider>
+            {children}
+          </RoleProvider>
+        </SessionProvider>
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: March 17, 2026
+> Last updated: March 23, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.
@@ -593,6 +593,60 @@ The content workflow orchestration (Group Content Workflow) needs structured obs
 
 ---
 
+## ADR-019: Auth.js v5 with Google OAuth (Group W)
+
+**Status:** Decided (implemented)
+
+**Context:**
+The application had no user authentication on internal routes. All API routes and pages were accessible without sign-in, which is acceptable for a single-user tool but blocks multi-user access, per-user attribution, and role-based access control. Authentication is a prerequisite for the permission model planned in W5–W7.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| Auth.js v5 (`next-auth@beta`) | Native App Router support; JWT sessions; edge-compatible middleware; built-in Google provider; no database adapter required for Phase 1 |
+| Clerk | Managed auth SaaS; excellent DX; adds external SaaS dependency and cost |
+| Custom OAuth implementation | Full control; significantly more code to build and maintain; no built-in session management |
+| `iron-session` | Lightweight encrypted cookies; no OAuth flow built-in; would need custom Google OAuth integration |
+
+**Decision:** Auth.js v5 (`next-auth@beta`) with Google OAuth provider.
+
+**Rationale:**
+- Native App Router support with `auth()` wrapper for middleware and route handlers
+- JWT session strategy requires no database adapter — session data lives in a signed cookie, validated on every request
+- 1-hour `maxAge` on JWT sessions balances security with UX (short-lived tokens reduce revocation window)
+- Domain restriction via `ALLOWED_DOMAINS` env var checks the Google Workspace `hd` (hosted domain) parameter during sign-in; `ALLOWED_EMAILS` adds individual account allowlisting
+- Server-side active flag check: every `requireAuth()` call fetches the user record from a cached Weaviate lookup, so deactivated users are blocked even with a valid JWT
+- Edge-compatible — middleware runs in the Edge Runtime for fast redirects on unauthenticated page requests
+- `requireRole(role)` helper enables Phase 2 RBAC without changing the auth foundation
+
+**User Record Strategy:**
+- `User` Weaviate collection (non-vectorized) auto-created on first sign-in
+- `getOrCreateUser()` handles bootstrap: creates user record if email not found
+- First user gets `admin` role; overridable via `ADMIN_EMAIL` env var
+- Subsequent users default to `contributor` role
+- User records cached in `globalThis` with 5-minute TTL (same pattern as API key caching in `lib/api-auth.ts`)
+
+**Environment Variables Required:**
+```
+GOOGLE_CLIENT_ID=       # From Google Cloud Console OAuth 2.0
+GOOGLE_CLIENT_SECRET=   # From Google Cloud Console OAuth 2.0
+NEXTAUTH_URL=           # App base URL (e.g. http://localhost:3000)
+NEXTAUTH_SECRET=        # Random secret for JWT signing (openssl rand -base64 32)
+ALLOWED_DOMAINS=        # Comma-separated Google Workspace domains (e.g. company.com)
+ALLOWED_EMAILS=         # Comma-separated individual email allowlist (optional)
+ADMIN_EMAIL=            # Override first-user-is-admin bootstrap (optional)
+```
+
+**Implications:**
+- All 33 internal API route files updated with `requireAuth()` import and call
+- `middleware.ts` redirects unauthenticated page visits to `/auth/signin`; public paths: `/auth/*`, `/api/auth/*`, `/api/v1/*`
+- External API routes (`/api/v1/*`) unaffected — continue using API key auth (Group K)
+- JWT has no server-side revocation; mitigated by 1-hour expiry + active flag check on every request
+- Phase 2 (W5–W7) will add role-based permission enforcement using the `requireRole()` helper
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -615,6 +669,7 @@ The content workflow orchestration (Group Content Workflow) needs structured obs
 | ADR-016 | `force-dynamic` on Data-Fetching Pages | Mar 2026 | Decided (implemented) |
 | ADR-017 | Upload Session Store — Redis Migration | Mar 2026 | Decided (implemented) |
 | ADR-018 | Content Workflow Telemetry and Metrics (CW18) | Mar 2026 | Decided (implemented) |
+| ADR-019 | Auth.js v5 with Google OAuth (Group W) | Mar 2026 | Decided (implemented) |
 
 ---
 

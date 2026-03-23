@@ -1,9 +1,13 @@
 import { getDashboardData } from "@/lib/dashboard";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
 export async function GET() {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const data = await getDashboardData();
     return Response.json(data);
   } catch (error) {

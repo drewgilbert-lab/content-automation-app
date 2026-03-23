@@ -12,9 +12,13 @@ import {
   type SubmissionObjectType,
   type SourceChannel,
 } from "@/lib/submissions";
+import { requireAuth } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const type = req.nextUrl.searchParams.get("type") ?? undefined;
     const status = req.nextUrl.searchParams.get("status") ?? undefined;
 
@@ -59,6 +63,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const body = await req.json();
     const {
       submitter,

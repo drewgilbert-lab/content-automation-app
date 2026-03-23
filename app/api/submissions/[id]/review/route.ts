@@ -9,12 +9,16 @@ import {
 } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
 import { triggerSkillRefreshCheck } from "@/lib/skills";
+import { requireAuth } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { action, comment, note } = body;

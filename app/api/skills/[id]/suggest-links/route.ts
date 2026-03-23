@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
+import { requireAuth } from "@/lib/auth";
 
 const KNOWLEDGE_COLLECTIONS = [
   "Persona",
@@ -29,6 +30,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const skill = await getSkill(id);
 

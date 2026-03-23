@@ -15,6 +15,7 @@ alwaysApply: true
 | Styling | Tailwind CSS v4 |
 | Vector DB | Weaviate Cloud (`weaviate-client` v3) |
 | LLM | Anthropic Claude (`claude-opus-4-5`) via `lib/claude.ts` |
+| Auth | Auth.js v5 (`next-auth@beta`) with Google OAuth, JWT sessions |
 | Deploy | Vercel (`content-automation-app-zeta.vercel.app`) |
 | MCP Deploy | Railway (`content-automation-app.up.railway.app`) |
 
@@ -23,7 +24,8 @@ alwaysApply: true
 ```
 app/
   page.tsx                — Dashboard with connection status badges
-  layout.tsx              — Root layout, Geist font
+  layout.tsx              — Root layout, Geist font, SessionProvider
+  api/auth/[...nextauth]/route.ts — Auth.js route handler (GET, POST)
   api/chat/route.ts       — POST, streams Claude response
   api/knowledge/route.ts  — GET list, POST create
   api/knowledge/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore
@@ -75,6 +77,8 @@ app/
   narratives/new/page.tsx — Create narrative form page (planned, Group R)
   narratives/[id]/edit/page.tsx — Edit narrative form page (planned, Group R)
   narratives/components/ — NarrativeList, NarrativeForm, NarrativeDetailActions (planned, Group R)
+  auth/signin/page.tsx    — Sign-in page (server component, dark theme, error handling)
+  auth/signin/signin-button.tsx — Google sign-in button (client component)
   connections/page.tsx    — Connected Systems list page
   connections/[id]/page.tsx — Connected System detail page
   connections/new/page.tsx — Create connection form page
@@ -85,12 +89,15 @@ app/
   skills/new/page.tsx     — Create skill form page
   skills/[id]/edit/page.tsx — Edit skill form page
   skills/components/      — SkillList, SkillForm, SkillDetailActions
-  components/             — RoleProvider, RoleToggle
+  components/             — RoleProvider, RoleToggle, SessionProvider, UserMenu
   components/ui/          — Button, Input, Select, Textarea, FormField, Badge, LoadingSpinner, PageSkeleton, ErrorState, TagEditor, MarkdownRenderer, VisualDiff, FilterableList, ConfirmDialog (planned, Group S)
   components/layout/      — PageLayout (planned, Group S)
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
 lib/
+  auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions, requireAuth(), requireRole(), getCurrentUser()
+  user-types.ts           — UserRole, UserRecord, ROLE_HIERARCHY, VALID_ROLES, isValidRole(), hasMinimumRole()
+  users.ts                — User CRUD: getOrCreateUser(), getUserByEmail(), listUsers(), updateUserRole(), deactivateUser(); 5-min cache
   api-auth.ts             — generateApiKey(), hashApiKey(), validateApiKey(), refreshApiKeyCache(); globalThis cache with 5-min TTL
   api-middleware.ts       — withApiAuth() HOF for /api/v1/ routes; key validation, security headers, CORS, request logging
   weaviate.ts             — withWeaviate<T>(fn), checkWeaviateConnection()
@@ -115,11 +122,12 @@ lib/
   context-assembly.ts     — assembleContext() for building generation system prompts with skills + knowledge + rules + optional narrative
   narratives.ts           — Narrative CRUD: list, get, create, update, delete, submit, approve, reject, archive, deprecate/restore, version (planned, Group R)
   narrative-types.ts      — Narrative types, status enums, input types, utilities (planned, Group R)
+middleware.ts             — Auth.js middleware: redirects unauthenticated pages to /auth/signin, 401 for unauthenticated API, public: /auth/*, /api/auth/*, /api/v1/*
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
   BUSINESS_LOGIC.md       — Context assembly, content types, skills vs rules, runtime logic
-  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, ContentNarrative collections), content inventory, seed plan
+  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, User, ContentNarrative collections), content inventory, seed plan
   SCOPE.md                — Project overview, goals, status
   roadmap/README.md       — Roadmap index: group status table, phase 1 remaining work, open questions
   roadmap/group-{a-z}.md  — Per-group detail: scope, numbered items, risks/gaps (one file per group, 26 groups A–Z, no L)
@@ -133,7 +141,7 @@ docs/
   DESIGN_TOKENS.md        — Design token reference (planned, Group S)
   COMPONENTS.md           — Shared component catalog (planned, Group S)
   UI_STANDARDS.md         — UI coding standards (planned, Group S)
-  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api)
+  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api, authentication)
 mcp-server/
   src/index.ts              — MCP server entry point, dual transport (stdio + HTTP)
   src/weaviate.ts           — Persistent Weaviate client with reconnection
@@ -167,6 +175,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | MCP Server (Read + Write) | J1-J12 Done (Phase 1 Read + Phase 2 Write), J13+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
 | Knowledge-Linked Skills | Done (Group M) |
+| Authentication & User Management | W1-W4 Done (Phase 1), W5-W9 Pending |
 | Content Narratives | Planned (Group R) |
 | Design System Foundation | Planned (Group S) |
 | Generate (content creation) | Pending |

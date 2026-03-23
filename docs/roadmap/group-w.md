@@ -11,16 +11,16 @@ The application currently has zero authentication on internal routes. This is ac
 
 ## Phase 1 — Authentication Foundation (W1–W4)
 
-**W1 — NextAuth.js Integration with Google Provider**
+**W1 — NextAuth.js Integration with Google Provider — ✅ Done (2026-03-23)**
 Install `next-auth` (v5 / Auth.js) and configure the Google OAuth provider. Create `app/api/auth/[...nextauth]/route.ts` with Google client ID and secret from environment variables (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`). Configure session strategy: JWT-based sessions (stateless, no database required for Phase 1). Restrict sign-in to the organization's Google Workspace domain via the `hd` (hosted domain) parameter — only `@company.com` accounts can sign in. Add `NEXTAUTH_URL` and `NEXTAUTH_SECRET` to `.env.example`. Create a sign-in page at `app/auth/signin/page.tsx` with a "Sign in with Google" button.
 
-**W2 — Session Middleware and Route Protection**
+**W2 — Session Middleware and Route Protection — ✅ Done (2026-03-23)**
 Create `lib/auth.ts` with helper functions: `getSession()` (reads the JWT session), `requireAuth()` (throws 401 if no session), `requireRole(role)` (throws 403 if user lacks the required role). Protect all internal API routes (`/api/knowledge`, `/api/skills`, `/api/submissions`, `/api/dashboard`, `/api/connections`, `/api/bulk-upload`, `/api/narratives`) by adding `requireAuth()` at the top of each route handler. External API routes (`/api/v1/*`) continue using API key authentication (Group K) — they are not affected. Create a Next.js middleware (`middleware.ts`) that redirects unauthenticated users to the sign-in page for all app routes except `/auth/*` and `/api/v1/*`.
 
-**W3 — User Session UI**
+**W3 — User Session UI — ✅ Done (2026-03-23)**
 Add a user avatar and name display to the app layout (`app/layout.tsx` or a shared header component). Show the signed-in user's Google profile picture and name. Add a dropdown menu with "Sign Out" action. On the sign-in page, display the organization restriction ("Sign in with your @company.com Google account"). Handle sign-in errors gracefully (wrong domain, OAuth failure).
 
-**W4 — User Record Creation**
+**W4 — User Record Creation — ✅ Done (2026-03-23)**
 Create a `User` Weaviate collection to store user records. Properties: `email` (text, unique), `name` (text), `avatarUrl` (text), `role` (text — `"admin"`, `"editor"`, `"contributor"`, `"viewer"`), `active` (boolean), `lastLoginAt` (date), `createdAt` (date), `updatedAt` (date). On first sign-in, auto-create a user record with `role: "contributor"` (default). On subsequent sign-ins, update `lastLoginAt`. The first user to sign in is auto-assigned `role: "admin"`. Create `lib/users.ts` with CRUD operations: `getOrCreateUser(email, name, avatarUrl)`, `listUsers()`, `updateUserRole(id, role)`, `deactivateUser(id)`.
 
 ## Phase 2 — Role-Based Access Control (W5–W7)

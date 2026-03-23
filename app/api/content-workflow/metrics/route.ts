@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { getWorkflowMetricsSnapshot } from "@/lib/content-workflow-telemetry";
+import { requireAuth } from "@/lib/auth";
 
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -12,6 +13,8 @@ function jsonError(message: string, status = 400): Response {
 
 export async function GET(_req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
     const metrics = await getWorkflowMetricsSnapshot();
     return new Response(JSON.stringify(metrics), {
       status: 200,

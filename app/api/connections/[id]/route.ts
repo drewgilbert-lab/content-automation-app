@@ -8,6 +8,7 @@ import {
 } from "@/lib/connections";
 import type { ConnectedSystemUpdateInput } from "@/lib/connection-types";
 import { NextRequest } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const system = await getConnectedSystem(id);
 
@@ -41,6 +45,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { name, description, subscribedTypes, rateLimitTier, permissions } = body;
@@ -95,6 +102,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const deleted = await deleteConnectedSystem(id);
 
@@ -122,6 +132,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { action } = body;

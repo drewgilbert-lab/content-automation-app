@@ -5,12 +5,16 @@ import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject, updateKnowledgeObject } from "@/lib/knowledge";
 import { triggerSkillRefreshCheck, updateSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
+import { requireAuth } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { mergedContent } = body;

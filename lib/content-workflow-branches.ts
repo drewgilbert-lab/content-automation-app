@@ -291,7 +291,7 @@ async function createCompetitorDocArtifacts(
         runId: input.runId,
         branchId: input.branch.id,
         stepId: input.step.id,
-        templateKey: descriptor.competitorTemplateKey,
+        templateKey: descriptor.competitorTemplateKey ?? "",
         variables: {
           competitor,
           theme: context.theme,

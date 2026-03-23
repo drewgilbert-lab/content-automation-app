@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { RoleToggle } from "@/app/components/role-toggle";
+import { UserMenu } from "@/app/components/user-menu";
 import { checkWeaviateConnection } from "@/lib/weaviate";
 import { checkClaudeConnection } from "@/lib/claude";
 
@@ -118,7 +119,10 @@ export default async function HomePage() {
               AI-powered content operations platform
             </p>
           </div>
-          <RoleToggle />
+          <div className="flex items-center gap-3">
+            <RoleToggle />
+            <UserMenu />
+          </div>
         </div>
 
         {/* Connection Status */}

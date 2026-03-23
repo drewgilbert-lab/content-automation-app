@@ -6,12 +6,16 @@ import {
   type KnowledgeType,
 } from "@/lib/knowledge";
 import type { KnowledgeCreateInput } from "@/lib/knowledge-types";
+import { requireAuth } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const type = req.nextUrl.searchParams.get("type") ?? undefined;
 
     if (type && !VALID_TYPES.includes(type as KnowledgeType)) {
@@ -37,6 +41,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const body = await req.json();
     const { type, name, content, tags, subType, revenueRange, employeeRange, website, customerName, industry, personaId, segmentId } = body;
 

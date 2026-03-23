@@ -6,12 +6,16 @@ import {
   isValidContentType,
 } from "@/lib/skills";
 import type { SkillCreateInput } from "@/lib/skill-types";
+import { requireAuth } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const contentType = req.nextUrl.searchParams.get("contentType") ?? undefined;
     const activeParam = req.nextUrl.searchParams.get("active");
     const category = req.nextUrl.searchParams.get("category") ?? undefined;
@@ -42,6 +46,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const body = await req.json();
     const {
       name,

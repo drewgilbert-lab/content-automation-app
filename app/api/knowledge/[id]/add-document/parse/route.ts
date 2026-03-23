@@ -2,12 +2,16 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { parseDocument } from "@/lib/document-parser";
+import { requireAuth } from "@/lib/auth";
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     await params;
 
     const formData = await req.formData();

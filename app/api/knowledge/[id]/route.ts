@@ -8,6 +8,7 @@ import {
   NameConflictError,
 } from "@/lib/knowledge";
 import type { KnowledgeUpdateInput } from "@/lib/knowledge-types";
+import { requireAuth } from "@/lib/auth";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -17,6 +18,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
 
     const object = await getKnowledgeObject(id);
@@ -43,6 +47,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { name, content, tags, subType, revenueRange, employeeRange, website, customerName, industry } = body;
@@ -96,6 +103,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const confirm = req.nextUrl.searchParams.get("confirm") === "true";
 
@@ -132,6 +142,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const body = await req.json();
     const { action } = body;

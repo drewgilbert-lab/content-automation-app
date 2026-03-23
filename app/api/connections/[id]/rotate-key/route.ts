@@ -2,6 +2,7 @@ import { getConnectedSystem } from "@/lib/connections";
 import { generateApiKey, invalidateApiKeyCache } from "@/lib/api-auth";
 import { withWeaviate } from "@/lib/weaviate";
 import { NextRequest } from "next/server";
+import { requireAuth } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
+
     const { id } = await params;
     const system = await getConnectedSystem(id);
 

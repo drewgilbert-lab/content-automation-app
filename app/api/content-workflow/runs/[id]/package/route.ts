@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getLatestFinalPillarPackage } from "@/lib/content-workflow-assembler";
 import { getWorkflowRun } from "@/lib/content-workflow-store";
+import { requireAuth } from "@/lib/auth";
 
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -16,6 +17,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
     const { id } = await params;
     const run = await getWorkflowRun(id);
     if (!run) {

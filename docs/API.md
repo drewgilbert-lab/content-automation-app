@@ -1,10 +1,32 @@
 # Content Engine — API Reference
 
-> Last updated: March 23, 2026 (Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 23, 2026 (Group W Phase 1 authentication added; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
 All internal routes below are relative to this base URL in production. The external API (`/api/v1/`) is also served from this URL with `X-API-Key` authentication.
+
+---
+
+## Authentication (Group W)
+
+### Internal API Routes (`/api/*` except `/api/v1/*`)
+
+All internal API routes require a valid Auth.js session. Unauthenticated requests receive a `401` JSON response. Each route handler calls `requireAuth()` from `lib/auth.ts` at the top of every handler.
+
+### External API Routes (`/api/v1/*`)
+
+External API routes are **unaffected** by user authentication. They continue to use `X-API-Key` header authentication via the `withApiAuth()` middleware (Group K). No session required.
+
+### Auth.js Route Handler
+
+**`GET/POST /api/auth/[...nextauth]`** — Auth.js v5 catch-all handler. Manages OAuth callbacks, session creation, CSRF tokens, sign-in, and sign-out flows. Not called directly by application code.
+
+**Implementation:** `app/api/auth/[...nextauth]/route.ts` → exports `handlers` from `lib/auth.ts`
+
+### Page Protection
+
+Next.js middleware (`middleware.ts`) redirects unauthenticated page requests to `/auth/signin`. Public paths excluded: `/auth/*`, `/api/auth/*`, `/api/v1/*`.
 
 ---
 

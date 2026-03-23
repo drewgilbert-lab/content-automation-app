@@ -1,6 +1,6 @@
 # Content Engine — Project Overview
 
-> Last updated: March 4, 2026
+> Last updated: March 23, 2026
 
 ## What This Is
 
@@ -21,7 +21,7 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 
 ### Out of Scope (Current Phase)
 
-- User authentication and role-based access (internal API routes are unprotected; accepted risk for single-user internal tool — see Phase 3+ backlog in [roadmap/README.md](./roadmap/README.md))
+- Role-based access control enforcement (Phase 2 — W5–W7; authentication foundation is done, RBAC permission checks are planned)
 - Content approval and publishing workflows (defined in [roadmap/README.md](./roadmap/README.md), not yet implemented)
 - Integration with external systems (CRM, MAP, social platforms)
 - Multi-tenant or customer-facing use
@@ -58,6 +58,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Weaviate collections created | Done | Schema defined in KNOWLEDGE_BASE.md |
 | Seed script | Done | Imports content-automation/ files into Weaviate |
 | Knowledge Base UI | Done | Groups A–I done (I1–I5); I6 (Skill Testing Interface) deferred |
+| Authentication & User Management | Done (Phase 1) | Group W W1–W4: Google OAuth sign-in, JWT sessions, domain restriction, User collection, middleware route protection, requireAuth/requireRole helpers; Phase 2 (RBAC enforcement W5–W7) pending |
 | Generate UI | Pending | Content generation with context retrieval |
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |

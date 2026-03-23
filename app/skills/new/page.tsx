@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { SkillForm } from "../components/skill-form";
 
 export default function NewSkillPage() {
@@ -20,7 +21,9 @@ export default function NewSkillPage() {
         </p>
 
         <div className="mt-8 rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <SkillForm mode="create" />
+          <Suspense>
+            <SkillForm mode="create" />
+          </Suspense>
         </div>
       </div>
     </main>

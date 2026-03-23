@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getWorkflowRun } from "@/lib/content-workflow-store";
 import { listWorkflowEvents } from "@/lib/content-workflow-events";
+import { requireAuth } from "@/lib/auth";
 
 function serializeEvent(event: {
   id: string;
@@ -23,6 +24,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const authResult = await requireAuth();
+    if (authResult instanceof Response) return authResult;
     const { id } = await params;
     const run = await getWorkflowRun(id);
     if (!run) {

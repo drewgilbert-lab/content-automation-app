@@ -196,11 +196,11 @@ export function enforceArtifactOutputBudget<T extends ArtifactType>(
   }
 
   const budgeted = enforceTextBudget(payloadText, budget.maxOutputTokens, budget.onExceed);
-  const payload = setTextOnPayload(artifact.payload as Record<string, unknown>, budgeted.text);
+  const payload = setTextOnPayload(artifact.payload as unknown as Record<string, unknown>, budgeted.text);
   return {
     artifact: {
       ...artifact,
-      payload: payload as PillarResearchArtifact<T>["payload"],
+      payload: payload as unknown as PillarResearchArtifact<T>["payload"],
       metadata: {
         ...(artifact.metadata ?? {}),
         outputTokenBudget: budget.maxOutputTokens,

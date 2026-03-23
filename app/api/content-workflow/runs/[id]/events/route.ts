@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getWorkflowRun } from "@/lib/content-workflow-store";
 import { listWorkflowEvents } from "@/lib/content-workflow-events";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 function serializeEvent(event: {
   id: string;

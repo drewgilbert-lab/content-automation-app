@@ -1,6 +1,6 @@
 export const runtime = "nodejs";
 
-import { getCurrentUser } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth-server";
 
 export async function GET() {
   try {

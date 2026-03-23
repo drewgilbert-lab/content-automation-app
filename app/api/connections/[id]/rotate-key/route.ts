@@ -2,7 +2,7 @@ import { getConnectedSystem } from "@/lib/connections";
 import { generateApiKey, invalidateApiKeyCache } from "@/lib/api-auth";
 import { withWeaviate } from "@/lib/weaviate";
 import { NextRequest } from "next/server";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export const runtime = "nodejs";
 

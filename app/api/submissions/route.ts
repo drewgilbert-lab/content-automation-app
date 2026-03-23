@@ -12,7 +12,7 @@ import {
   type SubmissionObjectType,
   type SourceChannel,
 } from "@/lib/submissions";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export async function GET(req: NextRequest) {
   try {

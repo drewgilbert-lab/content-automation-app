@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { cancelRun } from "@/lib/content-workflow-store";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 function jsonError(message: string, status = 400): Response {
   return new Response(JSON.stringify({ error: message }), {

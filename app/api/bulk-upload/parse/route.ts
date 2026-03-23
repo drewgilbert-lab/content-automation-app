@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { parseDocuments } from "@/lib/document-parser";
 import { createSession, updateSessionStatus } from "@/lib/upload-session";
 import { DEFAULT_LIMITS } from "@/lib/document-parser-types";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export const runtime = "nodejs";
 

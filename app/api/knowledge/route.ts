@@ -6,7 +6,7 @@ import {
   type KnowledgeType,
 } from "@/lib/knowledge";
 import type { KnowledgeCreateInput } from "@/lib/knowledge-types";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";

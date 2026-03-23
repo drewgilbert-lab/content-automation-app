@@ -8,7 +8,7 @@ import {
   NameConflictError,
 } from "@/lib/knowledge";
 import type { KnowledgeUpdateInput } from "@/lib/knowledge-types";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";

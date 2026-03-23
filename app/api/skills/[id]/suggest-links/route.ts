@@ -3,7 +3,7 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 const KNOWLEDGE_COLLECTIONS = [
   "Persona",

@@ -1,5 +1,5 @@
 import { getSerializedSession } from "@/lib/upload-session";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export const runtime = "nodejs";
 

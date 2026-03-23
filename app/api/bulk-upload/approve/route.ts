@@ -6,7 +6,7 @@ import { createSubmission } from "@/lib/submissions";
 import type { ClassificationResult } from "@/lib/classification-types";
 import type { KnowledgeType } from "@/lib/knowledge-types";
 import { VALID_TYPES } from "@/lib/knowledge-types";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export async function POST(req: NextRequest) {
   const authResult = await requireRole("contributor");

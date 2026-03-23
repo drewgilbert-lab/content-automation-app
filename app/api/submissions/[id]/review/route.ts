@@ -9,7 +9,7 @@ import {
 } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
 import { triggerSkillRefreshCheck } from "@/lib/skills";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export async function POST(
   req: NextRequest,

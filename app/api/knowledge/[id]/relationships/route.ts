@@ -1,5 +1,5 @@
 import { addRelationship, removeRelationship } from "@/lib/knowledge";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";

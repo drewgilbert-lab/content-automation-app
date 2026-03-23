@@ -1,5 +1,5 @@
 import { getDashboardData } from "@/lib/dashboard";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export const runtime = "nodejs";
 

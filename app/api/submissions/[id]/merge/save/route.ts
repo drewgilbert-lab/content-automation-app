@@ -5,7 +5,7 @@ import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject, updateKnowledgeObject } from "@/lib/knowledge";
 import { triggerSkillRefreshCheck, updateSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export async function POST(
   req: NextRequest,

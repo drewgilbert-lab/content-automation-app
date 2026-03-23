@@ -10,7 +10,7 @@ import {
   buildSkillRefreshPrompt,
 } from "@/lib/merge";
 import { streamMessage } from "@/lib/claude";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export async function POST(
   _req: NextRequest,

@@ -1,5 +1,5 @@
 import { streamMessage } from "@/lib/claude";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";

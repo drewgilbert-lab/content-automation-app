@@ -12,7 +12,7 @@ import type {
   ClassificationErrorEvent,
   ClassificationDoneEvent,
 } from "@/lib/classification-types";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 function validateDocuments(
   docs: unknown

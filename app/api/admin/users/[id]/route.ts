@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 import { getUserById, updateUser } from "@/lib/users";
 import { isValidRole, type UserUpdateInput } from "@/lib/user-types";
 import { NextRequest } from "next/server";

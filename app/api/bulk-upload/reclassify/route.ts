@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import { getSession, setClassification, deleteUserEdit } from "@/lib/upload-session";
 import { listKnowledgeObjects } from "@/lib/knowledge";
 import { classifyDocument } from "@/lib/classifier";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export async function POST(req: NextRequest) {
   const authResult = await requireRole("contributor");

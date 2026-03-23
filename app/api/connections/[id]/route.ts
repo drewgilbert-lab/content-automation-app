@@ -8,7 +8,7 @@ import {
 } from "@/lib/connections";
 import type { ConnectedSystemUpdateInput } from "@/lib/connection-types";
 import { NextRequest } from "next/server";
-import { requireRole } from "@/lib/auth";
+import { requireRole } from "@/lib/auth-server";
 
 export const runtime = "nodejs";
 

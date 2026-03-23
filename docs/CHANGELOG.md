@@ -1,6 +1,70 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 17, 2026
+> Newest entries first. Last updated: March 23, 2026
+
+---
+
+### Group W Documentation — 4-Role RBAC Model — March 23, 2026
+
+Updated the Group W (Authentication & User Management) roadmap and all related documentation to replace the 3-role model (Admin, Contributor, Viewer) with a 4-role model:
+
+- **Admin** — Full platform access: user management, system configuration, connected systems, plus all Editor permissions.
+- **Editor** — Content governance: review/approve/reject submissions, AI merge, direct create/edit without review queue.
+- **Contributor** — Content submission: create/edit via review queue, bulk upload, view content.
+- **Viewer** — Read-only: browse knowledge, skills, narratives, cost dashboard.
+
+Files updated: `docs/roadmap/group-w.md` (permission matrix, W4 User collection schema, W5 permission model, W8 custom roles), `docs/roadmap/README.md`, `docs/roadmap/phase-3-backlog.md`, `docs/roadmap/cross-cutting.md`, and six user guides (`getting-started`, `review-queue`, `managing-knowledge`, `knowledge-base`, `ai-merge`, `enhanced-review`).
+
+---
+
+### Group M — Knowledge-Linked Skills — March 23, 2026
+
+**M1 — sourceKnowledgeObjects Field:**
+- Added `SkillKnowledgeLink` type and `sourceKnowledgeObjects` optional field to Skill types (`SkillDetail`, `SkillCreateInput`, `SkillUpdateInput`).
+- `lib/skills.ts` reads/writes JSON-serialized link arrays to Weaviate Skill collection.
+- Skill API PUT route validates link structure (id, collection, non-empty integrationPrompt).
+
+**M2 — Skill UI for Managing Knowledge Links:**
+- Skill detail page shows "Linked Knowledge Objects" section with object name links, type badges, and integration prompts.
+- Skill form includes dynamic link management: search knowledge objects, add/remove links, edit integration prompts with validation.
+
+**M3 — buildSkillRefreshPrompt:**
+- Added `buildSkillRefreshPrompt()` to `lib/merge.ts` for AI-assisted skill updates. Preserves procedural structure while updating knowledge-referenced facts.
+
+**M4 — Materiality Evaluation:**
+- Added `evaluateSkillRefreshSignificance()` to `lib/skills.ts`. Lightweight Claude call to assess whether a knowledge object change warrants a skill update suggestion.
+
+**M5 — System-Generated Skill Refresh Submissions:**
+- Extended `SourceChannel` with `"system"` and created `SubmissionObjectType = KnowledgeType | "skill"`.
+- `reviewSubmission` accept path now routes skill submissions to `updateSkill()`.
+- Added `triggerSkillRefreshCheck()` as fire-and-forget hook after knowledge object acceptance.
+- Trigger hooks added to merge/save and review routes.
+
+**M6 — Review Queue Support for Skill Submissions:**
+- Merge route uses `buildSkillRefreshPrompt` for skill submissions.
+- Queue list shows "Skill" type badge and "System" source channel badge.
+- Queue detail loads skills and shows skill refresh context (current skill content, updated knowledge object, integration prompt).
+- Dashboard shows pending system-generated skill submission count.
+
+**M7 — Suggested Links via Semantic Similarity:**
+- Added `POST /api/skills/[id]/suggest-links` endpoint using Weaviate `nearText` across all knowledge collections.
+- `SuggestLinks` component on skill detail page with accept/dismiss actions per suggestion.
+- Accept pre-populates skill edit form with the suggested link.
+
+**Tests:** 7 new test files (28 tests) covering link serialization, merge prompts, significance evaluation, trigger logic, submission routing, suggest-links, and merge route branching.
+
+**User guide update:** N/A — Knowledge-linked skills is an internal admin workflow feature; no new end-user guide required. Existing skill management patterns are extended in-place.
+
+---
+
+### Workflows UI Test Harness — March 18, 2026
+
+- Enabled the existing **Workflows** home module card and added a minimal `/workflows` page to manually test content-workflow APIs in-app.
+- The page supports create run, start run, refresh status, load run detail, and load package with JSON response panels and basic error/loading states.
+- Added light UX hardening for run ID validation, stale panel clearing on run switch, and clearer package-not-ready messaging.
+- Verification completed with lint + API test pass and smoke flow (create/start/status/package) against local dev server.
+- Documentation updated: `docs/roadmap/group-content-workflow.md`, `docs/API.md`, `docs/CHANGELOG.md`.
+- User guide update: N/A (internal test harness only; no end-user feature workflow).
 
 ---
 

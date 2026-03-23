@@ -4,6 +4,7 @@ import { getSkill } from "@/lib/skills";
 import { getContentTypeLabel, getCategoryLabel } from "@/lib/skill-types";
 import { MarkdownRenderer } from "@/app/knowledge/components/markdown-renderer";
 import { SkillDetailActions } from "../components/skill-detail-actions";
+import { SuggestLinks } from "../components/suggest-links";
 
 function formatDate(iso: string): string {
   if (!iso) return "";
@@ -76,6 +77,43 @@ export default async function SkillDetailPage({
           <div className="lg:flex-1 min-w-0">
             <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
               <MarkdownRenderer content={skill.content} />
+            </div>
+
+            {skill.sourceKnowledgeObjects && skill.sourceKnowledgeObjects.length > 0 ? (
+              <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+                  Linked Knowledge Objects
+                </h3>
+                <div className="space-y-4">
+                  {skill.sourceKnowledgeObjects.map((link) => (
+                    <div key={link.id} className="rounded-lg border border-gray-800 bg-gray-950 p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Link
+                          href={`/knowledge/${link.id}`}
+                          className="text-sm font-medium text-blue-400 hover:text-blue-300"
+                        >
+                          {link.name || link.id}
+                        </Link>
+                        <span className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+                          {link.collection}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-400 italic">{link.integrationPrompt}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
+                <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+                  Linked Knowledge Objects
+                </h3>
+                <p className="text-sm text-gray-500">No linked knowledge objects.</p>
+              </div>
+            )}
+
+            <div className="mt-6">
+              <SuggestLinks skillId={skill.id} />
             </div>
           </div>
 

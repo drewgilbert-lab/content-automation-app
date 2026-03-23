@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import type { SkillDetail } from "@/lib/skill-types";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import type { SkillDetail, SkillKnowledgeLink } from "@/lib/skill-types";
 import {
   CONTENT_TYPES,
   SKILL_CATEGORIES,
@@ -18,6 +18,7 @@ interface SkillFormProps {
 
 export function SkillForm({ mode, initialData }: SkillFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const init = mode === "edit" && initialData ? initialData : null;
   const [name, setName] = useState(init?.name ?? "");
@@ -34,10 +35,36 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
   const [author, setAuthor] = useState(init?.author ?? "");
   const [parameters, setParameters] = useState(init?.parameters ?? "");
 
+  const [links, setLinks] = useState<SkillKnowledgeLink[]>(
+    init?.sourceKnowledgeObjects ?? []
+  );
+  const [linkSearch, setLinkSearch] = useState("");
+  const [linkSearchResults, setLinkSearchResults] = useState<Array<{ id: string; name: string; type: string }>>([]);
+  const [linkSearching, setLinkSearching] = useState(false);
+
   const [versionBump, setVersionBump] = useState<"patch" | "minor" | "major">("patch");
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prefill = searchParams.get("prefillLink");
+    if (prefill) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(prefill));
+        if (parsed.id && !links.some((l) => l.id === parsed.id)) {
+          setLinks((prev) => [...prev, {
+            id: parsed.id,
+            collection: parsed.collection ?? "",
+            name: parsed.name ?? "",
+            integrationPrompt: "",
+          }]);
+        }
+      } catch {
+        // ignore bad prefill
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function toggleContentType(ct: string) {
     setContentType((prev) =>
@@ -54,6 +81,47 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
     if (bump === "major") return `${parts[0] + 1}.0.0`;
     if (bump === "minor") return `${parts[0]}.${parts[1] + 1}.0`;
     return `${parts[0]}.${parts[1]}.${parts[2] + 1}`;
+  }
+
+  const handleLinkSearch = useCallback(async () => {
+    if (!linkSearch.trim()) {
+      setLinkSearchResults([]);
+      return;
+    }
+    setLinkSearching(true);
+    try {
+      const res = await fetch("/api/knowledge");
+      if (res.ok) {
+        const data = await res.json();
+        const term = linkSearch.trim().toLowerCase();
+        const results = (data.objects ?? [])
+          .filter((o: { id: string; name: string; type: string }) =>
+            o.name.toLowerCase().includes(term) && !links.some((l) => l.id === o.id)
+          )
+          .slice(0, 10);
+        setLinkSearchResults(results);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLinkSearching(false);
+    }
+  }, [linkSearch, links]);
+
+  function addLink(obj: { id: string; name: string; type: string }) {
+    setLinks((prev) => [...prev, { id: obj.id, collection: obj.type, name: obj.name, integrationPrompt: "" }]);
+    setLinkSearch("");
+    setLinkSearchResults([]);
+  }
+
+  function removeLink(id: string) {
+    setLinks((prev) => prev.filter((l) => l.id !== id));
+  }
+
+  function updateLinkPrompt(id: string, prompt: string) {
+    setLinks((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, integrationPrompt: prompt } : l))
+    );
   }
 
   const handleSubmit = useCallback(
@@ -75,6 +143,10 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
       }
       if (contentType.length === 0) {
         setError("At least one content type is required");
+        return;
+      }
+      if (links.some((l) => !l.integrationPrompt.trim())) {
+        setError("All linked knowledge objects must have an integration prompt");
         return;
       }
 
@@ -103,6 +175,7 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           outputFormat: outputFormat || undefined,
           author: author || undefined,
           parameters: parameters || undefined,
+          sourceKnowledgeObjects: links.length > 0 ? links : undefined,
         };
 
         if (mode === "edit") {
@@ -143,6 +216,7 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
       outputFormat,
       author,
       parameters,
+      links,
       versionBump,
       router,
     ]
@@ -321,6 +395,84 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
         />
         <p className="mt-1 text-xs text-gray-500">
           Optional JSON array of SkillParameter objects
+        </p>
+      </div>
+
+      {/* Knowledge Links */}
+      <div>
+        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          Linked Knowledge Objects
+        </label>
+
+        {links.length > 0 && (
+          <div className="space-y-3 mb-4">
+            {links.map((link) => (
+              <div key={link.id} className="rounded-lg border border-gray-700 bg-gray-800 p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white">{link.name || link.id}</span>
+                    <span className="rounded bg-gray-700 px-2 py-0.5 text-xs text-gray-400">{link.collection}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeLink(link.id)}
+                    className="text-xs text-red-400 hover:text-red-300"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <textarea
+                  value={link.integrationPrompt}
+                  onChange={(e) => updateLinkPrompt(link.id, e.target.value)}
+                  placeholder="How should this object's content be incorporated into the skill? e.g. 'Update references to job titles, pain points, and language patterns to reflect any changes in the linked persona.'"
+                  rows={2}
+                  className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none resize-y"
+                />
+                {!link.integrationPrompt.trim() && (
+                  <p className="mt-1 text-xs text-amber-400">Integration prompt is required</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={linkSearch}
+            onChange={(e) => setLinkSearch(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLinkSearch(); } }}
+            placeholder="Search knowledge objects to link..."
+            className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={handleLinkSearch}
+            disabled={linkSearching || !linkSearch.trim()}
+            className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50"
+          >
+            {linkSearching ? "Searching..." : "Search"}
+          </button>
+        </div>
+
+        {linkSearchResults.length > 0 && (
+          <div className="mt-2 rounded-lg border border-gray-700 bg-gray-800 divide-y divide-gray-700">
+            {linkSearchResults.map((result) => (
+              <button
+                key={result.id}
+                type="button"
+                onClick={() => addLink(result)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-700"
+              >
+                <span>{result.name}</span>
+                <span className="rounded bg-gray-600 px-1.5 py-0.5 text-xs text-gray-400">{result.type}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <p className="mt-1 text-xs text-gray-500">
+          Link knowledge objects that this skill depends on. Each link requires an integration prompt.
         </p>
       </div>
 

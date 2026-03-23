@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 17, 2026 (CW1–CW21 implemented including full test matrix; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 23, 2026 (Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1233,9 +1233,61 @@ Activates, deactivates, deprecates, or restores a skill.
 
 ---
 
+### POST /api/skills/[id]/suggest-links
+
+Returns semantically similar knowledge objects as link suggestions for a skill.
+
+**Runtime:** `nodejs`
+
+**Path Parameters:**
+- `id` (required): Weaviate UUID of the skill
+
+**Request:** Empty body (POST).
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "suggestions": [
+    {
+      "id": "uuid",
+      "name": "Sales Persona",
+      "type": "persona",
+      "collection": "persona",
+      "score": 0.85
+    }
+  ]
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Skill not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to suggest links" }` | Server error |
+
+**Implementation:** `app/api/skills/[id]/suggest-links/route.ts` → uses Weaviate `nearText` search across all knowledge collections
+
+---
+
+## Submission Type Extensions (Group M)
+
+As of Group M, the submission system supports expanded types:
+
+- **`objectType`** now accepts `"skill"` in addition to knowledge types (`persona`, `segment`, `use_case`, `business_rule`, `icp`, `competitor`, `customer_evidence`). Skill submissions route through `updateSkill()` on acceptance instead of `updateKnowledgeObject()`.
+- **`sourceChannel`** now accepts `"system"` for auto-generated skill refresh submissions, in addition to `"ui"`, `"mcp"`, and `"bulk_upload"`.
+- The merge route (`POST /api/submissions/[id]/merge`) uses `buildSkillRefreshPrompt()` for skill submissions instead of `buildMergePrompt()`.
+- The merge/save route (`POST /api/submissions/[id]/merge/save`) uses `updateSkill()` for skill submissions.
+
+---
+
 ## Content Workflow Routes (Group Content Workflow — CW1–CW21)
 
 **Status: Implemented** — Full test matrix (lifecycle, retries, branch isolation, fan-in, artifact validation, lineage) passing.
+
+**Manual UI entrypoint:** `/workflows` provides a minimal in-app harness to create runs, start orchestration, and fetch status/detail/package responses for testing.
 
 **Implementation files:** `app/api/content-workflow/runs/route.ts`, `app/api/content-workflow/runs/[id]/route.ts`, `app/api/content-workflow/runs/[id]/status/route.ts`, `app/api/content-workflow/runs/[id]/package/route.ts`, `app/api/content-workflow/runs/[id]/cancel/route.ts`, `app/api/content-workflow/runs/[id]/start/route.ts`, `app/api/content-workflow/runs/[id]/events/route.ts`, `app/api/content-workflow/runs/[id]/retry/route.ts`, `app/api/content-workflow/metrics/route.ts`, `app/api/content-workflow/runs/failed/route.ts`, `app/api/content-workflow/runs/[id]/diagnostics/route.ts`, `lib/content-workflow-orchestrator.ts`, `lib/content-workflow-executor.ts`, `lib/content-workflow-events.ts`, `lib/content-workflow-validators.ts`, `lib/content-workflow-assembler.ts`, `lib/content-workflow-telemetry.ts`, `lib/content-workflow-budget.ts`
 

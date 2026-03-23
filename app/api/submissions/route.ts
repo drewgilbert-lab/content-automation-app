@@ -6,10 +6,12 @@ import {
   listSubmissions,
   VALID_SUBMISSION_TYPES,
   VALID_STATUSES,
+  VALID_OBJECT_TYPES,
   type SubmissionType,
   type SubmissionStatus,
+  type SubmissionObjectType,
+  type SourceChannel,
 } from "@/lib/submissions";
-import { VALID_TYPES, type KnowledgeType } from "@/lib/knowledge-types";
 
 export async function GET(req: NextRequest) {
   try {
@@ -77,10 +79,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!VALID_TYPES.includes(objectType as KnowledgeType)) {
+    if (!VALID_OBJECT_TYPES.includes(objectType as SubmissionObjectType)) {
       return new Response(
         JSON.stringify({
-          error: `Invalid objectType "${objectType}". Valid types: ${VALID_TYPES.join(", ")}`,
+          error: `Invalid objectType "${objectType}". Valid types: ${VALID_OBJECT_TYPES.join(", ")}`,
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
@@ -108,12 +110,12 @@ export async function POST(req: NextRequest) {
 
     const input = {
       submitter: String(submitter).trim(),
-      objectType: objectType as KnowledgeType,
+      objectType: objectType as SubmissionObjectType,
       objectName: String(objectName).trim(),
       submissionType: submissionType as SubmissionType,
       proposedContent: String(proposedContent),
       targetObjectId: targetObjectId ? String(targetObjectId).trim() : undefined,
-      sourceChannel: sourceChannel ? String(sourceChannel).trim() as "ui" | "mcp" | "bulk_upload" : undefined,
+      sourceChannel: sourceChannel ? String(sourceChannel).trim() as SourceChannel : undefined,
       sourceAppId: sourceAppId ? String(sourceAppId).trim() : undefined,
       sourceDescription: sourceDescription ? String(sourceDescription).trim() : undefined,
     };

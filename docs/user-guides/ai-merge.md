@@ -1,12 +1,12 @@
 # Using AI Merge
 
-> Last updated: February 26, 2026
+> Last updated: March 23, 2026
 
 ---
 
 ## Overview
 
-AI Merge is a tool available to Admins when reviewing **Update** submissions in the Review Queue. Instead of choosing between the existing version and the proposed version outright, AI Merge asks Claude to intelligently combine the two — keeping the best parts of each and resolving conflicts. The Admin then reviews the AI's merged result, edits it if needed, and saves it as the new live version.
+AI Merge is a tool available to Editors and Admins when reviewing **Update** submissions in the Review Queue. Instead of choosing between the existing version and the proposed version outright, AI Merge asks Claude to intelligently combine the two — keeping the best parts of each and resolving conflicts. The reviewer then reviews the AI's merged result, edits it if needed, and saves it as the new live version.
 
 The merge prompt is designed with a strong content preservation guarantee: every section, fact, and detail present in the current version is retained in the merged result unless it is directly contradicted or explicitly superseded by the proposed update. Content is not silently dropped.
 
@@ -118,7 +118,9 @@ Use Replace with Proposed when the proposed content is clearly correct and compl
 
 ## What Claude Sees During a Merge
 
-When you click "Merge with AI," the system sends Claude:
+### Knowledge Object Merges
+
+When you click "Merge with AI" on a knowledge object submission, the system sends Claude:
 - The full content of the **current live version** of the knowledge object
 - The full content of the **proposed update** from the submission
 - Instructions to combine them intelligently: preserve structure, resolve conflicts, and prefer newer facts while retaining valuable existing context
@@ -127,11 +129,22 @@ The merge instructions include an explicit preservation guarantee: every section
 
 Claude does not have access to any other information about the object or the submitter. The merge is purely content-to-content.
 
+### Skill Refresh Merges
+
+When you click "Merge with AI" on a **system-generated skill refresh** submission, the system uses a different, specialized prompt. Claude receives:
+- The full content of the **current skill instructions**
+- The full content of the **updated knowledge object** that triggered the refresh
+- The **integration prompt** — instructions that define how the knowledge object's content relates to the skill
+
+The skill refresh prompt is conservative by design: Claude preserves all procedural structure, steps, methodology, and formatting in the skill. It only updates references to facts, attributes, or language patterns that appear in the updated knowledge object and are relevant per the integration instructions. Steps, sections, or instructions unrelated to the changed knowledge object content are never removed.
+
+This approach ensures that a knowledge object update (e.g., a persona's job title changing) propagates only the relevant factual change into the skill without disrupting the skill's overall methodology.
+
 ---
 
 ## Common Pitfalls
 
-**The "Merge with AI" button is grayed out or not appearing.** AI Merge is only available for Update submissions (not New submissions). If you are on a New submission review page, the button will not appear. Also confirm you are in Admin mode — Contributors do not have access to merge.
+**The "Merge with AI" button is grayed out or not appearing.** AI Merge is available for Update submissions and system-generated skill refresh submissions (not New submissions). If you are on a New submission review page, the button will not appear. Also confirm you are in Editor or Admin mode — Contributors and Viewers do not have access to merge.
 
 **The AI merged result is not streaming — the panel stays blank.** This usually indicates a connectivity issue with the Claude API. Try refreshing the page and starting the merge again. If the problem persists, check that the `ANTHROPIC_API_KEY` environment variable is configured correctly on the server.
 
@@ -144,3 +157,5 @@ Claude does not have access to any other information about the object or the sub
 **The tracked changes highlighting looks wrong after I made significant edits.** The tracked changes view computes character-level diffs in real time between your editable content and the original live version. Heavy structural edits can produce visually noisy diffs. This is normal — the underlying content in the editable panel is what gets saved, regardless of how the diff looks.
 
 **I want to fully replace the existing content without merging.** Use the **Replace with Proposed** action instead of Merge with AI. It skips the AI entirely and overwrites the current version verbatim with the proposed content. See the [Replace with Proposed](#replace-with-proposed) section above.
+
+**The skill refresh merge changed too much of the skill.** The refresh prompt is designed to be conservative, but complex integration prompts may lead to broader changes. Edit the right panel to restore any sections you want to keep. Consider narrowing the integration prompt on the knowledge link to be more specific about which facts the skill depends on.

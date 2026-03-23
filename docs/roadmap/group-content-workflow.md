@@ -456,7 +456,7 @@ Add branch rerun, step replay, and dead-letter diagnostics.
 Cover all lifecycle transitions, retries, branch isolation, fan-in correctness, artifact-type validation, and artifact lineage integrity.
 
 **CW21 - Documentation updates** — ✅ Done (2026-03-17)  
-Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user guides, including explicit `artifactType` and `contentType` policy.
+Update `docs/roadmap/README.md`, this group doc, relevant API docs, and user guides, including explicit `artifactType` and `contentType` policy. A minimal manual test UI is available at `/workflows` for exercising the workflow API surface end-to-end.
 
 ## Taxonomy Acceptance Criteria
 

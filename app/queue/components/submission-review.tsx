@@ -9,8 +9,9 @@ import {
   getSubmissionTypeLabel,
   getSourceChannelLabel,
 } from "@/lib/submission-types";
-import type { KnowledgeDetail } from "@/lib/knowledge-types";
+import type { KnowledgeDetail, KnowledgeType } from "@/lib/knowledge-types";
 import { getTypeLabel } from "@/lib/knowledge-types";
+import type { SkillDetail } from "@/lib/skill-types";
 import { MarkdownRenderer } from "@/app/knowledge/components/markdown-renderer";
 import { ContentDiff } from "./content-diff";
 import { MergeEditor } from "./merge-editor";
@@ -35,6 +36,9 @@ const TYPE_BADGE_CLASSES: Record<string, string> = {
   use_case: "bg-amber-500/15 text-amber-400",
   business_rule: "bg-purple-500/15 text-purple-400",
   icp: "bg-rose-500/15 text-rose-400",
+  skill: "bg-pink-500/15 text-pink-400",
+  competitor: "bg-orange-500/15 text-orange-400",
+  customer_evidence: "bg-lime-500/15 text-lime-400",
 };
 
 function formatDate(iso: string): string {
@@ -57,9 +61,15 @@ interface ProposedContentParsed {
   sourceFile?: string;
 }
 
+function getObjectTypeLabel(type: string): string {
+  if (type === "skill") return "Skill";
+  return getTypeLabel(type as KnowledgeType);
+}
+
 interface SubmissionReviewProps {
   submission: SubmissionDetail;
   currentObject: KnowledgeDetail | null;
+  currentSkill?: SkillDetail | null;
 }
 
 type ActionMode = "none" | "reject" | "defer" | "merge" | "replace";
@@ -67,6 +77,7 @@ type ActionMode = "none" | "reject" | "defer" | "merge" | "replace";
 export function SubmissionReview({
   submission,
   currentObject,
+  currentSkill,
 }: SubmissionReviewProps) {
   const router = useRouter();
   const [actionMode, setActionMode] = useState<ActionMode>("none");
@@ -155,7 +166,7 @@ export function SubmissionReview({
                 TYPE_BADGE_CLASSES[submission.objectType] ?? "bg-gray-500/15 text-gray-400"
               }`}
             >
-              {getTypeLabel(submission.objectType)}
+              {getObjectTypeLabel(submission.objectType)}
             </span>
           </div>
           <div>
@@ -232,10 +243,10 @@ export function SubmissionReview({
         <div className="rounded-lg border border-green-800 bg-green-950/30 px-4 py-3">
           <p className="text-sm font-medium text-green-300">Accepted</p>
           <Link
-            href={`/knowledge/${submission.targetObjectId}`}
+            href={submission.objectType === "skill" ? `/skills/${submission.targetObjectId}` : `/knowledge/${submission.targetObjectId}`}
             className="mt-1 inline-block text-sm text-green-200 underline hover:text-green-100"
           >
-            View object in Knowledge Base →
+            {submission.objectType === "skill" ? "View skill in Skills Library →" : "View object in Knowledge Base →"}
           </Link>
         </div>
       )}
@@ -256,9 +267,9 @@ export function SubmissionReview({
       )}
 
       {/* Merge editor — full-width, replaces normal content and actions */}
-      {actionMode === "merge" && currentObject && (
+      {actionMode === "merge" && (currentObject || currentSkill) && (
         <MergeEditor
-          currentContent={currentObject.content}
+          currentContent={currentObject?.content ?? currentSkill?.content ?? ""}
           submissionId={submission.id}
           onDiscard={() => setActionMode("none")}
           onSaved={() => {
@@ -390,6 +401,32 @@ export function SubmissionReview({
             </div>
           )}
 
+          {submission.objectType === "skill" && (
+            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+                Skill Refresh Suggestion
+              </h3>
+              {currentSkill && (
+                <div className="mb-6">
+                  <p className="text-sm font-medium text-gray-300 mb-2">Current Skill Content</p>
+                  <MarkdownRenderer content={currentSkill.content} />
+                </div>
+              )}
+              <div className="border-t border-gray-800 pt-6">
+                <p className="text-sm font-medium text-gray-300 mb-2">Updated Knowledge Object</p>
+                <MarkdownRenderer content={proposedContent.content ?? ""} />
+              </div>
+              {(proposedContent as Record<string, unknown>).integrationPrompt && (
+                <div className="border-t border-gray-800 pt-6 mt-6">
+                  <p className="text-sm font-medium text-gray-300 mb-2">Integration Prompt</p>
+                  <p className="text-sm text-gray-400 italic">
+                    {String((proposedContent as Record<string, unknown>).integrationPrompt)}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Error display */}
           {error && (
             <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
@@ -427,7 +464,7 @@ export function SubmissionReview({
                   >
                     Defer
                   </button>
-                  {(submission.submissionType === "update" || submission.submissionType === "document_add") && currentObject && (
+                  {(((submission.submissionType === "update" || submission.submissionType === "document_add") && currentObject) || (submission.objectType === "skill" && currentSkill)) && (
                     <button
                       onClick={() => setActionMode("merge")}
                       disabled={loading}

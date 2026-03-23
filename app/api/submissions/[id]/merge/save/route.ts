@@ -2,7 +2,8 @@ export const runtime = "nodejs";
 
 import { NextRequest } from "next/server";
 import { getSubmission } from "@/lib/submissions";
-import { updateKnowledgeObject } from "@/lib/knowledge";
+import { getKnowledgeObject, updateKnowledgeObject } from "@/lib/knowledge";
+import { triggerSkillRefreshCheck, updateSkill } from "@/lib/skills";
 import { withWeaviate } from "@/lib/weaviate";
 
 export async function POST(
@@ -48,9 +49,25 @@ export async function POST(
       );
     }
 
-    await updateKnowledgeObject(submission.targetObjectId, {
-      content: mergedContent,
-    });
+    if (submission.objectType === "skill") {
+      await updateSkill(submission.targetObjectId, { content: mergedContent });
+    } else {
+      const currentObject = await getKnowledgeObject(submission.targetObjectId);
+      const oldContent = currentObject?.content ?? "";
+
+      await updateKnowledgeObject(submission.targetObjectId, {
+        content: mergedContent,
+      });
+
+      if (oldContent) {
+        triggerSkillRefreshCheck(
+          submission.targetObjectId,
+          submission.objectName,
+          oldContent,
+          mergedContent
+        ).catch(() => {});
+      }
+    }
 
     const now = new Date().toISOString();
     await withWeaviate(async (client) => {

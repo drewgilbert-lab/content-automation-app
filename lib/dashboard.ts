@@ -33,6 +33,7 @@ export interface DashboardData {
     businessRulesNoSubType: DashboardItem[];
     customerEvidenceNoSubType: DashboardItem[];
   };
+  pendingSystemSkillSubmissions: number;
 }
 
 // ─── Internal types ────────────────────────────────────────────────────────────
@@ -310,6 +311,23 @@ export async function getDashboardData(): Promise<DashboardData> {
     const neverReviewed = findNeverReviewed(objects);
     const stale = findStale(objects);
 
+    const submissionCollection = client.collections.use("Submission");
+    const submissionResult = await submissionCollection.query.fetchObjects({
+      limit: 500,
+    });
+    const pendingSystemSkillSubmissions = submissionResult.objects.filter(
+      (obj) => {
+        const objectType = String(obj.properties.objectType ?? "");
+        const sourceChannel = String(obj.properties.sourceChannel ?? "");
+        const status = String(obj.properties.status ?? "");
+        return (
+          objectType === "skill" &&
+          sourceChannel === "system" &&
+          (status === "pending" || status === "deferred")
+        );
+      }
+    ).length;
+
     return {
       counts,
       totalCount,
@@ -323,6 +341,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         businessRulesNoSubType: findBusinessRulesNoSubType(objects),
         customerEvidenceNoSubType: findCustomerEvidenceNoSubType(objects),
       },
+      pendingSystemSkillSubmissions,
     };
   });
 }

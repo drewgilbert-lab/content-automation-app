@@ -6,16 +6,21 @@ export type SubmissionStatus = "pending" | "accepted" | "rejected" | "deferred";
 
 export type ReviewAction = "accept" | "reject" | "defer";
 
-export type SourceChannel = "ui" | "mcp" | "bulk_upload";
+export type SourceChannel = "ui" | "mcp" | "bulk_upload" | "system";
+
+export type SubmissionObjectType = KnowledgeType | "skill";
+export const VALID_OBJECT_TYPES: SubmissionObjectType[] = [
+  "persona", "segment", "use_case", "business_rule", "icp", "competitor", "customer_evidence", "skill",
+];
 
 export const VALID_SUBMISSION_TYPES: SubmissionType[] = ["new", "update", "document_add"];
 export const VALID_STATUSES: SubmissionStatus[] = ["pending", "accepted", "rejected", "deferred"];
 export const VALID_REVIEW_ACTIONS: ReviewAction[] = ["accept", "reject", "defer"];
-export const VALID_SOURCE_CHANNELS: SourceChannel[] = ["ui", "mcp", "bulk_upload"];
+export const VALID_SOURCE_CHANNELS: SourceChannel[] = ["ui", "mcp", "bulk_upload", "system"];
 
 export interface SubmissionCreateInput {
   submitter: string;
-  objectType: KnowledgeType;
+  objectType: SubmissionObjectType;
   objectName: string;
   submissionType: SubmissionType;
   proposedContent: string;
@@ -29,7 +34,7 @@ export interface SubmissionListItem {
   id: string;
   submitter: string;
   objectName: string;
-  objectType: KnowledgeType;
+  objectType: SubmissionObjectType;
   submissionType: SubmissionType;
   status: SubmissionStatus;
   createdAt: string;
@@ -40,7 +45,7 @@ export interface SubmissionListItem {
 export interface SubmissionDetail {
   id: string;
   submitter: string;
-  objectType: KnowledgeType;
+  objectType: SubmissionObjectType;
   objectName: string;
   submissionType: SubmissionType;
   proposedContent: string;
@@ -85,6 +90,7 @@ export function getSourceChannelLabel(channel: SourceChannel): string {
     ui: "Web UI",
     mcp: "MCP",
     bulk_upload: "Bulk Upload",
+    system: "System",
   };
   return labels[channel];
 }

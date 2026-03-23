@@ -4,6 +4,7 @@ import {
   createKnowledgeObject,
   updateKnowledgeObject,
 } from "./knowledge";
+import { updateSkill } from "./skills";
 import type {
   SubmissionCreateInput,
   SubmissionListItem,
@@ -12,6 +13,7 @@ import type {
   SubmissionType,
   SourceChannel,
   ReviewAction,
+  SubmissionObjectType,
 } from "./submission-types";
 import type { KnowledgeType, KnowledgeCreateInput } from "./knowledge-types";
 
@@ -23,12 +25,14 @@ export type {
   SubmissionType,
   SourceChannel,
   ReviewAction,
+  SubmissionObjectType,
 };
 export {
   VALID_SUBMISSION_TYPES,
   VALID_STATUSES,
   VALID_REVIEW_ACTIONS,
   VALID_SOURCE_CHANNELS,
+  VALID_OBJECT_TYPES,
   getSubmissionTypeLabel,
   getStatusLabel,
   getSourceChannelLabel,
@@ -105,7 +109,7 @@ export async function listSubmissions(filters?: {
       id: obj.uuid,
       submitter: String(obj.properties.submitter ?? ""),
       objectName: String(obj.properties.objectName ?? ""),
-      objectType: String(obj.properties.objectType ?? "") as KnowledgeType,
+      objectType: String(obj.properties.objectType ?? "") as SubmissionObjectType,
       submissionType: String(obj.properties.submissionType ?? "") as SubmissionType,
       status: String(obj.properties.status ?? "") as SubmissionStatus,
       createdAt: dateToString(obj.properties.createdAt),
@@ -158,7 +162,7 @@ export async function getSubmission(
       return {
         id: obj.uuid,
         submitter: String(obj.properties.submitter ?? ""),
-        objectType: String(obj.properties.objectType ?? "") as KnowledgeType,
+        objectType: String(obj.properties.objectType ?? "") as SubmissionObjectType,
         objectName: String(obj.properties.objectName ?? ""),
         submissionType: String(obj.properties.submissionType ?? "") as SubmissionType,
         proposedContent: String(obj.properties.proposedContent ?? ""),
@@ -222,32 +226,41 @@ export async function reviewSubmission(
 
     const proposed = JSON.parse(submission.proposedContent);
 
-    if (submission.submissionType === "new") {
-      const createInput: KnowledgeCreateInput = {
-        type: submission.objectType,
-        name: proposed.name ?? submission.objectName,
-        content: proposed.content ?? "",
-        tags: proposed.tags,
-        subType: proposed.subType,
-        revenueRange: proposed.revenueRange,
-        employeeRange: proposed.employeeRange,
-        personaId: proposed.personaId,
-        segmentId: proposed.segmentId,
-      };
-      objectId = await createKnowledgeObject(createInput);
-    } else if (
-      (submission.submissionType === "update" || submission.submissionType === "document_add") &&
-      submission.targetObjectId
-    ) {
-      await updateKnowledgeObject(submission.targetObjectId, {
-        name: proposed.name,
-        content: proposed.content,
-        tags: proposed.tags,
-        subType: proposed.subType,
-        revenueRange: proposed.revenueRange,
-        employeeRange: proposed.employeeRange,
-      });
-      objectId = submission.targetObjectId;
+    if (submission.objectType === "skill") {
+      if (submission.submissionType === "update" && submission.targetObjectId) {
+        await updateSkill(submission.targetObjectId, {
+          content: proposed.content,
+        });
+        objectId = submission.targetObjectId;
+      }
+    } else {
+      if (submission.submissionType === "new") {
+        const createInput: KnowledgeCreateInput = {
+          type: submission.objectType as KnowledgeType,
+          name: proposed.name ?? submission.objectName,
+          content: proposed.content ?? "",
+          tags: proposed.tags,
+          subType: proposed.subType,
+          revenueRange: proposed.revenueRange,
+          employeeRange: proposed.employeeRange,
+          personaId: proposed.personaId,
+          segmentId: proposed.segmentId,
+        };
+        objectId = await createKnowledgeObject(createInput);
+      } else if (
+        (submission.submissionType === "update" || submission.submissionType === "document_add") &&
+        submission.targetObjectId
+      ) {
+        await updateKnowledgeObject(submission.targetObjectId, {
+          name: proposed.name,
+          content: proposed.content,
+          tags: proposed.tags,
+          subType: proposed.subType,
+          revenueRange: proposed.revenueRange,
+          employeeRange: proposed.employeeRange,
+        });
+        objectId = submission.targetObjectId;
+      }
     }
 
     await withWeaviate(async (client) => {

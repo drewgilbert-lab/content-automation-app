@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
+import { getSkill } from "@/lib/skills";
 import { SubmissionReview } from "../components/submission-review";
 
 export default async function SubmissionReviewPage({
@@ -14,7 +15,10 @@ export default async function SubmissionReviewPage({
   if (!submission) notFound();
 
   let currentObject = null;
-  if (
+  let currentSkill = null;
+  if (submission.objectType === "skill" && submission.targetObjectId) {
+    currentSkill = await getSkill(submission.targetObjectId);
+  } else if (
     (submission.submissionType === "update" || submission.submissionType === "document_add") &&
     submission.targetObjectId
   ) {
@@ -34,6 +38,7 @@ export default async function SubmissionReviewPage({
         <SubmissionReview
           submission={submission}
           currentObject={currentObject}
+          currentSkill={currentSkill}
         />
       </div>
     </main>

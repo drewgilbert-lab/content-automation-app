@@ -6,13 +6,13 @@
 
 ## Overview
 
-This guide covers how to create new knowledge objects, edit existing ones, deprecate objects that are no longer active, and permanently delete objects when needed. Admins can perform all of these actions directly. Contributors go through the Review Queue — their create and edit submissions are staged for Admin review before going live.
+This guide covers how to create new knowledge objects, edit existing ones, deprecate objects that are no longer active, and permanently delete objects when needed. Editors and Admins can perform all of these actions directly. Contributors go through the Review Queue — their create and edit submissions are staged for Editor or Admin review before going live.
 
 ---
 
 ## Creating a New Object
 
-### Admin Flow
+### Editor / Admin Flow
 
 1. Navigate to `/knowledge` (the Knowledge Base list page).
 2. Click **+ New Object** in the top-right corner.
@@ -27,13 +27,13 @@ The new object appears immediately in the list.
 1. Navigate to `/knowledge` and click **+ New Object**.
 2. Select the object type and fill in all fields.
 3. Click **Submit for Review** instead of saving directly.
-4. Your submission enters the Review Queue with status "Pending." An Admin will review it and either accept, reject, or defer it.
+4. Your submission enters the Review Queue with status "Pending." An Editor or Admin will review it and either accept, reject, or defer it.
 
 ---
 
 ## Editing an Existing Object
 
-### Admin Flow
+### Editor / Admin Flow
 
 1. Open the detail page for the object you want to edit.
 2. Click the **Edit** button in the top-right action area.
@@ -138,7 +138,7 @@ If you are unsure, deprecate the object instead of deleting it.
 
 **I edited an object but the old content is still showing.** If you are a Contributor, your edit is pending review. The live object has not changed yet — only the approved version will appear in the knowledge base.
 
-**The Deprecate button is grayed out or missing.** Only Admins can deprecate objects. Switch to Admin mode using the role toggle or ask an Admin to deprecate it on your behalf.
+**The Deprecate button is grayed out or missing.** Only Editors and Admins can deprecate objects. Switch to Editor or Admin mode using the role toggle, or ask an Editor or Admin to deprecate it on your behalf.
 
 **I accidentally deleted an object.** Deletion is permanent and cannot be undone through the UI. Contact a developer to restore from a Weaviate backup if needed.
 

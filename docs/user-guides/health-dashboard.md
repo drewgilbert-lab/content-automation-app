@@ -1,6 +1,6 @@
 # Using the Health Dashboard
 
-> Last updated: February 2026
+> Last updated: March 23, 2026
 
 ---
 
@@ -76,6 +76,16 @@ The list is sorted with the most severely stale objects first. Each row shows th
 Open the object and read the content. If it is still accurate, simply open the edit form, make a minor formatting or wording touch-up if needed, and save. This updates the `updatedAt` timestamp and removes it from the staleness report. If the content needs a real update, make the changes and save.
 
 If the content is clearly outdated, either update it or deprecate it.
+
+---
+
+## Skill Refresh Suggestions
+
+When knowledge objects are updated and accepted, the system evaluates whether any linked skills need to be refreshed. If there are pending system-generated skill refresh submissions in the Review Queue, a dedicated card appears on the dashboard showing the count.
+
+Click the card to navigate to the Review Queue filtered to system-generated skill submissions. See the [Review Queue](./review-queue.md) guide and [Skills Library](./skills.md) guide for details on how to review and process these suggestions.
+
+This card only appears when there are one or more pending skill refresh suggestions. If there are none, it is hidden.
 
 ---
 

@@ -1,10 +1,12 @@
-import { withWeaviate } from "./weaviate";
+import Anthropic from "@anthropic-ai/sdk";
+import { withWeaviate } from "@/lib/weaviate.ts";
 import weaviate from "weaviate-client";
 import type {
   SkillListItem,
   SkillDetail,
   SkillCreateInput,
   SkillUpdateInput,
+  SkillKnowledgeLink,
 } from "./skill-types";
 
 export type {
@@ -12,6 +14,7 @@ export type {
   SkillDetail,
   SkillCreateInput,
   SkillUpdateInput,
+  SkillKnowledgeLink,
 };
 export {
   CONTENT_TYPES,
@@ -27,6 +30,17 @@ function dateToString(val: unknown): string {
   if (!val) return "";
   if (val instanceof Date) return val.toISOString();
   return String(val);
+}
+
+function parseSkillKnowledgeLinks(val: unknown): SkillKnowledgeLink[] | undefined {
+  if (!val) return undefined;
+  try {
+    const parsed = JSON.parse(String(val));
+    if (Array.isArray(parsed)) return parsed;
+    return undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export class SkillNameConflictError extends Error {
@@ -115,6 +129,7 @@ export async function getSkill(id: string): Promise<SkillDetail | null> {
         sourceFile: obj.properties.sourceFile
           ? String(obj.properties.sourceFile)
           : undefined,
+        sourceKnowledgeObjects: parseSkillKnowledgeLinks(obj.properties.sourceKnowledgeObjects),
         deprecated: obj.properties.deprecated === true,
         createdAt: dateToString(obj.properties.createdAt),
         updatedAt: dateToString(obj.properties.updatedAt),
@@ -174,6 +189,9 @@ export async function createSkill(input: SkillCreateInput): Promise<string> {
     if (input.triggerConditions) properties.triggerConditions = input.triggerConditions;
     if (input.parameters) properties.parameters = input.parameters;
     if (input.outputFormat) properties.outputFormat = input.outputFormat;
+    if (input.sourceKnowledgeObjects) {
+      properties.sourceKnowledgeObjects = JSON.stringify(input.sourceKnowledgeObjects);
+    }
 
     return await collection.data.insert(properties);
   });
@@ -215,6 +233,9 @@ export async function updateSkill(
     if (input.tags !== undefined) properties.tags = input.tags;
     if (input.category !== undefined) properties.category = input.category;
     if (input.author !== undefined) properties.author = input.author;
+    if (input.sourceKnowledgeObjects !== undefined) {
+      properties.sourceKnowledgeObjects = JSON.stringify(input.sourceKnowledgeObjects);
+    }
 
     await collection.data.update({ id, properties });
 
@@ -302,4 +323,129 @@ export async function restoreSkill(id: string): Promise<boolean> {
     });
     return true;
   });
+}
+
+export async function triggerSkillRefreshCheck(
+  objectId: string,
+  objectName: string,
+  oldContent: string,
+  newContent: string
+): Promise<void> {
+  try {
+    const allSkills = await listSkills({ active: true });
+
+    for (const skillItem of allSkills) {
+      const skill = await getSkill(skillItem.id);
+      if (!skill?.sourceKnowledgeObjects) continue;
+
+      const link = skill.sourceKnowledgeObjects.find((l) => l.id === objectId);
+      if (!link) continue;
+
+      const { createSubmission, listSubmissions } = await import("./submissions");
+
+      const existing = await listSubmissions({ status: "pending" as const });
+      const hasPending = existing.some(
+        (s) =>
+          s.objectType === "skill" &&
+          s.sourceChannel === "system" &&
+          (s.status === "pending" || s.status === "deferred") &&
+          s.objectName === skill.name
+      );
+      if (hasPending) continue;
+
+      const result = await evaluateSkillRefreshSignificance(
+        oldContent,
+        newContent,
+        skill.content,
+        link.integrationPrompt
+      );
+      if (!result.significant) continue;
+
+      await createSubmission({
+        submitter: "system",
+        objectType: "skill",
+        objectName: skill.name,
+        submissionType: "update",
+        targetObjectId: skill.id,
+        sourceChannel: "system",
+        sourceDescription: `Auto-generated: ${objectName} updated`,
+        proposedContent: JSON.stringify({
+          content: newContent,
+          linkedObjectId: objectId,
+          linkedObjectName: objectName,
+          integrationPrompt: link.integrationPrompt,
+        }),
+      });
+    }
+  } catch {
+    // fire-and-forget — errors must not propagate
+  }
+}
+
+const SIGNIFICANCE_SYSTEM_PROMPT = `You evaluate whether a knowledge object change is significant enough to warrant updating a linked skill. Assess whether the changes alter facts, attributes, or context that the integration prompt indicates the skill depends on. Respond with ONLY a JSON object: { "significant": boolean, "reason": string }.`;
+
+export async function evaluateSkillRefreshSignificance(
+  oldContent: string,
+  newContent: string,
+  skillContent: string,
+  integrationPrompt: string
+): Promise<{ significant: boolean; reason: string }> {
+  const failed = (detail: string) => ({
+    significant: false as const,
+    reason: `Evaluation failed: ${detail}`,
+  });
+
+  try {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) {
+      return failed("Missing ANTHROPIC_API_KEY environment variable.");
+    }
+
+    const client = new Anthropic({ apiKey });
+    const userMessage = [
+      "## Old knowledge content",
+      oldContent,
+      "",
+      "## New knowledge content",
+      newContent,
+      "",
+      "## Linked skill content",
+      skillContent,
+      "",
+      "## Integration prompt",
+      integrationPrompt,
+    ].join("\n");
+
+    const response = await client.messages.create({
+      model: "claude-haiku-4-5",
+      max_tokens: 256,
+      system: SIGNIFICANCE_SYSTEM_PROMPT,
+      messages: [{ role: "user", content: userMessage }],
+    });
+
+    const textBlock = response.content.find((b) => b.type === "text");
+    if (!textBlock || textBlock.type !== "text") {
+      return failed("No text response from Claude");
+    }
+
+    let cleaned = textBlock.text.trim();
+    const fenceMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      cleaned = fenceMatch[1].trim();
+    }
+
+    const parsed: unknown = JSON.parse(cleaned);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return failed("Response is not a JSON object");
+    }
+    const o = parsed as Record<string, unknown>;
+    if (typeof o.significant !== "boolean" || typeof o.reason !== "string") {
+      return failed('Expected JSON with boolean "significant" and string "reason"');
+    }
+
+    return { significant: o.significant, reason: o.reason };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return failed(message);
+  }
 }

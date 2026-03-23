@@ -32,6 +32,13 @@ export interface SkillParameter {
   default?: string;
 }
 
+export interface SkillKnowledgeLink {
+  id: string;
+  collection: string;
+  name?: string;
+  integrationPrompt: string;
+}
+
 export interface SkillListItem {
   id: string;
   name: string;
@@ -62,6 +69,7 @@ export interface SkillDetail {
   category: string;
   author: string;
   sourceFile?: string;
+  sourceKnowledgeObjects?: SkillKnowledgeLink[];
   deprecated: boolean;
   createdAt: string;
   updatedAt: string;
@@ -80,6 +88,7 @@ export interface SkillCreateInput {
   tags?: string[];
   category?: string;
   author?: string;
+  sourceKnowledgeObjects?: SkillKnowledgeLink[];
 }
 
 export interface SkillUpdateInput {
@@ -95,6 +104,7 @@ export interface SkillUpdateInput {
   tags?: string[];
   category?: string;
   author?: string;
+  sourceKnowledgeObjects?: SkillKnowledgeLink[];
 }
 
 export function getContentTypeLabel(type: string): string {

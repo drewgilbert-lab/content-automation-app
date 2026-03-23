@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: March 17, 2026 (CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
+> Last updated: March 23, 2026 (Group M Knowledge-Linked Skills; CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -339,6 +339,31 @@ Two instruction templates from `content-automation/content_transformation/` were
 | Ops Configuration Guide | `ops_guide_instructions.md` | `BusinessRule` (`subType: "instruction_template"`) | `Skill` (`contentType: ["internal_doc"]`) |
 
 After migration, the `instruction_template` subType was removed from the `BusinessRule` collection. Business rules only contain passive constraints (`subType: "tone"` or `"constraint"`). See [roadmap/README.md](./roadmap/README.md) Group I and [KNOWLEDGE_BASE.md](./KNOWLEDGE_BASE.md) for the `Skill` collection schema.
+
+---
+
+## Knowledge-Linked Skills (Group M)
+
+Skills can declare dependencies on knowledge objects via the `sourceKnowledgeObjects` field. Each link includes an `integrationPrompt` that instructs how the knowledge object's content should influence the skill.
+
+### Refresh Flow
+
+When a knowledge object is updated (via merge/save or review accept):
+
+1. `triggerSkillRefreshCheck()` fires asynchronously (fire-and-forget, does not block the acceptance response).
+2. All active skills are scanned for `sourceKnowledgeObjects` containing the updated object ID.
+3. For each matched skill, `evaluateSkillRefreshSignificance()` runs a lightweight Claude call to assess whether the change warrants a skill update.
+4. If significant, a system-generated submission enters the review queue (`objectType: "skill"`, `sourceChannel: "system"`).
+5. Admin reviews the suggestion at `/queue`. "Merge with AI" uses `buildSkillRefreshPrompt` with the integration prompt from the link.
+6. On accept, the skill content is updated via `updateSkill()`.
+
+### Duplicate Prevention
+
+Before creating a refresh submission, the system checks for existing pending or deferred system submissions targeting the same skill. If found, the new submission is skipped.
+
+### Suggested Links (M7)
+
+The `POST /api/skills/:id/suggest-links` endpoint uses Weaviate `nearText` semantic search to find knowledge objects similar to a skill's content. Results are ranked by cosine similarity score. Admins can accept suggestions (pre-populates the link editor) or dismiss them.
 
 ---
 

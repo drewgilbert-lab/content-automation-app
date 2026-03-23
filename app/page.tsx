@@ -91,7 +91,7 @@ const navItems = [
     description: "Review, approve, and publish content through the editorial pipeline.",
     href: "/workflows",
     icon: "◎",
-    available: false,
+    available: true,
   },
   {
     title: "Generate",

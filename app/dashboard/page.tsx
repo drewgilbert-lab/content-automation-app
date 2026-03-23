@@ -118,24 +118,46 @@ export default async function DashboardPage() {
           <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-500">
             Review Queue
           </h2>
-          <Link
-            href="/queue"
-            className="block rounded-xl border border-gray-800 bg-gray-900 p-6 hover:border-gray-700 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-300">
-                  Pending Submissions
-                </p>
-                <p className="text-xs text-gray-500">
-                  Submissions awaiting review
-                </p>
+          <div className="space-y-3">
+            <Link
+              href="/queue"
+              className="block rounded-xl border border-gray-800 bg-gray-900 p-6 hover:border-gray-700 transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-300">
+                    Pending Submissions
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Submissions awaiting review
+                  </p>
+                </div>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-yellow-500/15 text-yellow-400" : "bg-gray-800 text-gray-500"}`}>
+                  {pendingCount}
+                </span>
               </div>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-yellow-500/15 text-yellow-400" : "bg-gray-800 text-gray-500"}`}>
-                {pendingCount}
-              </span>
-            </div>
-          </Link>
+            </Link>
+            {data.pendingSystemSkillSubmissions > 0 && (
+              <Link
+                href="/queue"
+                className="block rounded-xl border border-fuchsia-900/50 bg-gray-900 p-6 hover:border-fuchsia-800/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-300">
+                      Skill Refresh Suggestions
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      System-generated skill updates from knowledge changes
+                    </p>
+                  </div>
+                  <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-fuchsia-500/15 text-fuchsia-400">
+                    {data.pendingSystemSkillSubmissions}
+                  </span>
+                </div>
+              </Link>
+            )}
+          </div>
         </section>
       </div>
     </main>

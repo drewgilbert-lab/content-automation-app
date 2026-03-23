@@ -42,7 +42,7 @@ Each row in the list shows:
 
 ### Creating a New Object
 
-If you are an Admin, there is a **+ New Object** button in the top-right of the list page. Clicking it opens the create form. See the [Managing Knowledge](./managing-knowledge.md) guide for the full creation workflow.
+If you are an Editor or Admin, there is a **+ New Object** button in the top-right of the list page. Clicking it opens the create form. See the [Managing Knowledge](./managing-knowledge.md) guide for the full creation workflow.
 
 ---
 
@@ -73,14 +73,14 @@ Below the main content and sidebar, you will see the **Relationships** panel lis
 
 Clicking any linked object navigates to its detail page. See the [Relationships](./relationships.md) guide for how to add or remove these links.
 
-### Action Buttons (Admin Only)
+### Action Buttons (Editor / Admin Only)
 
-If you are an Admin, the detail page shows action buttons:
+If you are an Editor or Admin, the detail page shows action buttons:
 - **Edit** — opens the edit form for this object
 - **Delete** — permanently removes the object (with a confirmation step)
 - **Deprecate / Restore** — toggles the object's deprecated status
 
-These buttons are not visible to Contributors.
+These buttons are not visible to Contributors or Viewers.
 
 ---
 
@@ -90,9 +90,9 @@ Deprecated objects are visible in the knowledge base but marked with a red "Depr
 
 - Still browsable and readable
 - Excluded from AI content generation
-- Restorable by an Admin at any time
+- Restorable by an Editor or Admin at any time
 
-If you see content that is outdated or no longer accurate, ask an Admin to deprecate it rather than deleting it. Deprecation is reversible; deletion is not.
+If you see content that is outdated or no longer accurate, ask an Editor or Admin to deprecate it rather than deleting it. Deprecation is reversible; deletion is not.
 
 ---
 
@@ -102,6 +102,6 @@ If you see content that is outdated or no longer accurate, ask an Admin to depre
 
 **A knowledge object shows a "Never Reviewed" warning in the Dashboard but looks fine to me.** "Never Reviewed" means the object has never been edited since it was first created (its creation and last-updated timestamps are the same). It does not necessarily mean the content is wrong — it just signals that no one has opened and saved it since the initial seed. Visit the Dashboard for a full list of objects in this state.
 
-**I cannot see the + New Object button.** This button is only visible to Admins. If you are in Contributor mode, switch to Admin mode using the role toggle in the header, or ask an Admin to create the object.
+**I cannot see the + New Object button.** This button is only visible to Editors and Admins. If you are in Contributor or Viewer mode, switch to Editor or Admin mode using the role toggle in the header, or ask an Editor or Admin to create the object.
 
 **Cross-references show no linked objects.** Some objects may not have relationships set up yet. This is a data gap — the Dashboard's gap report flags objects that are missing expected relationships. See the [Relationships](./relationships.md) guide to add them.

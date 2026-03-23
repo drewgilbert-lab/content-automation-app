@@ -15,6 +15,11 @@ import {
 import { getTypeLabel } from "@/lib/knowledge-types";
 import type { KnowledgeType } from "@/lib/knowledge-types";
 
+function getObjectTypeLabel(type: string): string {
+  if (type === "skill") return "Skill";
+  return getTypeLabel(type as KnowledgeType);
+}
+
 const SUBMISSION_TYPE_TABS: { label: string; value: SubmissionType | "all" }[] = [
   { label: "All", value: "all" },
   { label: "New", value: "new" },
@@ -22,7 +27,7 @@ const SUBMISSION_TYPE_TABS: { label: string; value: SubmissionType | "all" }[] =
   { label: "Document Addition", value: "document_add" },
 ];
 
-const TYPE_BADGE_CLASSES: Record<KnowledgeType, string> = {
+const TYPE_BADGE_CLASSES: Record<string, string> = {
   persona: "bg-blue-500/15 text-blue-400",
   segment: "bg-emerald-500/15 text-emerald-400",
   use_case: "bg-amber-500/15 text-amber-400",
@@ -30,6 +35,7 @@ const TYPE_BADGE_CLASSES: Record<KnowledgeType, string> = {
   icp: "bg-rose-500/15 text-rose-400",
   competitor: "bg-orange-500/15 text-orange-400",
   customer_evidence: "bg-lime-500/15 text-lime-400",
+  skill: "bg-pink-500/15 text-pink-400",
 };
 
 const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
@@ -49,6 +55,7 @@ const SOURCE_CHANNEL_BADGE_CLASSES: Record<string, string> = {
   ui: "bg-gray-500/15 text-gray-400",
   mcp: "bg-violet-500/15 text-violet-400",
   bulk_upload: "bg-teal-500/15 text-teal-400",
+  system: "bg-fuchsia-500/15 text-fuchsia-400",
 };
 
 export function SubmissionList({
@@ -176,7 +183,7 @@ function SubmissionRow({ submission }: { submission: SubmissionListItem }) {
           TYPE_BADGE_CLASSES[submission.objectType]
         }`}
       >
-        {getTypeLabel(submission.objectType)}
+        {getObjectTypeLabel(submission.objectType)}
       </span>
       <span
         className={`rounded px-2 py-0.5 text-xs font-medium ${

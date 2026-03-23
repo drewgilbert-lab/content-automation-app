@@ -1,6 +1,6 @@
 # Using the Skills Library
 
-> Last updated: March 2026
+> Last updated: March 23, 2026
 
 ---
 
@@ -76,6 +76,32 @@ The right sidebar shows metadata:
 - **Created** — when the skill was first added
 - **Last Updated** — when the skill was most recently modified
 
+### Linked Knowledge Objects
+
+Below the main content card, the detail page shows a **Linked Knowledge Objects** section. This lists every knowledge object the skill depends on — each link displays:
+
+- **Object name** — clickable link to the knowledge object's detail page
+- **Collection badge** — the type of knowledge object (persona, segment, use case, etc.)
+- **Integration prompt** — a short description of how this knowledge object's content should influence the skill
+
+If no links exist, the section shows "No linked knowledge objects." See [Managing Knowledge Links](#managing-knowledge-links) below for how to add and edit links.
+
+### Suggest Links
+
+The **Suggest Links** button appears below the linked knowledge objects section. Clicking it runs a semantic similarity search across all knowledge object collections to find objects whose content is most relevant to the skill.
+
+Each suggestion shows:
+
+- **Object name** and **type badge**
+- **Match percentage** — a cosine similarity score indicating how closely the object's content relates to the skill
+
+For each suggestion you can:
+
+- **Accept** — navigates to the skill's edit page with the suggested object pre-populated as a new link (you still need to write the integration prompt before saving)
+- **Dismiss** — removes the suggestion from the list
+
+Use Suggest Links when initially setting up a skill's knowledge dependencies, or periodically to discover new knowledge objects that may be relevant after the knowledge base has grown.
+
 ### Action Buttons
 
 The detail page shows action buttons:
@@ -119,6 +145,39 @@ New skills start at version **1.0.0** and are **Active** by default, meaning the
 5. Click **Save**.
 
 The version number increments automatically based on the level you select.
+
+---
+
+## Managing Knowledge Links
+
+Skills can declare dependencies on specific knowledge objects. When a linked knowledge object is updated and accepted, the system automatically evaluates whether the change is significant enough to suggest a refresh of the skill's instructions. If significant, a system-generated submission enters the Review Queue for admin review.
+
+### Adding a Link
+
+1. Open the skill's edit page.
+2. Scroll to the **Linked Knowledge Objects** section.
+3. Type in the search box to find a knowledge object by name.
+4. Click a search result to add it as a link.
+5. Write an **integration prompt** in the textarea that appears. The integration prompt tells the AI which aspects of the knowledge object are relevant to this skill — for example: *"Update references to job titles, pain points, and language patterns to reflect any changes in the linked persona."*
+6. The integration prompt is required. You cannot save the skill with an empty integration prompt on any link.
+
+### Editing a Link's Integration Prompt
+
+On the edit page, find the link in the Linked Knowledge Objects section and edit the textarea directly.
+
+### Removing a Link
+
+Click the **Remove** button on any link card in the edit form. The link is removed when you save.
+
+### What Happens When a Linked Object Changes
+
+1. An admin accepts an update to a knowledge object (via the Review Queue or AI Merge).
+2. The system checks whether any active skills have that object in their `sourceKnowledgeObjects`.
+3. For each linked skill, a materiality evaluation runs — a lightweight AI call that assesses whether the knowledge change is significant enough to warrant updating the skill.
+4. If significant, a system-generated submission appears in the Review Queue with a "System" source badge. The admin reviews the suggestion and can use "Merge with AI" to generate an updated version of the skill, or accept/reject/defer as with any other submission.
+5. If not significant (e.g., minor formatting changes), no submission is created.
+
+The evaluation is **lazy** — no AI merge runs until the admin explicitly triggers it. The system only creates the suggestion.
 
 ---
 
@@ -198,3 +257,9 @@ A maximum of 3-5 skills are included per generation request. This keeps the prom
 **I want to test a new skill without affecting production generation.** Create the skill and immediately deactivate it. You can review its content on the detail page. When you are ready to include it in generation, activate it.
 
 **I accidentally deleted a skill.** Deletion is permanent. If you are unsure, deprecate the skill instead — deprecation is reversible via the Restore action.
+
+**A linked knowledge object was updated but no refresh suggestion appeared in the queue.** The system runs a materiality evaluation for each linked skill. If the knowledge change is not significant relative to what the skill depends on (as defined by the integration prompt), no submission is created. This is intentional — minor formatting or structural changes that don't affect the facts the skill references are filtered out.
+
+**I see a system-generated skill submission in the Review Queue but I don't understand what triggered it.** Open the submission detail page. The "Source Description" field shows which knowledge object was updated. The "Integration Prompt" section shows how the link was configured. Use "Merge with AI" to see the AI's suggested update before deciding.
+
+**Suggest Links is returning irrelevant results.** The suggestions are based on semantic similarity between the skill's content and knowledge object content. If the skill's instructions are very generic, the suggestions may be broad. Write more specific skill content to improve suggestion quality.

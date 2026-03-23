@@ -26,23 +26,29 @@ You can also reach the Dashboard and Review Queue from the home page cards and f
 
 ## Understanding Your Role
 
-The Content Engine has two roles: **Admin** and **Contributor**. Your current role is shown in the top-right corner of every page.
+The Content Engine has four roles: **Admin**, **Editor**, **Contributor**, and **Viewer**. Your current role is shown in the top-right corner of every page.
 
 ### Admin
 
-Admins have full write access to the knowledge base. When an Admin creates or edits a knowledge object, changes are saved directly to the live knowledge base — no approval step required.
+Admins have full platform access including user management, system configuration, and connected systems. Admins can also perform all Editor actions — reviewing submissions, creating and editing content directly, and using the AI Merge tool.
 
-Admins are also responsible for reviewing submissions in the Review Queue: they can accept, reject, or defer changes proposed by Contributors, and can use the AI Merge tool to intelligently combine a proposed update with the current version.
+### Editor
+
+Editors are responsible for content governance. They review submissions in the Review Queue: they can accept, reject, or defer changes proposed by Contributors, and can use the AI Merge tool to intelligently combine a proposed update with the current version. Editors can also create and edit knowledge objects directly without going through the review queue.
 
 ### Contributor
 
-Contributors can browse the knowledge base and propose changes, but cannot write directly. When a Contributor fills out the create or edit form and clicks "Submit for Review," their proposed content is placed into the Review Queue as a submission. An Admin then reviews it before it goes live.
+Contributors can browse the knowledge base and propose changes, but cannot write directly or approve submissions. When a Contributor fills out the create or edit form and clicks "Submit for Review," their proposed content is placed into the Review Queue as a submission. An Editor or Admin then reviews it before it goes live.
 
-This two-tier model ensures the knowledge base always reflects reviewed, approved information — especially important when multiple team members are contributing.
+### Viewer
+
+Viewers have read-only access. They can browse the knowledge base, skills, and narratives, and view the cost dashboard, but cannot create, edit, or submit content.
+
+This four-tier model ensures the knowledge base always reflects reviewed, approved information — Editors and Admins serve as content gatekeepers while Contributors propose changes and Viewers consume the output.
 
 ### Switching Roles
 
-To switch between Admin and Contributor, click the role toggle in the top-right corner of the app header. Your role selection persists across page loads (it is saved locally in your browser). This toggle is designed for testing and internal use — in production, roles would be tied to your login.
+To switch between roles, click the role toggle in the top-right corner of the app header. Your role selection persists across page loads (it is saved locally in your browser). This toggle is designed for testing and internal use — in production, roles will be tied to your Google sign-in via Group W authentication.
 
 ---
 
@@ -63,9 +69,9 @@ The knowledge base stores six types of objects. Here is what each one represents
 
 ## Common Pitfalls
 
-**I saved a change but it doesn't appear immediately.** If you are a Contributor, your change goes into the Review Queue, not directly into the knowledge base. Ask an Admin to review your submission.
+**I saved a change but it doesn't appear immediately.** If you are a Contributor, your change goes into the Review Queue, not directly into the knowledge base. Ask an Editor or Admin to review your submission.
 
-**I cannot find the edit button.** The edit button is only visible to Admins. If you are in Contributor mode, you will see a "Submit for Review" button instead.
+**I cannot find the edit button.** The edit button is only visible to Admins and Editors. If you are in Contributor mode, you will see a "Submit for Review" button instead.
 
 **The role toggle isn't working as expected.** Try refreshing the page. The role is stored in your browser's local storage, so a hard refresh should resync it.
 

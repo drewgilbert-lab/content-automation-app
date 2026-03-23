@@ -63,3 +63,38 @@ export function buildDocumentAdditionPrompt(
 
   return { systemPrompt, userMessage };
 }
+
+export function buildSkillRefreshPrompt(
+  currentSkillContent: string,
+  updatedObjectContent: string,
+  integrationPrompt: string
+): { systemPrompt: string; userMessage: string } {
+  const systemPrompt = [
+    "You are a skill instruction editor.",
+    "Preserve all procedural structure, steps, methodology, and formatting in the skill.",
+    "Only update references to facts, attributes, or language patterns that appear in the updated knowledge object.",
+    "Use the integration instructions to understand which aspects of the knowledge object are relevant to this skill.",
+    "Return only the updated skill content with no commentary, preamble, or explanation.",
+    "Never remove steps, sections, or instructions that are not directly related to the changed knowledge object content.",
+  ].join(" ");
+
+  const userMessage = [
+    "## CURRENT SKILL CONTENT",
+    "",
+    currentSkillContent,
+    "",
+    "---",
+    "",
+    "## UPDATED KNOWLEDGE OBJECT",
+    "",
+    updatedObjectContent,
+    "",
+    "---",
+    "",
+    "## INTEGRATION INSTRUCTIONS",
+    "",
+    integrationPrompt,
+  ].join("\n");
+
+  return { systemPrompt, userMessage };
+}

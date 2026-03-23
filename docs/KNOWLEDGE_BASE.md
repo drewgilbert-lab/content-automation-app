@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: March 17, 2026
+> Last updated: March 23, 2026
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -152,6 +152,7 @@ Stores procedural task instructions that tell the AI how to perform specific typ
 | `category` | `text` | Skill category (e.g. `"content_generation"`, `"documentation"`, `"transformation"`) |
 | `author` | `text` | Who created this skill |
 | `sourceFile` | `text` | Original file path if migrated from seed |
+| `sourceKnowledgeObjects` | `text` | JSON array of `{ id, collection, name?, integrationPrompt }` links to knowledge objects this skill depends on |
 | `deprecated` | `boolean` | Soft-delete flag |
 | `createdAt` | `date` | Creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |

@@ -3,9 +3,12 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import {
   reviewSubmission,
+  getSubmission,
   SubmissionClosedError,
   VALID_REVIEW_ACTIONS,
 } from "@/lib/submissions";
+import { getKnowledgeObject } from "@/lib/knowledge";
+import { triggerSkillRefreshCheck } from "@/lib/skills";
 
 export async function POST(
   req: NextRequest,
@@ -32,12 +35,42 @@ export async function POST(
       );
     }
 
+    let preAcceptContent: string | undefined;
+    let preAcceptSubmission: Awaited<ReturnType<typeof getSubmission>> | undefined;
+    if (action === "accept") {
+      preAcceptSubmission = await getSubmission(id);
+      if (
+        preAcceptSubmission &&
+        preAcceptSubmission.objectType !== "skill" &&
+        (preAcceptSubmission.submissionType === "update" ||
+          preAcceptSubmission.submissionType === "document_add") &&
+        preAcceptSubmission.targetObjectId
+      ) {
+        const currentObj = await getKnowledgeObject(preAcceptSubmission.targetObjectId);
+        preAcceptContent = currentObj?.content;
+      }
+    }
+
     const result = await reviewSubmission(
       id,
       action,
       comment ? String(comment).trim() : undefined,
       note ? String(note) : undefined
     );
+
+    if (
+      action === "accept" &&
+      preAcceptContent !== undefined &&
+      preAcceptSubmission?.targetObjectId
+    ) {
+      const proposed = JSON.parse(preAcceptSubmission.proposedContent);
+      triggerSkillRefreshCheck(
+        preAcceptSubmission.targetObjectId,
+        preAcceptSubmission.objectName,
+        preAcceptContent,
+        proposed.content ?? preAcceptContent
+      ).catch(() => {});
+    }
 
     return Response.json(result);
   } catch (error) {

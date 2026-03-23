@@ -61,6 +61,7 @@ export async function PUT(
       tags,
       category,
       author,
+      sourceKnowledgeObjects,
     } = body;
 
     if (name !== undefined && !String(name).trim()) {
@@ -106,6 +107,37 @@ export async function PUT(
     if (tags !== undefined) input.tags = Array.isArray(tags) ? tags.map(String) : [];
     if (category !== undefined) input.category = String(category);
     if (author !== undefined) input.author = String(author);
+    if (sourceKnowledgeObjects !== undefined) {
+      if (sourceKnowledgeObjects !== null && !Array.isArray(sourceKnowledgeObjects)) {
+        return new Response(
+          JSON.stringify({ error: "sourceKnowledgeObjects must be an array when provided" }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      if (Array.isArray(sourceKnowledgeObjects)) {
+        for (const link of sourceKnowledgeObjects) {
+          if (typeof link.id !== "string" || !link.id) {
+            return new Response(
+              JSON.stringify({ error: "Each sourceKnowledgeObjects item must have a non-empty string id" }),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            );
+          }
+          if (typeof link.collection !== "string" || !link.collection) {
+            return new Response(
+              JSON.stringify({ error: "Each sourceKnowledgeObjects item must have a non-empty string collection" }),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            );
+          }
+          if (typeof link.integrationPrompt !== "string" || !link.integrationPrompt.trim()) {
+            return new Response(
+              JSON.stringify({ error: "Each sourceKnowledgeObjects item must have a non-empty integrationPrompt" }),
+              { status: 400, headers: { "Content-Type": "application/json" } }
+            );
+          }
+        }
+      }
+      input.sourceKnowledgeObjects = sourceKnowledgeObjects;
+    }
 
     await updateSkill(id, input);
     const updated = await getSkill(id);

@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: March 17, 2026
+> Last updated: March 23, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -28,7 +28,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | I | Skills Module | Done | [group-i.md](./group-i.md) |
 | J | MCP Server | J1–J12 Done, J13–J22 Pending | [group-j.md](./group-j.md) |
 | K | External REST API and Connected Systems | Done (Phase 1) | [group-k.md](./group-k.md) |
-| M | Knowledge-Linked Skills | Planned | [group-m.md](./group-m.md) |
+| M | Knowledge-Linked Skills | Done | [group-m.md](./group-m.md) |
 | N | Unified Object Type Support | Planned | [group-n.md](./group-n.md) |
 | O | Review Queue Enhancements | Planned | [group-o.md](./group-o.md) |
 | P | Content Cleaning Rules | Planned | [group-p.md](./group-p.md) |
@@ -58,7 +58,6 @@ Each step below is independently shippable. Steps within a group can be built in
 | Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process, skill-type metadata exposure, and internal skill ⇄ Claude bundle mapping | See [Group N](./group-n.md) |
 | Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, shared TagEditor | See [Group O](./group-o.md) |
 | Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See [Group P](./group-p.md) |
-| Knowledge-Linked Skills | Group M — not yet started | See [Group M](./group-m.md) |
 | Weaviate Query Agent | Group Q — not yet started. Query Agent retrieval + Claude synthesis, Ask UI, collection registry | See [Group Q](./group-q.md) |
 | Content Narratives | Group R — not yet started. Strategic narrative layer between knowledge and content generation, AI-assisted creation, review workflow, context assembly integration, staleness detection | See [Group R](./group-r.md) |
 | Design System Foundation | Group S — not yet started. Semantic tokens, shared primitives (Button, Input, Badge, FormField), page layout, error boundaries, organism consolidation | See [Group S](./group-s.md) |
@@ -66,7 +65,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Content Generation Cost Tracking | Group T — not yet started. Token counting, cost metadata, generation cost dashboard, budget alerts | See [Group T](./group-t.md) |
 | Context Window Budget Management | Group U — not yet started. Content length limits, token budget allocation, smart truncation, context budget visibility | See [Group U](./group-u.md) |
 | Structured Logging | Group V — not yet started. Structured JSON logging (`pino`), request logging middleware, domain event logging, operational logging | See [Group V](./group-v.md) |
-| Authentication & User Management | Group W — not yet started. Google OAuth, RBAC, admin user management, permission sets, user attribution | See [Group W](./group-w.md) |
+| Authentication & User Management | Group W — not yet started. Google OAuth, RBAC with four roles (admin/editor/contributor/viewer), admin user management UI, permission sets, user attribution | See [Group W](./group-w.md) |
 | Context Assembly and Skill Interop Test Coverage | Group X — not yet started. Unit tests for `assembleContext()`, Claude skill package schema/mapping tests, and env-gated acceptance smoke checks | See [Group X](./group-x.md) |
 | Production Redis Configuration | Group Y — not yet started. Upstash Redis env vars in Vercel, production validation, documentation | See [Group Y](./group-y.md) |
 | CI/CD Pipeline | Group Z — not yet started. GitHub Actions test workflow, MCP server build verification, branch protection | See [Group Z](./group-z.md) |

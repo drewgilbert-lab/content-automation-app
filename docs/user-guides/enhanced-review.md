@@ -74,7 +74,7 @@ The Merge Editor (used during AI Merge) and the Content Diff (used during standa
 
 ## Common Pitfalls
 
-**The "Add Document" button does not appear on the knowledge detail page.** Confirm you are in Contributor or Admin mode using the role toggle. The button is only visible to users who can submit changes.
+**The "Add Document" button does not appear on the knowledge detail page.** Confirm you are in Contributor, Editor, or Admin mode using the role toggle. The button is only visible to users who can submit changes (not Viewers).
 
 **The "Merge Document" button is not appearing for a document addition submission.** Confirm the submission type is `document_add`. The button only appears for `document_add` and `update` submissions, not for `new` submissions.
 

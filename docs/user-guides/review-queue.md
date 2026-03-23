@@ -1,14 +1,14 @@
 # Using the Review Queue
 
-> Last updated: February 2026
+> Last updated: March 23, 2026
 
 ---
 
 ## Overview
 
-The Review Queue is the approval layer for all proposed changes to the knowledge base. Any time a Contributor submits a new object or an edit to an existing one, it lands in the queue as a submission. Admins review each submission and decide whether to accept it, reject it, or defer it to a later time.
+The Review Queue is the approval layer for all proposed changes to the knowledge base and skills. Any time a Contributor submits a new object or an edit to an existing one, it lands in the queue as a submission. The system also generates submissions automatically when a linked knowledge object changes in a way that may require a skill to be updated. Editors and Admins review each submission and decide whether to accept it, reject it, or defer it to a later time.
 
-This guide covers both sides of the workflow: how Contributors submit changes, and how Admins process the queue.
+This guide covers both sides of the workflow: how Contributors submit changes, how system-generated skill refresh suggestions work, and how Editors and Admins process the queue.
 
 ---
 
@@ -21,7 +21,7 @@ This guide covers both sides of the workflow: how Contributors submit changes, a
 3. Select the object type and fill in all required fields. See the [Managing Knowledge](./managing-knowledge.md) guide for field details.
 4. Click **Submit for Review**.
 
-Your submission enters the queue with type **New** and status **Pending**. You will not see it in the live knowledge base until an Admin accepts it.
+Your submission enters the queue with type **New** and status **Pending**. You will not see it in the live knowledge base until an Editor or Admin accepts it.
 
 ### Submitting an Edit to an Existing Object
 
@@ -30,7 +30,7 @@ Your submission enters the queue with type **New** and status **Pending**. You w
 3. Make your changes in the edit form.
 4. Click **Submit for Review**.
 
-Your submission enters the queue with type **Update** and status **Pending**. The live version of the object is unchanged until an Admin reviews and accepts your edit.
+Your submission enters the queue with type **Update** and status **Pending**. The live version of the object is unchanged until an Editor or Admin reviews and accepts your edit.
 
 ### After Submitting
 
@@ -38,7 +38,21 @@ You can check the status of your submissions by visiting the Review Queue at `/q
 
 ---
 
-## Admin: Reviewing Submissions
+## System-Generated Skill Refresh Submissions
+
+When a knowledge object is updated and accepted, the system checks whether any active skills have that object in their linked knowledge objects. If the change is significant enough to affect the skill, the system automatically creates a submission with:
+
+- **Object Type**: Skill
+- **Source Channel**: System (displayed as a "System" badge in the queue list)
+- **Submission Type**: Update
+
+These submissions appear alongside contributor-submitted changes in the queue. They have a distinct "System" source badge so Editors and Admins can distinguish automated suggestions from human submissions. See the [Skills Library guide](./skills.md) for details on how knowledge links and materiality evaluation work.
+
+The system prevents duplicate suggestions — if a pending system-generated submission already exists for the same skill, a new one is not created.
+
+---
+
+## Editor / Admin: Reviewing Submissions
 
 ### Navigating to the Queue
 
@@ -52,6 +66,14 @@ Use the tab filters to narrow the list:
 - **Update** — submissions proposing a change to an existing object
 
 By default, the list hides closed submissions (those that have been accepted or rejected). Toggle **Show Closed** in the top-right of the list to include them. This is useful for auditing past decisions.
+
+### Reading the Queue List
+
+Each row displays:
+- **Name** — the submission title
+- **Object Type badge** — the type of object being changed (persona, segment, use case, etc., or "skill" for skill submissions)
+- **Source Channel badge** — who created the submission: "Web" for human Contributors, "System" for automated skill refresh suggestions, "API" for external API submissions
+- **Status** — Pending, Accepted, Rejected, or Deferred
 
 ### Opening a Submission
 
@@ -80,6 +102,16 @@ For an **Update** submission, the review page shows a **side-by-side comparison*
 Read both panels carefully to understand exactly what is changing. Look for additions, removals, and rewrites. The side-by-side layout makes it easy to spot differences.
 
 For complex updates, consider using the **AI Merge** workflow instead of accepting or rejecting outright — see the [AI Merge](./ai-merge.md) guide for details.
+
+### Skill Refresh Submissions
+
+For a system-generated **skill refresh** submission, the review page shows additional context in a "Skill Refresh Suggestion" section:
+
+- **Current Skill Content** — the full text of the skill's instructions as they exist today
+- **Updated Knowledge Object** — the content from the knowledge object that was just changed, triggering this suggestion
+- **Integration Prompt** — the integration instructions that define how this knowledge object's content relates to the skill
+
+This context helps you understand *why* the system flagged this skill for potential update. The "Merge with AI" button is available for skill refresh submissions — clicking it generates an AI-suggested update to the skill using a specialized refresh prompt. See the [AI Merge](./ai-merge.md) guide for details on the merge workflow.
 
 ---
 
@@ -111,7 +143,7 @@ Use deferral when the content is not ready yet but has potential — for example
 
 ## Reviewing Your Own Work
 
-Admins can also create and edit objects directly without going through the queue. But if an Admin submits using the Contributor flow (by switching to Contributor mode), their submission still goes through the queue like any other. This is intentional — it allows Admins to test the submission workflow.
+Editors and Admins can also create and edit objects directly without going through the queue. But if an Editor or Admin submits using the Contributor flow (by switching to Contributor mode), their submission still goes through the queue like any other. This is intentional — it allows Editors and Admins to test the submission workflow.
 
 ---
 
@@ -127,4 +159,8 @@ Admins can also create and edit objects directly without going through the queue
 
 **The side-by-side diff for an Update submission is hard to read because the changes are large.** Large diffs can be difficult to review in the basic side-by-side view. The AI Merge workflow provides a tracked-changes view with character-level highlighting that makes large updates much easier to parse.
 
-**I accidentally accepted a submission I should have rejected.** There is no undo for an accepted submission. You will need to open the now-live knowledge object, edit it back to the previous version manually, and save.
+**I see a "System" badge on a submission I didn't create.** System-sourced submissions are generated automatically when a linked knowledge object changes significantly. See the [Skills Library guide](./skills.md) and [System-Generated Skill Refresh Submissions](#system-generated-skill-refresh-submissions) above.
+
+**I accepted a skill refresh submission but the skill content didn't change as expected.** Make sure you used "Merge with AI" to generate the updated content before saving. Simply accepting the submission applies the proposed content field directly. For the best result, use the merge workflow, edit the AI suggestion, and save.
+
+**I accidentally accepted a submission I should have rejected.** There is no undo for an accepted submission. You will need to open the now-live knowledge object (or skill), edit it back to the previous version manually, and save.

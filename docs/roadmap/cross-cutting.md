@@ -22,7 +22,7 @@ Both groups leverage Weaviate's built-in RBAC (v1.30+) as a defense-in-depth lay
 
 ## No User Authentication Dependency
 
-Both groups are designed to work without end-user authentication or role-based access at the application level. The review queue is the authorization layer for writes (Group J Phase 2). Read access (Groups K, J) is protected by application-level API keys and Weaviate-level read-only users. This is appropriate for the current single-company internal tool. When user Auth/RBAC is added (Phase 3+), both groups should integrate with the auth system for per-user or per-team scoping. See [Phase 3+ backlog](./phase-3-backlog.md) for the OIDC/SSO upgrade path.
+Both groups are designed to work without end-user authentication or role-based access at the application level. The review queue is the authorization layer for writes (Group J Phase 2). Read access (Groups K, J) is protected by application-level API keys and Weaviate-level read-only users. This is appropriate for the current single-company internal tool. When user Auth/RBAC is added ([Group W](./group-w.md)), both groups should integrate with the four-role auth system (admin, editor, contributor, viewer) for per-user or per-team scoping. See [Phase 3+ backlog](./phase-3-backlog.md) for the OIDC/SSO upgrade path.
 
 ## OIDC/SSO Upgrade Path
 

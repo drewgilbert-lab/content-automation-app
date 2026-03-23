@@ -3,7 +3,12 @@ export const runtime = "nodejs";
 import { NextRequest } from "next/server";
 import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
-import { buildMergePrompt, buildDocumentAdditionPrompt } from "@/lib/merge";
+import { getSkill } from "@/lib/skills";
+import {
+  buildMergePrompt,
+  buildDocumentAdditionPrompt,
+  buildSkillRefreshPrompt,
+} from "@/lib/merge";
 import { streamMessage } from "@/lib/claude";
 
 export async function POST(
@@ -39,35 +44,64 @@ export async function POST(
       );
     }
 
-    const currentObject = await getKnowledgeObject(submission.targetObjectId);
-    if (!currentObject) {
-      return Response.json(
-        { error: "Target knowledge object not found" },
-        { status: 404 }
-      );
-    }
+    let systemPrompt: string;
+    let userMessage: string;
 
-    let proposedContent: { content?: string; sourceFile?: string } = {};
-    try {
-      proposedContent = JSON.parse(submission.proposedContent) ?? {};
-    } catch {
-      return Response.json(
-        { error: "Invalid proposed content format" },
-        { status: 400 }
-      );
-    }
+    if (submission.objectType === "skill") {
+      const skill = await getSkill(submission.targetObjectId);
+      if (!skill) {
+        return Response.json(
+          { error: "Target skill not found" },
+          { status: 404 }
+        );
+      }
 
-    const { systemPrompt, userMessage } =
-      submission.submissionType === "document_add"
-        ? buildDocumentAdditionPrompt(
-            currentObject.content,
-            proposedContent.content ?? "",
-            proposedContent.sourceFile
-          )
-        : buildMergePrompt(
-            currentObject.content,
-            proposedContent.content ?? ""
-          );
+      let proposedContent: { content?: string; integrationPrompt?: string } = {};
+      try {
+        proposedContent = JSON.parse(submission.proposedContent) ?? {};
+      } catch {
+        return Response.json(
+          { error: "Invalid proposed content format" },
+          { status: 400 }
+        );
+      }
+
+      ({ systemPrompt, userMessage } = buildSkillRefreshPrompt(
+        skill.content,
+        proposedContent.content ?? "",
+        proposedContent.integrationPrompt ?? ""
+      ));
+    } else {
+      const currentObject = await getKnowledgeObject(submission.targetObjectId);
+      if (!currentObject) {
+        return Response.json(
+          { error: "Target knowledge object not found" },
+          { status: 404 }
+        );
+      }
+
+      let proposedContent: { content?: string; sourceFile?: string } = {};
+      try {
+        proposedContent = JSON.parse(submission.proposedContent) ?? {};
+      } catch {
+        return Response.json(
+          { error: "Invalid proposed content format" },
+          { status: 400 }
+        );
+      }
+
+      ({ systemPrompt, userMessage } =
+        submission.submissionType === "document_add"
+          ? buildDocumentAdditionPrompt(
+              currentObject.content,
+              proposedContent.content ?? "",
+              proposedContent.sourceFile
+            )
+          : buildMergePrompt(
+              currentObject.content,
+              proposedContent.content ?? ""
+            ));
+    }
 
     const stream = await streamMessage(systemPrompt, userMessage);
 

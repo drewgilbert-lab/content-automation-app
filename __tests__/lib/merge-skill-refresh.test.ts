@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSkillRefreshPrompt } from "@/lib/merge.ts";
+import { buildSkillRefreshPrompt } from "@/lib/merge";
 
 describe("buildSkillRefreshPrompt", () => {
   it("returns systemPrompt and userMessage", () => {

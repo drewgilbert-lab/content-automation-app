@@ -10,7 +10,7 @@ vi.mock("@anthropic-ai/sdk", () => ({
   },
 }));
 
-vi.mock("@/lib/weaviate.ts", () => ({
+vi.mock("@/lib/weaviate", () => ({
   withWeaviate: vi.fn(),
 }));
 
@@ -24,7 +24,7 @@ vi.mock("weaviate-client", () => ({
   },
 }));
 
-import { evaluateSkillRefreshSignificance } from "@/lib/skills.ts";
+import { evaluateSkillRefreshSignificance } from "@/lib/skills";
 
 describe("evaluateSkillRefreshSignificance", () => {
   beforeEach(() => {

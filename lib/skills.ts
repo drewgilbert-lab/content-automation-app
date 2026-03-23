@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { withWeaviate } from "@/lib/weaviate.ts";
+import { withWeaviate } from "./weaviate";
 import weaviate from "weaviate-client";
 import type {
   SkillListItem,

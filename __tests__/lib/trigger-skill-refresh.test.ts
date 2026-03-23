@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/lib/weaviate.ts", () => ({
+vi.mock("@/lib/weaviate", () => ({
   withWeaviate: vi.fn(),
 }));
 
@@ -18,14 +18,14 @@ vi.mock("@anthropic-ai/sdk", () => ({
   default: vi.fn(),
 }));
 
-vi.mock("@/lib/submissions.ts", () => ({
+vi.mock("@/lib/submissions", () => ({
   createSubmission: vi.fn().mockResolvedValue({ id: "sub-1", status: "pending" }),
   listSubmissions: vi.fn().mockResolvedValue([]),
 }));
 
-import { withWeaviate } from "@/lib/weaviate.ts";
-import * as skills from "@/lib/skills.ts";
-import { createSubmission } from "@/lib/submissions.ts";
+import { withWeaviate } from "@/lib/weaviate";
+import * as skills from "@/lib/skills";
+import { createSubmission } from "@/lib/submissions";
 
 const mockedWithWeaviate = vi.mocked(withWeaviate);
 const mockedCreateSubmission = vi.mocked(createSubmission);

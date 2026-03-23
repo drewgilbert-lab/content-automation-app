@@ -4,6 +4,12 @@
 
 ---
 
+### 2026-03-23 — Fix: Railway Build
+
+- Reverted `lib/skills.ts` import from `@/lib/weaviate.ts` to `./weaviate` to fix `tsconfig.lib.json` compilation failure
+- Removed `.ts` extensions from Group M test file mocks and imports to match established conventions
+- Removed `allowImportingTsExtensions` flag from `tsconfig.json` (no longer needed)
+
 ### Group W Phase 1 — Authentication Foundation (W1–W4) — March 23, 2026
 
 **W1 — NextAuth.js Integration with Google Provider:**

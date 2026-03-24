@@ -106,7 +106,8 @@ app/
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
 lib/
-  auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions, requireAuth(), requireRole(), getCurrentUser()
+  auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions (EDGE-SAFE — no Node.js/Weaviate imports allowed, used by middleware.ts)
+  auth-server.ts          — Server-side auth helpers: requireAuth(), requireRole(), requirePermission(), getCurrentUser(), ensureUser() (Node.js only, imports Weaviate/audit/users)
   user-types.ts           — UserRole, UserRecord, ROLE_HIERARCHY, VALID_ROLES, isValidRole(), hasMinimumRole()
   users.ts                — User CRUD: getOrCreateUser(), getUserByEmail(), listUsers(), updateUserRole(), deactivateUser(); 5-min cache
   permissions.ts          — Permission matrix, hasPermission(), requiresReviewQueue(), getPermissions(), resolvePermissions(), userHasPermission()

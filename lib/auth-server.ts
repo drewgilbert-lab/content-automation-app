@@ -4,10 +4,12 @@ import type { UserRecord, UserRole } from "./user-types";
 import { hasMinimumRole } from "./user-types";
 import type { Permission } from "./permissions";
 import { userHasPermission } from "./permissions";
+import { logAuditEvent } from "./audit";
 
 /**
  * Ensure a Weaviate user record exists for the current session.
  * Creates the record on first sign-in (first user gets admin role).
+ * Logs a sign_in audit event on new user creation.
  */
 async function ensureUser(
   email: string,
@@ -16,7 +18,14 @@ async function ensureUser(
 ): Promise<UserRecord> {
   const cached = await getUserCached(email);
   if (cached) return cached;
-  return getOrCreateUser(email, name ?? email, image ?? undefined);
+
+  const user = await getOrCreateUser(email, name ?? email, image ?? undefined);
+  logAuditEvent({
+    eventType: "sign_in",
+    actorEmail: email,
+    actorName: name ?? "",
+  });
+  return user;
 }
 
 /**

@@ -1,7 +1,13 @@
+/**
+ * EDGE-SAFE — This file is imported by middleware.ts which runs in the
+ * Edge runtime. It MUST NOT import any module that depends on Node.js
+ * APIs (Weaviate, audit, users, permissions, etc.).
+ *
+ * Server-only auth helpers live in lib/auth-server.ts.
+ */
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import type { NextAuthConfig } from "next-auth";
-import { logAuditEvent } from "./audit";
 
 const allowedDomains = process.env.ALLOWED_DOMAINS
   ? process.env.ALLOWED_DOMAINS.split(",").map((d) => d.trim().toLowerCase())
@@ -30,52 +36,18 @@ const config: NextAuthConfig = {
 
   callbacks: {
     signIn({ profile }) {
-      const email = profile?.email?.toLowerCase();
-
       if (allowedDomains.length === 0 && allowedEmails.length === 0) {
-        if (email) {
-          logAuditEvent({
-            eventType: "sign_in",
-            actorEmail: email,
-            actorName: profile?.name ?? "",
-          });
-        }
         return true;
       }
 
-      if (!email) {
-        logAuditEvent({
-          eventType: "sign_in_failed",
-          actorEmail: "unknown",
-          details: { reason: "no_email_in_profile" },
-        });
-        return false;
-      }
+      const email = profile?.email?.toLowerCase();
+      if (!email) return false;
 
-      if (allowedEmails.includes(email)) {
-        logAuditEvent({
-          eventType: "sign_in",
-          actorEmail: email,
-          actorName: profile?.name ?? "",
-        });
-        return true;
-      }
+      if (allowedEmails.includes(email)) return true;
 
       const hd = (profile as { hd?: string })?.hd?.toLowerCase();
-      if (hd && allowedDomains.includes(hd)) {
-        logAuditEvent({
-          eventType: "sign_in",
-          actorEmail: email,
-          actorName: profile?.name ?? "",
-        });
-        return true;
-      }
+      if (hd && allowedDomains.includes(hd)) return true;
 
-      logAuditEvent({
-        eventType: "sign_in_failed",
-        actorEmail: email,
-        details: { reason: "domain_not_allowed", hd: hd ?? "none" },
-      });
       return false;
     },
 
@@ -99,17 +71,6 @@ const config: NextAuthConfig = {
         session.user.image = token.picture as string;
       }
       return session;
-    },
-  },
-
-  events: {
-    signOut(message) {
-      const token = "token" in message ? message.token : null;
-      const email = (token?.email as string) ?? "unknown";
-      logAuditEvent({
-        eventType: "sign_out",
-        actorEmail: email,
-      });
     },
   },
 };

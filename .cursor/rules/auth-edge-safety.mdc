@@ -1,0 +1,37 @@
+---
+description: "Enforces Edge runtime safety for lib/auth.ts. Triggered when editing lib/auth.ts, middleware.ts, or any file importing from lib/auth."
+globs: ["lib/auth.ts", "middleware.ts"]
+---
+
+# Auth Edge Runtime Safety
+
+`lib/auth.ts` is imported by `middleware.ts`, which runs in the **Next.js Edge runtime**. The Edge runtime does NOT support Node.js APIs (TCP sockets, `fs`, `net`, `tls`, etc.).
+
+## Hard Rule
+
+**`lib/auth.ts` must NEVER import any module that depends on Node.js APIs.**
+
+Banned import chains include (but are not limited to):
+- `weaviate-client` (TCP/TLS connections)
+- `lib/weaviate.ts` (wraps weaviate-client)
+- `lib/users.ts` (imports weaviate-client)
+- `lib/audit.ts` (imports weaviate-client)
+- `lib/permissions.ts` → `lib/permission-sets.ts` (imports weaviate-client)
+- Any `lib/*.ts` file that calls `withWeaviate()`
+
+## Architecture
+
+| File | Runtime | What it exports |
+|---|---|---|
+| `lib/auth.ts` | Edge-safe | `auth`, `handlers`, `signIn`, `signOut` (NextAuth core) |
+| `lib/auth-server.ts` | Node.js only | `requireAuth`, `requireRole`, `requirePermission`, `getCurrentUser` |
+
+- **Middleware** (`middleware.ts`) imports from `lib/auth.ts` only.
+- **API routes** import from `lib/auth-server.ts` for auth helpers that need Weaviate.
+- **`lib/auth-server.ts`** may import anything (Weaviate, audit, users, permissions) because API routes run in Node.js.
+
+## Before Editing `lib/auth.ts`
+
+1. Check whether the new import depends on Node.js APIs (directly or transitively).
+2. If it does, put the logic in `lib/auth-server.ts` instead.
+3. If you need to add functionality to NextAuth callbacks (like audit logging), use a server-side hook in `lib/auth-server.ts` rather than the NextAuth config.

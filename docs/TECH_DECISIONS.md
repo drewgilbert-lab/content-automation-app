@@ -638,12 +638,19 @@ ALLOWED_EMAILS=         # Comma-separated individual email allowlist (optional)
 ADMIN_EMAIL=            # Override first-user-is-admin bootstrap (optional)
 ```
 
+**Edge Runtime Constraint — Critical:**
+- `lib/auth.ts` is imported by `middleware.ts`, which runs in the **Edge runtime**
+- `lib/auth.ts` must NEVER import modules that depend on Node.js APIs (Weaviate, audit, users, permission-sets, etc.)
+- Server-side auth helpers (`requireAuth`, `requireRole`, `requirePermission`, `getCurrentUser`) live in `lib/auth-server.ts`, which can import anything since API routes run in Node.js
+- Audit logging for auth events (sign-in, sign-out) is handled in `lib/auth-server.ts`, not in NextAuth callbacks
+- See `.cursor/rules/auth-edge-safety.mdc` for the enforced rule
+
 **Implications:**
-- All 33 internal API route files updated with `requireAuth()` import and call
+- All 36 internal API route files import auth helpers from `lib/auth-server.ts` (not `lib/auth.ts`)
+- `middleware.ts` imports only `auth` from `lib/auth.ts` (Edge-safe)
 - `middleware.ts` redirects unauthenticated page visits to `/auth/signin`; public paths: `/auth/*`, `/api/auth/*`, `/api/v1/*`
 - External API routes (`/api/v1/*`) unaffected — continue using API key auth (Group K)
 - JWT has no server-side revocation; mitigated by 1-hour expiry + active flag check on every request
-- Phase 2 (W5–W7) will add role-based permission enforcement using the `requireRole()` helper
 
 ---
 

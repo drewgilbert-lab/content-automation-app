@@ -1,7 +1,21 @@
 import { auth } from "./auth";
-import { getUserCached } from "./users";
+import { getUserCached, getOrCreateUser } from "./users";
 import type { UserRecord, UserRole } from "./user-types";
 import { hasMinimumRole } from "./user-types";
+
+/**
+ * Ensure a Weaviate user record exists for the current session.
+ * Creates the record on first sign-in (first user gets admin role).
+ */
+async function ensureUser(
+  email: string,
+  name?: string | null,
+  image?: string | null
+): Promise<UserRecord> {
+  const cached = await getUserCached(email);
+  if (cached) return cached;
+  return getOrCreateUser(email, name ?? email, image ?? undefined);
+}
 
 /**
  * Verify the current request has a valid, active user session.
@@ -18,7 +32,11 @@ export async function requireAuth(): Promise<UserRecord | Response> {
     );
   }
 
-  const user = await getUserCached(session.user.email);
+  const user = await ensureUser(
+    session.user.email,
+    session.user.name,
+    session.user.image
+  );
   if (!user || !user.active) {
     return Response.json(
       { error: "Account is inactive or not found" },
@@ -51,9 +69,10 @@ export async function requireRole(
 
 /**
  * Get the current user from the session, or null if not authenticated.
+ * Creates the Weaviate user record on first access.
  */
 export async function getCurrentUser(): Promise<UserRecord | null> {
   const session = await auth();
   if (!session?.user?.email) return null;
-  return getUserCached(session.user.email);
+  return ensureUser(session.user.email, session.user.name, session.user.image);
 }

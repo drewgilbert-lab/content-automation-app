@@ -38,6 +38,30 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
   const [links, setLinks] = useState<SkillKnowledgeLink[]>(
     init?.sourceKnowledgeObjects ?? []
   );
+
+  useEffect(() => {
+    if (mode !== "create" || !searchParams.get("imported")) return;
+    try {
+      const raw = sessionStorage.getItem("importedSkill");
+      if (!raw) return;
+      sessionStorage.removeItem("importedSkill");
+      const imported = JSON.parse(raw);
+      if (imported.name) setName(imported.name);
+      if (imported.description) setDescription(imported.description);
+      if (imported.content) setContent(imported.content);
+      if (Array.isArray(imported.contentType)) setContentType(imported.contentType);
+      if (imported.category) setCategory(imported.category);
+      if (Array.isArray(imported.tags)) setTagsInput(imported.tags.join(", "));
+      if (imported.outputFormat) setOutputFormat(imported.outputFormat);
+      if (imported.author) setAuthor(imported.author);
+      if (imported.parameters) setParameters(imported.parameters);
+      if (Array.isArray(imported.sourceKnowledgeObjects)) {
+        setLinks(imported.sourceKnowledgeObjects);
+      }
+    } catch {
+      // ignore bad sessionStorage data
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [linkSearch, setLinkSearch] = useState("");
   const [linkSearchResults, setLinkSearchResults] = useState<Array<{ id: string; name: string; type: string }>>([]);
   const [linkSearching, setLinkSearching] = useState(false);

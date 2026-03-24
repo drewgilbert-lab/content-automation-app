@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 24, 2026 (Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 24, 2026 (I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1293,6 +1293,153 @@ Returns semantically similar knowledge objects as link suggestions for a skill.
 | 500 | `{ "error": "Failed to suggest links" }` | Server error |
 
 **Implementation:** `app/api/skills/[id]/suggest-links/route.ts` → uses Weaviate `nearText` search across all knowledge collections
+
+---
+
+### POST /api/skills/[id]/test
+
+Runs a skill against sample inputs with full context assembly and streams the generated output. Used by the skill testing interface (I6).
+
+**Runtime:** `nodejs`
+
+**Minimum Role:** `contributor`
+
+**Path Parameters:**
+- `id` (required): Skill UUID
+
+**Request:**
+```json
+{
+  "contentType": "string (required — from CONTENT_TYPES)",
+  "prompt": "string (required — test prompt)",
+  "pinnedPersonaId": "string (optional)",
+  "pinnedSegmentId": "string (optional)",
+  "pinnedUseCaseId": "string (optional)",
+  "withoutSkill": "boolean (optional — if true, runs without the skill for A/B comparison)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `text/plain; charset=utf-8`
+- Transfer-Encoding: `chunked`
+- `X-System-Prompt` header: base64-encoded assembled system prompt
+- Body: Streaming text (Claude output)
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing or invalid contentType/prompt |
+| 404 | `{ "error": "Skill not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to process skill test" }` | Server error |
+
+**Implementation:** `app/api/skills/[id]/test/route.ts` → calls `assembleContext()` with manual skill selection, then `streamMessage()`
+
+---
+
+### GET /api/skills/[id]/test/context
+
+Returns available personas, segments, and use cases for populating the skill test form dropdowns.
+
+**Runtime:** `nodejs`
+
+**Minimum Role:** `contributor`
+
+**Path Parameters:**
+- `id` (required): Skill UUID (validates the skill exists)
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "personas": [{ "id": "uuid", "name": "..." }],
+  "segments": [{ "id": "uuid", "name": "..." }],
+  "useCases": [{ "id": "uuid", "name": "..." }]
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Skill not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to fetch test context" }` | Server error |
+
+**Implementation:** `app/api/skills/[id]/test/context/route.ts` → calls `listKnowledgeObjects()` for each type
+
+---
+
+### GET /api/skills/[id]/export
+
+Downloads the skill as a Claude-compatible `.skill` package (ZIP containing `SKILL.md` and `metadata.json`).
+
+**Runtime:** `nodejs`
+
+**Minimum Role:** `contributor`
+
+**Path Parameters:**
+- `id` (required): Skill UUID
+
+**Response (success):**
+- Status: `200`
+- Content-Type: `application/zip`
+- Content-Disposition: `attachment; filename="{kebab-name}.skill"`
+- Body: ZIP file binary
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Skill not found" }` | UUID not found |
+| 500 | `{ "error": "Failed to export skill" }` | Server error |
+
+**Implementation:** `app/api/skills/[id]/export/route.ts` → calls `generateSkillMd()`, `generateMetadataJson()`, packages with JSZip
+
+---
+
+### POST /api/skills/import
+
+Parses an uploaded `SKILL.md` file or `.skill` ZIP and returns the extracted skill data for review before creation.
+
+**Runtime:** `nodejs`
+
+**Minimum Role:** `contributor`
+
+**Request:** `multipart/form-data` with a `file` field containing either:
+- A raw `SKILL.md` text file
+- A `.skill` or `.zip` archive containing `SKILL.md` and optional `metadata.json`
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "skill": {
+    "name": "string",
+    "description": "string",
+    "content": "string",
+    "contentType": ["string"],
+    "category": "string",
+    "tags": ["string"]
+  },
+  "validation": {
+    "valid": true,
+    "warnings": ["string"]
+  }
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "No file provided" }` | Missing file in form data |
+| 400 | `{ "error": "...", "details": ["..."] }` | Validation errors |
+| 400 | `{ "error": "..." }` | Parse error (invalid frontmatter, etc.) |
+
+**Implementation:** `app/api/skills/import/route.ts` → uses `parseSkillMd()`, `validateSkillPackage()`, `packageToSkillInput()`
 
 ---
 

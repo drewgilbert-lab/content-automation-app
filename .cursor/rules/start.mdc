@@ -64,6 +64,10 @@ app/
   api/skills/route.ts     — GET list, POST create skills
   api/skills/[id]/route.ts — GET detail, PUT update, DELETE, PATCH activate/deactivate/deprecate/restore
   api/skills/[id]/suggest-links/route.ts — POST suggest knowledge object links via semantic similarity
+  api/skills/[id]/test/route.ts — POST stream skill test with full context assembly (I6)
+  api/skills/[id]/test/context/route.ts — GET persona/segment/useCase options for test form (I6)
+  api/skills/[id]/export/route.ts — GET download .skill ZIP package (I7)
+  api/skills/import/route.ts — POST parse uploaded SKILL.md or .skill ZIP (I7)
   api/connections/route.ts — GET list, POST create (returns plaintext API key once)
   api/connections/[id]/route.ts — GET detail, PUT update, DELETE, PATCH activate/deactivate
   api/connections/[id]/rotate-key/route.ts — POST rotate API key
@@ -105,7 +109,8 @@ app/
   skills/[id]/page.tsx    — Skill detail page (markdown, sidebar, actions)
   skills/new/page.tsx     — Create skill form page
   skills/[id]/edit/page.tsx — Edit skill form page
-  skills/components/      — SkillList, SkillForm, SkillDetailActions
+  skills/[id]/test/page.tsx — Skill testing interface (I6)
+  skills/components/      — SkillList, SkillForm, SkillDetailActions, SkillTester, ImportSkillButton
   components/             — RoleProvider, RoleToggle, SessionProvider, UserMenu
   components/ui/          — Button, Input, Select, Textarea, FormField, Badge (Phase 2 done); LoadingSpinner, PageSkeleton, ErrorState, TagEditor, MarkdownRenderer, VisualDiff, FilterableList, ConfirmDialog planned (Phase 3-4); prefer semantic tokens + cn()
   components/layout/      — SidebarNav (AA5), AppShell (AA6), TopBar (AA7); PageLayout planned (S10+)
@@ -142,6 +147,8 @@ lib/
   upload-session-types.ts — UploadSession, UploadSessionState types (G3)
   skills.ts               — Skill CRUD + evaluateSkillRefreshSignificance, triggerSkillRefreshCheck
   skill-types.ts          — Skill types, content type constants, category constants, utilities
+  skill-package.ts        — Claude SKILL.md conversion: skillToPackage, packageToSkillInput, parseSkillMd, validateSkillPackage (I7)
+  skill-package-types.ts  — SkillFrontmatter, SkillPackageMetadata, SkillPackage, PackageValidationResult types (I7)
   rate-limit.ts           — checkRateLimit(), Upstash Redis sliding window, graceful degradation
   context-assembly.ts     — assembleContext() for generation system prompts (skills + knowledge + rules + optional narrative)
   narratives.ts           — Narrative CRUD (planned, Group R)

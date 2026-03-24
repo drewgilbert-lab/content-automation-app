@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { listSkills } from "@/lib/skills";
 import { SkillList } from "./components/skill-list";
+import { ImportSkillButton } from "./components/import-skill-button";
 
 export default async function SkillsPage() {
   const skills = await listSkills();
@@ -20,12 +21,15 @@ export default async function SkillsPage() {
               Manage procedural instructions for AI content generation
             </p>
           </div>
-          <Link
-            href="/skills/new"
-            className="flex items-center gap-1.5 rounded-card bg-action-primary px-4 py-2.5 text-body font-medium text-text-primary transition-colors hover:bg-action-primary-hover"
-          >
-            <Plus className="h-4 w-4" /> New Skill
-          </Link>
+          <div className="flex items-center gap-2">
+            <ImportSkillButton />
+            <Link
+              href="/skills/new"
+              className="flex items-center gap-1.5 rounded-card bg-action-primary px-4 py-2.5 text-body font-medium text-text-primary transition-colors hover:bg-action-primary-hover"
+            >
+              <Plus className="h-4 w-4" /> New Skill
+            </Link>
+          </div>
         </div>
 
         <SkillList skills={skills} />

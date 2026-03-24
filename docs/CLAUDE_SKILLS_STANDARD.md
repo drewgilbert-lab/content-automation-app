@@ -67,14 +67,57 @@ If a field cannot be represented directly in `SKILL.md`, conversion logic must:
 1. Preserve it in a documented companion structure, and
 2. Mark round-trip behavior in tests as intentionally lossy/non-lossy.
 
+## Export and Import APIs
+
+### Export: `GET /api/skills/[id]/export`
+
+Downloads a skill as a `.skill` ZIP file containing:
+- `{skill-name}/SKILL.md` — frontmatter + markdown body
+- `{skill-name}/metadata.json` — internal fields not representable in frontmatter (`contentType`, `category`, `tags`, `parameters`, `outputFormat`, `version`, `author`, `triggerConditions`, `sourceKnowledgeObjects`)
+
+### Import: `POST /api/skills/import`
+
+Accepts `multipart/form-data` with a `file` field (`.skill` ZIP or raw `SKILL.md`). Returns the parsed `SkillCreateInput` and validation warnings for review before creation.
+
+### CLI Packager: `scripts/package-skill.ts`
+
+TypeScript reimplementation of Claude's `package_skill.py`. Same interface and exclusion rules.
+
+```bash
+npx tsx scripts/package-skill.ts <path/to/skill-folder> [output-directory]
+```
+
+Exclusion rules: `__pycache__`, `node_modules`, `*.pyc`, `.DS_Store`, `evals/` (at skill root only).
+
+## Companion Metadata File
+
+`metadata.json` stores internal Content Engine fields that have no representation in the `SKILL.md` frontmatter:
+
+```json
+{
+  "contentType": ["email", "blog"],
+  "category": "content_generation",
+  "tags": ["marketing"],
+  "parameters": [{ "name": "tone", "type": "select", "description": "...", "required": false, "options": ["formal", "casual"] }],
+  "outputFormat": "Markdown document with H2 sections",
+  "version": "1.2.0",
+  "author": "marketing-team"
+}
+```
+
+When importing a `.skill` package that includes `metadata.json`, these fields are merged into the `SkillCreateInput`. When importing a bare `SKILL.md` without metadata, only `name`, `description`, and `content` are populated.
+
 ## Validation and Testing Baseline
 
 At minimum, tests must verify:
 
 - Frontmatter is parseable and includes required fields.
-- `name` and `description` meet constraints.
+- `name` and `description` meet constraints (`name`: `/^[a-z0-9][a-z0-9-]*[a-z0-9]$/`, max 64 chars).
 - Internal-to-package and package-to-internal conversion is deterministic.
 - Invalid payloads return stable, machine-readable validation errors.
+- Round-trip `skillToPackage -> packageToSkillInput` preserves all non-lossy fields.
+
+Test coverage: `__tests__/lib/skill-package.test.ts` (42 tests), `__tests__/api/skills-export-route.test.ts`, `__tests__/api/skills-import-route.test.ts`.
 
 Optional live checks (env-gated) can validate acceptance with Claude-connected flows.
 

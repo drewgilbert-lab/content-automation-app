@@ -6,6 +6,23 @@
 
 ## 2026-03-24
 
+### Group I — Skill Testing Interface (I6) and Claude Skill Package Compatibility (I7)
+
+Built the skill testing interface and Claude-compatible skill packaging system.
+
+- **I6 — Skill Testing Interface**: Added `/skills/[id]/test` page with full context assembly integration. Users can select a content type, optionally pin a persona/segment/use case, enter a test prompt, and stream Claude's output in real-time. Includes side-by-side comparison mode (with vs. without skill) and a collapsible system prompt preview. API routes: `POST /api/skills/[id]/test` (streaming generation via `assembleContext` + `streamMessage`), `GET /api/skills/[id]/test/context` (populates persona/segment/use case dropdowns). "Test" button added to skill detail page header.
+- **I7 — Claude Skill Package Compatibility**: Implemented bidirectional conversion between internal `Skill` objects and Claude `SKILL.md` packages. Core library `lib/skill-package.ts` with `skillToPackage()`, `packageToSkillInput()`, `generateSkillMd()`, `parseSkillMd()`, `validateSkillPackage()`, `generateMetadataJson()`. Types in `lib/skill-package-types.ts`. Export API (`GET /api/skills/[id]/export`) downloads `.skill` ZIP with `SKILL.md` + `metadata.json`. Import API (`POST /api/skills/import`) parses uploaded SKILL.md or .skill ZIP into `SkillCreateInput` for review. CLI packager `scripts/package-skill.ts` reimplements Claude's `package_skill.py` in TypeScript. UI: "Export" button on skill detail page, "Import" button on skills list page with sessionStorage-based form prefill.
+
+**New files**: `lib/skill-package-types.ts`, `lib/skill-package.ts`, `scripts/package-skill.ts`, `app/api/skills/[id]/test/route.ts`, `app/api/skills/[id]/test/context/route.ts`, `app/api/skills/[id]/export/route.ts`, `app/api/skills/import/route.ts`, `app/skills/[id]/test/page.tsx`, `app/skills/components/skill-tester.tsx`, `app/skills/components/import-skill-button.tsx`
+**Modified files**: `app/skills/[id]/page.tsx` (Test + Export buttons), `app/skills/page.tsx` (Import button), `app/skills/components/skill-form.tsx` (import prefill via sessionStorage)
+**Dependencies added**: `jszip`, `@types/jszip`
+**Tests**: `__tests__/lib/skill-package.test.ts` (42 tests), `__tests__/api/skills-test-route.test.ts` (8 tests), `__tests__/api/skills-export-route.test.ts` (4 tests), `__tests__/api/skills-import-route.test.ts` (6 tests) — 60 total
+**Documentation**: `docs/roadmap/group-i.md` (I6/I7 marked done), `docs/CLAUDE_SKILLS_STANDARD.md` (export/import APIs, CLI, metadata.json spec), `docs/API.md` (new route contracts), `docs/roadmap/README.md` (status updated)
+
+---
+
+## 2026-03-24
+
 ### Group AA Phase 5 — Data Visualization and Status Styling (AA20–AA22)
 
 Established chart color conventions, validated all status badge variants against navy-tinted surfaces, added purple status tokens, and consolidated ad-hoc badge implementations to use the shared Badge component.

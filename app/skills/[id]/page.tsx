@@ -50,11 +50,26 @@ export default async function SkillDetailPage({
                   : "Inactive"}
             </span>
           </div>
-          <SkillDetailActions
-            id={skill.id}
-            active={skill.active}
-            deprecated={skill.deprecated}
-          />
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/skills/${skill.id}/test`}
+              className="inline-flex items-center justify-center transition-colors border border-border-default text-text-tertiary hover:border-border-focus hover:text-text-secondary rounded-lg px-4 py-2.5 text-body font-medium"
+            >
+              Test
+            </Link>
+            <a
+              href={`/api/skills/${skill.id}/export`}
+              download
+              className="inline-flex items-center justify-center transition-colors border border-border-default text-text-tertiary hover:border-border-focus hover:text-text-secondary rounded-lg px-4 py-2.5 text-body font-medium"
+            >
+              Export
+            </a>
+            <SkillDetailActions
+              id={skill.id}
+              active={skill.active}
+              deprecated={skill.deprecated}
+            />
+          </div>
         </div>
 
         {skill.deprecated && (

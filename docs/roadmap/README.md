@@ -55,7 +55,7 @@ Each step below is independently shippable. Steps within a group can be built in
 
 | Module | What's Left | Requirements |
 |---|---|---|
-| Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) deferred; I7 Claude skill package compatibility standards planned | See [Group I](./group-i.md) |
+| Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) done; I7 (Claude Skill Package Compatibility) done | See [Group I](./group-i.md) |
 | Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process, skill-type metadata exposure, and internal skill ⇄ Claude bundle mapping | See [Group N](./group-n.md) |
 | Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, shared TagEditor | See [Group O](./group-o.md) |
 | Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See [Group P](./group-p.md) |

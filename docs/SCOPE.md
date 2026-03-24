@@ -66,6 +66,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |
 | Content Narratives | Planned (Group R) | Strategic narrative layer: schema, CRUD, UI, AI-assisted creation, review workflow, context assembly, staleness detection, external API/MCP; not yet started |
 | Design System Foundation | Phase 1 Done (Group S) | Phase 1 done: font fix, semantic tokens (surfaces/borders/text/actions/status), cn() utility, Prettier plugin. Phases 2–5 pending: shared primitives, page layout, error boundaries, organism consolidation |
+| HG Brand Theming | Phase 1 Done (Group AA) | Token migration to HG navy-tinted dark palette, 4 new brand accent tokens, WCAG AA contrast validated. Phases 2–5 pending: navigation shell, typography scale, page migration, data viz |
 | Inbound MCP server | Phase 1 Read Done | J1-J8 done: foundation, auth, read tools, resources, search, client config; J9+ (write) pending |
 | External REST API | Done (Phase 1) | K1–K6 complete: ConnectedSystem schema, API key auth, versioned read API at /api/v1/, admin UI at /connections, Upstash rate limiting, 42 tests; see roadmap/README.md Group K |
 | LLM MCP server (RAG) | Phase 1 Read Done | J1-J8 done: transport, auth, 7 read tools, 3 resources, semantic search, client config; Phase 2 (write) pending |

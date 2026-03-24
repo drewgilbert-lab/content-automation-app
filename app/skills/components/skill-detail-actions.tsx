@@ -101,7 +101,7 @@ export function SkillDetailActions({
           href={`/skills/${id}/edit`}
           className={cn(
             "inline-flex items-center justify-center transition-colors",
-            "border border-border-default text-text-tertiary hover:border-border-hover hover:text-text-secondary",
+            "border border-border-default text-text-tertiary hover:border-border-focus hover:text-text-secondary",
             "rounded-lg px-4 py-2.5 text-sm font-medium",
           )}
         >

@@ -5,7 +5,7 @@ const variantStyles = {
   primary:
     "bg-action-primary text-text-primary hover:bg-action-primary-hover",
   secondary:
-    "border border-border-default text-text-tertiary hover:border-border-hover hover:text-text-secondary",
+    "border border-border-default text-text-tertiary hover:border-border-focus hover:text-text-secondary",
   danger:
     "border border-border-default text-status-danger hover:border-red-700 hover:text-red-300",
   ghost: "text-text-tertiary hover:text-text-secondary",

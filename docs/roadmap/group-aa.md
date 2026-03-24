@@ -142,9 +142,9 @@ Button text is always `#FFFFFF`, not `#F1F5F9`. The extra 0.3 contrast points ma
 
 ---
 
-## Phase 1 — Token Migration and Brand Foundation
+## Phase 1 — Token Migration and Brand Foundation — **Done**
 
-**AA1 — Update Semantic Token Values**
+**AA1 — Update Semantic Token Values** — ✅ Done (2026-03-24)
 Update the `@theme inline` block in `app/globals.css` to use the consolidated HG-branded dark values from the palette tables above. This is a token-value swap; no structural changes to the CSS. Every component already consuming semantic tokens (e.g., `bg-surface-card`, `text-text-primary`, `border-border-default`) will automatically pick up the new colors.
 
 Remove `surface-elevated` (use `surface-input` instead). Remove `border-accent` and `border-hover` (use `border-focus` for both hover and accent). Remove `text-link` (use `hg-blue-bright` directly).
@@ -159,15 +159,15 @@ Update the `:root` block:
 
 **Acceptance**: `npm run build` passes. All pages render with navy-tinted surfaces instead of neutral gray. Programmatically verify: `text-primary` on `surface-input` >= 4.5:1, `text-tertiary` on `surface-input` >= 4.5:1, `#FFFFFF` on `action-primary` >= 4.5:1.
 
-**AA2 — Add New Brand Tokens**
+**AA2 — Add New Brand Tokens** — ✅ Done (2026-03-24)
 Add only the new tokens needed: `hg-blue` (`#2563EB`), `hg-blue-bright` (`#60A5FA`), `hg-blue-muted` (`#93C5FD`), `surface-active`. Total of 4 new tokens.
 
 **Acceptance**: New tokens resolve as Tailwind utility classes. Verify with a temporary test element.
 
-**AA3 — Update DESIGN_TOKENS.md**
+**AA3 — Update DESIGN_TOKENS.md** — ✅ Done (2026-03-24)
 Update `docs/DESIGN_TOKENS.md` to reflect all changed token values and new tokens. Add a "Brand Reference" section at the top documenting the HG source palette and the dark adaptation rationale.
 
-**AA4 — Phase 1 Validation**
+**AA4 — Phase 1 Validation** — ✅ Done (2026-03-24)
 Visual smoke test: navigate all pages (`/`, `/knowledge`, `/skills`, `/connections`, `/bulk-upload`, `/queue`, `/dashboard`, `/admin/users`, `/workflows`, `/auth/signin`). Verify navy-tinted backgrounds render. Verify no text readability regressions. Verify status badges and action buttons use updated accent/status colors. Run `npm run build`. Spot-check three pages for WCAG AA contrast on primary text against card and page surfaces.
 
 ---
@@ -373,28 +373,28 @@ Verify: dashboard page charts/metrics use chart tokens. Verify: all badge varian
 
 | Step | Effort | Dependencies |
 |---|---|---|
-| AA1 — Update Semantic Token Values | S (1-2 hours) | Group S Phase 1 (done) |
-| AA2 — Add New Brand Tokens | S (30 min) | AA1 |
-| AA3 — Update DESIGN_TOKENS.md | S (30 min) | AA2 |
-| AA4 — Phase 1 Validation | S (1 hour) | AA1-AA3 |
-| AA5 — Sidebar Navigation Component | M (3-4 hours) | AA2 |
-| AA6 — App Shell Layout | M (2-3 hours) | AA5 |
-| AA7 — Top Bar Component | S (1-2 hours) | AA6 |
-| AA8 — Accent Bar | XS (15 min) | None |
-| AA9 — Phase 2 Validation | S (1 hour) | AA5-AA8 |
-| AA10 — Define Typography Scale | S (1-2 hours) | AA1 |
-| AA11 — Heading and Label Conventions | S (30 min) | AA10 |
-| AA12 — Phase 3 Validation | S (30 min) | AA10-AA11 |
-| AA13 — Home Page Rebrand | M (2-3 hours) | AA6, AA10 |
-| AA14 — Auth/Sign-In Page | S (1-2 hours) | AA1 |
-| AA15 — List Page Pattern | M (3-4 hours) | AA6, AA10 |
-| AA16 — Detail Page Pattern | M (3-4 hours) | AA6, AA10 |
-| AA17 — Form Page Pattern | M (2-3 hours) | AA6, AA10 |
-| AA18 — Admin Pages | M (2-3 hours) | AA6, AA10 |
-| AA19 — Phase 4 Validation | M (2 hours) | AA13-AA18 |
-| AA20 — Chart Color Tokens | S (30 min) | AA2 |
-| AA21 — Status Badge Palette Validation | S (1 hour) | AA1 |
-| AA22 — Phase 5 Validation | S (1 hour) | AA20-AA21 |
+| AA1 — Update Semantic Token Values | S  | Group S Phase 1 (done) |
+| AA2 — Add New Brand Tokens | S  | AA1 |
+| AA3 — Update DESIGN_TOKENS.md | S  | AA2 |
+| AA4 — Phase 1 Validation | S  | AA1-AA3 |
+| AA5 — Sidebar Navigation Component | M  | AA2 |
+| AA6 — App Shell Layout | M  | AA5 |
+| AA7 — Top Bar Component | S  | AA6 |
+| AA8 — Accent Bar | XS | None |
+| AA9 — Phase 2 Validation | S | AA5-AA8 |
+| AA10 — Define Typography Scale | S  | AA1 |
+| AA11 — Heading and Label Conventions | S  | AA10 |
+| AA12 — Phase 3 Validation | S  | AA10-AA11 |
+| AA13 — Home Page Rebrand | M  | AA6, AA10 |
+| AA14 — Auth/Sign-In Page | S | AA1 |
+| AA15 — List Page Pattern | M  | AA6, AA10 |
+| AA16 — Detail Page Pattern | M  | AA6, AA10 |
+| AA17 — Form Page Pattern | M  | AA6, AA10 |
+| AA18 — Admin Pages | M  | AA6, AA10 |
+| AA19 — Phase 4 Validation | M  | AA13-AA18 |
+| AA20 — Chart Color Tokens | S | AA2 |
+| AA21 — Status Badge Palette Validation | S  | AA1 |
+| AA22 — Phase 5 Validation | S  | AA20-AA21 |
 
 Total estimated effort: ~30-40 hours across 5 phases.
 

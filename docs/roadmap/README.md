@@ -43,6 +43,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Y | Production Redis Configuration | Done | [group-y.md](./group-y.md) |
 | Z | CI/CD Pipeline | Planned | [group-z.md](./group-z.md) |
 | Content Workflow | Pillar Research Orchestration | CW1–CW10 Done, CW11–CW19 Pending, CW20–CW21 Done | [group-content-workflow.md](./group-content-workflow.md) |
+| AA | HG Brand Theming (Dark) | Phase 1 Done | [group-aa.md](./group-aa.md) |
 
 [Cross-Cutting Notes: Groups J and K](./cross-cutting.md)
 

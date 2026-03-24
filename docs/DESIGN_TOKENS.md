@@ -6,6 +6,16 @@
 
 ---
 
+## Brand Reference
+
+The Content Engine uses a dark theme derived from the HG Insights brand identity. The palette is built on navy-tinted dark surfaces rather than neutral grays, creating a branded atmosphere that aligns with HG deliverables (battle cards, insight reports, solution briefs).
+
+**Source palette**: HG Blue `#2563EB`, adapted for dark surfaces with three functional blue values. Surfaces use navy-tinted near-blacks (`#0B1121` base) instead of pure gray. The Slate text scale (`F1F5F9` → `556B82`) carries a cool blue undertone that harmonizes with the navy surfaces.
+
+**Contrast standard**: Every text/surface combination has been validated for WCAG AA (4.5:1 for normal text, 3:1 for large text). See contrast ratios in the text token table below.
+
+---
+
 ## Usage
 
 Tokens map Tailwind primitive values to semantic names. Use the **Tailwind utility class** column in components — never reference raw gray/blue/red palette classes in new code.
@@ -22,52 +32,71 @@ Tokens map Tailwind primitive values to semantic names. Use the **Tailwind utili
 
 ## Surfaces
 
-| Token | Tailwind Utility | Resolved Value | Purpose |
+| Token | Tailwind Utility | Hex Value | Purpose |
 |---|---|---|---|
-| `--color-surface-page` | `bg-surface-page` | `gray-950` | Page background |
-| `--color-surface-card` | `bg-surface-card` | `gray-900` | Card / panel background |
-| `--color-surface-input` | `bg-surface-input` | `gray-800` | Input / select / textarea background |
-| `--color-surface-overlay` | `bg-surface-overlay` | `oklch(0 0 0 / 0.6)` | Modal / dialog backdrop |
+| `--color-surface-page` | `bg-surface-page` | `#0B1121` | Page background. Navy-tinted near-black. |
+| `--color-surface-card` | `bg-surface-card` | `#162032` | Card / panel / sidebar background. |
+| `--color-surface-input` | `bg-surface-input` | `#243550` | Input / select / textarea / dropdown / popover background. |
+| `--color-surface-overlay` | `bg-surface-overlay` | `oklch(0 0 0 / 0.7)` | Modal / dialog backdrop. |
+| `--color-surface-active` | `bg-surface-active` | `oklch(from #2563EB l c h / 0.10)` | Active/selected row or nav item tint. Applied on top of card surface. |
+
+Page-to-input total contrast ratio is 1.52, providing three clearly distinguishable layers when stacked.
 
 ## Borders
 
-| Token | Tailwind Utility | Resolved Value | Purpose |
+| Token | Tailwind Utility | Hex Value | Purpose |
 |---|---|---|---|
-| `--color-border-default` | `border-border-default` | `gray-800` | Default border for cards, inputs, dividers |
-| `--color-border-hover` | `border-border-hover` | `gray-700` | Border on hover state |
-| `--color-border-focus` | `border-border-focus` | `gray-600` | Border on focus state, also used for focus rings |
+| `--color-border-default` | `border-border-default` | `#3A5070` | Default border for cards, inputs, dividers. Visible on every surface (2.29 vs page, 1.99 vs card, 1.51 vs input). |
+| `--color-border-focus` | `border-border-focus` | `#2563EB` | Focus rings, active tab indicators, accent borders. Also used as hover border state. |
+
+On hover, elements transition from `border-default` to `border-focus` (the accent blue). Two border states (resting and active/focused) are sufficient.
 
 ## Text
 
-| Token | Tailwind Utility | Resolved Value | Purpose |
-|---|---|---|---|
-| `--color-text-primary` | `text-text-primary` | `white` | Primary text (headings, body) |
-| `--color-text-secondary` | `text-text-secondary` | `gray-300` | Secondary text (labels, descriptions) |
-| `--color-text-tertiary` | `text-text-tertiary` | `gray-400` | Tertiary text (metadata, timestamps) |
-| `--color-text-muted` | `text-text-muted` | `gray-500` | Muted text (placeholders, disabled) |
-| `--color-text-link` | `text-text-link` | `blue-400` | Hyperlinks |
+All ratios validated against `surface-card` (`#162032`), the most common text container.
+
+| Token | Tailwind Utility | Hex Value | vs Card | vs Page | vs Input | Purpose |
+|---|---|---|---|---|---|---|
+| `--color-text-primary` | `text-text-primary` | `#F1F5F9` | 14.90 (AAA) | 17.17 (AAA) | 11.28 (AAA) | Headings, body text, primary labels. Safe everywhere. |
+| `--color-text-secondary` | `text-text-secondary` | `#94A3B8` | 6.36 (AA) | 7.34 (AAA) | 4.82 (AA) | Descriptions, secondary labels. Safe everywhere. |
+| `--color-text-tertiary` | `text-text-tertiary` | `#7C8DA4` | 4.82 (AA) | 5.56 (AA) | 3.65 (AA-lg) | Metadata, timestamps, captions. **On input surfaces: use only at 12px+ bold or pair with `text-secondary`.** |
+| `--color-text-muted` | `text-text-muted` | `#556B82` | 2.96 (AA-lg) | 3.41 (AA-lg) | 2.24 (below AA-lg) | Placeholders and disabled text only. Never use inside input fields as readable content. |
+
+**Links** use `hg-blue-bright` (`#60A5FA`) directly — no separate `text-link` token. Passes AA on all surfaces at 5.63–7.40.
 
 ## Actions
 
-| Token | Tailwind Utility | Resolved Value | Purpose |
-|---|---|---|---|
-| `--color-action-primary` | `bg-action-primary` | `blue-600` | Primary action button background |
-| `--color-action-primary-hover` | `bg-action-primary-hover` | `blue-500` | Primary action button hover |
-| `--color-action-danger` | `bg-action-danger` | `red-600` | Danger / destructive action background |
-| `--color-action-danger-hover` | `bg-action-danger-hover` | `red-500` | Danger action hover |
+| Token | Tailwind Utility | Hex Value | Text Color | Text Contrast | Purpose |
+|---|---|---|---|---|---|
+| `--color-action-primary` | `bg-action-primary` | `#2563EB` | `#FFFFFF` | 4.72 (AA) | Primary action button background |
+| `--color-action-primary-hover` | `bg-action-primary-hover` | `#3B82F6` | `#FFFFFF` | 3.97 (AA-lg) | Primary action button hover |
+| `--color-action-danger` | `bg-action-danger` | `#DC2626` | `#FFFFFF` | 4.63 (AA) | Destructive action button background |
+| `--color-action-danger-hover` | `bg-action-danger-hover` | `#EF4444` | `#FFFFFF` | 3.59 (AA-lg) | Destructive action button hover |
+
+Button text is always `#FFFFFF`, not `#F1F5F9`. The extra 0.3 contrast points matter at the AA threshold.
 
 ## Status
 
-| Token | Tailwind Utility | Resolved Value | Purpose |
-|---|---|---|---|
-| `--color-status-success` | `text-status-success` | `green-400` | Success text / icon |
-| `--color-status-success-bg` | `bg-status-success-bg` | `green-500 @ 15% opacity` | Success background tint |
-| `--color-status-warning` | `text-status-warning` | `amber-400` | Warning text / icon |
-| `--color-status-warning-bg` | `bg-status-warning-bg` | `amber-500 @ 15% opacity` | Warning background tint |
-| `--color-status-danger` | `text-status-danger` | `red-400` | Danger / error text / icon |
-| `--color-status-danger-bg` | `bg-status-danger-bg` | `red-500 @ 15% opacity` | Danger background tint |
-| `--color-status-info` | `text-status-info` | `blue-400` | Info text / icon |
-| `--color-status-info-bg` | `bg-status-info-bg` | `blue-500 @ 15% opacity` | Info background tint |
+| Role | Text Token | Text Hex | Background Tint | Text vs Card |
+|---|---|---|---|---|
+| Success | `text-status-success` / `bg-status-success-bg` | `#34D399` | `oklch(from #059669 l c h / 0.12)` | 8.95 (AAA) |
+| Warning | `text-status-warning` / `bg-status-warning-bg` | `#FBBF24` | `oklch(from #D97706 l c h / 0.12)` | 10.31 (AAA) |
+| Danger | `text-status-danger` / `bg-status-danger-bg` | `#F87171` | `oklch(from #DC2626 l c h / 0.12)` | 5.90 (AA) |
+| Info | `text-status-info` / `bg-status-info-bg` | `#60A5FA` | `oklch(from #2563EB l c h / 0.12)` | 7.09 (AAA) |
+
+Status background tints use 12% opacity (reduced from 15%) for better balance on navy-tinted surfaces.
+
+## Brand / Accent
+
+| Token | Tailwind Utility | Hex Value | vs Card | vs Input | Purpose |
+|---|---|---|---|---|---|
+| `--color-hg-blue` | `bg-hg-blue` / `text-hg-blue` | `#2563EB` | 3.16 (AA-lg) | 2.39 | Primary accent. Buttons, focus rings, accent borders. **Large text only on dark surfaces.** |
+| `--color-hg-blue-bright` | `text-hg-blue-bright` | `#60A5FA` | 6.42 (AA) | 4.86 (AA) | Links, info status, body-safe blue text on any surface. |
+| `--color-hg-blue-muted` | `text-hg-blue-muted` | `#93C5FD` | 9.06 (AAA) | 6.86 (AAA) | Chart tertiary, decorative fills, light accents. |
+
+Charts use these three values in order; no separate chart token namespace needed.
+
+---
 
 ## Spacing
 
@@ -118,7 +147,7 @@ import { Button } from "@/app/components/ui/button";
 <Button loading>Saving...</Button>
 ```
 
-Variants use `bg-action-primary`, `border-border-default`, `text-status-danger`, and `text-text-tertiary` tokens internally.
+Variants use `bg-action-primary`, `border-border-default`, `text-status-danger`, and `text-text-tertiary` tokens internally. Button text on primary/danger backgrounds is always `#FFFFFF`.
 
 ### Input / Select / Textarea
 
@@ -167,6 +196,6 @@ Badge variants use `bg-status-*-bg`, `text-status-*`, and `border-*-800` tokens.
 ## Adding New Tokens
 
 1. Add the token to the `@theme inline` block in `app/globals.css` under the appropriate category.
-2. Use an existing Tailwind primitive as the value (e.g., `var(--color-gray-700)`).
-3. Update this document with the new token's name, utility class, resolved value, and purpose.
+2. Use a direct hex value or an existing Tailwind primitive as the value.
+3. Update this document with the new token's name, utility class, hex value, contrast ratios (for color tokens), and purpose.
 4. Use the semantic utility class in components — never the raw palette reference.

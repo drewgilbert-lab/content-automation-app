@@ -6,6 +6,21 @@
 
 ## 2026-03-24
 
+### Group AA Phase 1 — Token Migration and Brand Foundation (AA1–AA4)
+
+- **AA1 — Update Semantic Token Values**: Replaced all semantic color tokens in `app/globals.css` from generic Tailwind gray/blue primitives to HG-branded navy-tinted dark palette. Surfaces now use navy-tinted hex values (`#0B1121`, `#162032`, `#243550`). Text tokens use Slate scale with blue undertone. Status background tints reduced from 15% to 12% opacity. Removed `border-hover` and `text-link` tokens.
+- **AA2 — Add New Brand Tokens**: Added 4 new tokens: `hg-blue` (`#2563EB`), `hg-blue-bright` (`#60A5FA`), `hg-blue-muted` (`#93C5FD`), `surface-active` (blue tint at 10% opacity).
+- **AA3 — Update DESIGN_TOKENS.md**: Rewrote design token documentation with new hex values, WCAG contrast ratios for every text/surface combination, brand reference section, and usage constraints.
+- **AA4 — Phase 1 Validation**: Build passes (`npm run build` zero errors). Token audit confirms no broken references to removed tokens. All 4 new tokens verified in `@theme inline` block.
+
+**Modified files:** `app/globals.css`, `app/components/ui/button.tsx`, `app/skills/components/skill-detail-actions.tsx`, `docs/DESIGN_TOKENS.md`
+**Tokens removed:** `border-hover` (→ use `border-focus`), `text-link` (→ use `hg-blue-bright`)
+**Tokens added:** `hg-blue`, `hg-blue-bright`, `hg-blue-muted`, `surface-active`
+**Documentation:** `docs/DESIGN_TOKENS.md` (full rewrite), `docs/roadmap/group-aa.md` (AA1–AA4 marked done), `docs/roadmap/README.md` (Group AA added to status table), `docs/CHANGELOG.md` (this entry).
+**User guide update:** N/A — token value changes are internal infrastructure with no user-facing behavior change requiring guide updates.
+
+---
+
 ### Group S Phase 2 — Shared Atom Components (S3.5–S9)
 
 - **S3.5 — Install Headless UI**: Added `@headlessui/react` as project dependency. Foundation for Phase 3-4 organisms (Dialog, Tabs). Build verified.

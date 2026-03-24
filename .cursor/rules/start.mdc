@@ -167,7 +167,7 @@ docs/
   EXTERNAL_API.md         — Developer guide for /api/v1/
   DESIGN_TOKENS.md        — Semantic token reference and component usage examples (Tailwind utilities; Group S)
   COMPONENTS.md           — Shared component catalog (planned, Group S)
-  UI_STANDARDS.md         — UI coding standards (planned, Group S)
+  UI_STANDARDS.md         — UI coding standards: typography scale, heading hierarchy, label conventions (Group AA Phase 3)
   user-guides/            — End-user guides per feature
 mcp-server/
   src/index.ts              — MCP server entry point, dual transport (stdio + HTTP)

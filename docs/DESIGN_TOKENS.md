@@ -131,6 +131,27 @@ Charts use these three values in order; no separate chart token namespace needed
 | `--font-sans` | `font-sans` | Geist Sans (via `--font-geist-sans`) | Body and UI text |
 | `--font-mono` | `font-mono` | Geist Mono (via `--font-geist-mono`) | Code and monospace text |
 
+## Typography Scale
+
+Semantic type scale tokens defined in `@theme inline`. Each token generates a Tailwind utility class that applies font-size, line-height, and font-weight together.
+
+| Token | Tailwind Utility | Size | Weight | Line Height | Usage |
+|---|---|---|---|---|---|
+| `--text-display` | `text-display` | 30px | 800 (extrabold) | 1.2 | Primary page title; one per page |
+| `--text-heading` | `text-heading` | 20px | 700 (bold) | 1.3 | Major content sections |
+| `--text-subheading` | `text-subheading` | 16px | 600 (semibold) | 1.4 | Card headers, sub-sections, dialog titles |
+| `--text-body` | `text-body` | 14px | 400 (normal) | 1.6 | Default paragraph and body copy |
+| `--text-body-sm` | `text-body-sm` | 13px | 400 (normal) | 1.55 | Table cells, compact lists, sidebar content |
+| `--text-caption` | `text-caption` | 12px | 500 (medium) | 1.4 | Metadata, timestamps, form labels, table headers |
+| `--text-micro` | `text-micro` | 11px | 500 (medium) | 1.3 | Fine print, footnotes, smallest readable UI text |
+| `--text-label` | `text-label` | 11px | 700 (bold) | 1.0 | Uppercase section labels, nav group headers |
+
+Using `text-display` applies all three properties (size, line-height, weight). Separate `font-*` or `leading-*` classes are not needed. Text color is always applied separately via `text-text-primary`, `text-text-secondary`, etc.
+
+`text-body` (14px) overlaps with Tailwind's built-in `text-sm`, and `text-caption` (12px) matches `text-xs`. Prefer the semantic tokens for new code — they include the correct weight and line-height for their role.
+
+For heading hierarchy and label conventions, see [UI_STANDARDS.md](./UI_STANDARDS.md).
+
 ---
 
 ## Component Usage Examples

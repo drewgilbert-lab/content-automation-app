@@ -241,9 +241,9 @@ Verify: sidebar renders with correct nav groups and items. Verify: active state 
 
 ---
 
-## Phase 3 — Typography Scale and Content Styling
+## Phase 3 — Typography Scale and Content Styling — **Done**
 
-**AA10 — Define Typography Scale**
+**AA10 — Define Typography Scale** — ✅ Done (2026-03-24)
 Establish a formal type scale in `globals.css` tokens. The current app uses ad-hoc `text-sm`, `text-xs`, `text-3xl` classes without a system. Define a scale that aligns with HG brand typography proportions:
 
 | Token | Tailwind Utility | Size | Weight | Line Height | Usage |
@@ -259,7 +259,7 @@ Establish a formal type scale in `globals.css` tokens. The current app uses ad-h
 
 These are semantic aliases, not replacements for Tailwind's type scale. They exist so builders can use `text-display` instead of remembering `text-[30px] font-extrabold leading-[1.2]`.
 
-**AA11 — Heading and Label Styling Conventions**
+**AA11 — Heading and Label Styling Conventions** — ✅ Done (2026-03-24)
 Define how headings and labels render across the app:
 
 - Page title: `text-display text-text-primary` (only one per page, rendered by `PageLayout`)
@@ -271,7 +271,7 @@ Define how headings and labels render across the app:
 
 Document these in `docs/UI_STANDARDS.md` (created by Group S Phase 5, or created here if S20 hasn't shipped yet).
 
-**AA12 — Phase 3 Validation**
+**AA12 — Phase 3 Validation** — ✅ Done (2026-03-24)
 Verify: type scale tokens resolve as Tailwind utilities. Spot-check three pages to confirm heading hierarchy is visually clear (display > heading > subheading > body). Verify: no type scale token conflicts with existing Tailwind classes.
 
 ---

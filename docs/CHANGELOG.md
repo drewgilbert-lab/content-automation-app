@@ -6,6 +6,19 @@
 
 ## 2026-03-24
 
+### Group AA Phase 3 — Typography Scale and Content Styling (AA10–AA12)
+
+- **AA10 — Define Typography Scale**: Added 8 semantic typography tokens to `app/globals.css` via `@theme inline`: `text-display` (30px/800/1.2), `text-heading` (20px/700/1.3), `text-subheading` (16px/600/1.4), `text-body` (14px/400/1.6), `text-body-sm` (13px/400/1.55), `text-caption` (12px/500/1.4), `text-micro` (11px/500/1.3), `text-label` (11px/700/1.0). Each token encodes font-size, line-height, and font-weight via Tailwind v4's `--text-*--line-height` and `--text-*--font-weight` companion tokens.
+- **AA11 — Heading and Label Styling Conventions**: Created `docs/UI_STANDARDS.md` with typography scale reference, heading hierarchy (8 levels from display to label), label conventions (form labels, help text, error text, table headers, badges), usage rules (semantic tokens first, one display per page, color is separate, tracking is separate), and migration mapping from ad-hoc patterns to semantic tokens.
+- **AA12 — Phase 3 Validation**: `npm run build` passes. All 8 typography tokens verified resolving as Tailwind utility classes with correct font-size, line-height, and font-weight values. No naming conflicts with built-in Tailwind text utilities.
+
+**Modified files**: `app/globals.css`
+**New files**: `docs/UI_STANDARDS.md`
+**Documentation**: `docs/DESIGN_TOKENS.md` (typography scale section), `docs/UI_STANDARDS.md` (new), `docs/roadmap/group-aa.md` (AA10–AA12 marked done), `docs/roadmap/README.md` (AA status updated), `docs/CHANGELOG.md` (this entry).
+**User guide update**: N/A — typography tokens and coding standards are internal infrastructure with no user-facing behavior change.
+
+---
+
 ### Group AA Phase 2 — Navigation Shell and App Chrome (AA5–AA9)
 
 - **AA5 — Sidebar Navigation Component**: Created `app/components/layout/sidebar-nav.tsx` with fixed left sidebar, 4 nav groups (Core, Operations, Intelligence, Admin), Lucide icons, active state highlighting via `usePathname()`, admin-only group conditional rendering via `useRole()`, "Content Engine by HG Insights" wordmark, and user role indicator.

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getSubmission } from "@/lib/submissions";
 import { getKnowledgeObject } from "@/lib/knowledge";
@@ -26,21 +25,14 @@ export default async function SubmissionReviewPage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <Link
-          href="/queue"
-          className="mb-8 inline-block text-sm text-gray-400 hover:text-gray-300 transition-colors"
-        >
-          &larr; Back to Queue
-        </Link>
-
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <SubmissionReview
           submission={submission}
           currentObject={currentObject}
           currentSkill={currentSkill}
         />
       </div>
-    </main>
+    </div>
   );
 }

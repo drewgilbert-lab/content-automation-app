@@ -172,9 +172,9 @@ Visual smoke test: navigate all pages (`/`, `/knowledge`, `/skills`, `/connectio
 
 ---
 
-## Phase 2 — Navigation Shell and App Chrome
+## Phase 2 — Navigation Shell and App Chrome — **Done**
 
-**AA5 — Sidebar Navigation Component**
+**AA5 — Sidebar Navigation Component** — ✅ Done (2026-03-24)
 Create `app/components/layout/sidebar-nav.tsx`. The Content Engine currently has no persistent navigation; each page has its own back-link and the home page is a card grid. As the app grows, a sidebar is necessary.
 
 ```tsx
@@ -207,7 +207,7 @@ Nav groups and items:
 
 Admin group only renders for users with admin role.
 
-**AA6 — App Shell Layout**
+**AA6 — App Shell Layout** — ✅ Done (2026-03-24)
 Create `app/components/layout/app-shell.tsx`. Wraps the sidebar and main content area:
 
 ```tsx
@@ -220,7 +220,7 @@ Renders: `<div className="flex min-h-screen">` containing the `SidebarNav` (fixe
 
 Integrate into `app/layout.tsx` so all authenticated routes get the shell. The `/auth/signin` route renders without the shell (full-page layout).
 
-**AA7 — Top Bar Component**
+**AA7 — Top Bar Component** — ✅ Done (2026-03-24)
 Create `app/components/layout/top-bar.tsx`. A slim top bar inside the main content area (not the sidebar) that provides:
 
 | Element | Style |
@@ -231,12 +231,12 @@ Create `app/components/layout/top-bar.tsx`. A slim top bar inside the main conte
 
 The top bar replaces the per-page header boilerplate currently duplicated in every page. Pages still define their own title and actions (via `PageLayout` from Group S), but the top bar handles global chrome.
 
-**AA8 — Accent Bar**
+**AA8 — Accent Bar** — ✅ Done (2026-03-24)
 Add a `4px` accent bar at the very top of the viewport, full-width, `bg-hg-blue`. This mirrors the accent bar in every HG branded deliverable (one-pagers, insight reports, battle cards). It's a subtle brand signal that ties the app to the rest of the HG visual ecosystem.
 
 Implementation: a `<div className="h-1 bg-hg-blue fixed top-0 left-0 right-0 z-50" />` in the root layout.
 
-**AA9 — Phase 2 Validation**
+**AA9 — Phase 2 Validation** — ✅ Done (2026-03-24)
 Verify: sidebar renders with correct nav groups and items. Verify: active state highlights current route. Verify: admin nav group is hidden for non-admin users. Verify: top bar breadcrumb updates on navigation. Verify: accent bar is visible at the top of every page. Verify: `npm run build` passes. Verify: sidebar collapses gracefully on narrow viewports (responsive behavior; may defer to Phase 4).
 
 ---

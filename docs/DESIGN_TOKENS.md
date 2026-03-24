@@ -110,7 +110,9 @@ Charts use these three values in order; no separate chart token namespace needed
 | Token | Tailwind Utility | Resolved Value | Purpose |
 |---|---|---|---|
 | `--size-content-max` | `max-w-content-max` | `64rem` (1024px) | Max width for page content |
-| `--size-sidebar` | `w-sidebar` | `20rem` (320px) | Sidebar width on detail pages |
+| `--size-sidebar` | `w-sidebar` / `ml-sidebar` | `20rem` (320px) | Sidebar width; also used as main content left margin |
+
+**Navigation shell usage**: The `--size-sidebar` token is actively consumed by the navigation shell layout. `app/components/layout/sidebar-nav.tsx` uses `w-sidebar` for the fixed sidebar width, and `app/components/layout/app-shell.tsx` uses `ml-sidebar` on the main content area to offset it from the sidebar.
 
 ## Radii
 

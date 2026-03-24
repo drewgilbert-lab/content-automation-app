@@ -24,27 +24,27 @@ export default async function SignInPage({
     : null;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4 text-white">
+    <div className="flex min-h-screen items-center justify-center bg-surface-page px-4 text-text-primary">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold tracking-tight">Content Engine</h1>
-          <p className="mt-2 text-sm text-gray-400">Sign in to continue</p>
+          <p className="mt-2 text-sm text-text-secondary">Sign in to continue</p>
         </div>
 
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+        <div className="rounded-xl border border-border-default bg-surface-card p-6">
           {errorMessage && (
-            <div className="mb-4 rounded-lg border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-300">
+            <div className="mb-4 rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger">
               {errorMessage}
             </div>
           )}
 
           {allowedDomains.length > 0 && (
-            <p className="mb-4 text-center text-sm text-gray-400">
+            <p className="mb-4 text-center text-sm text-text-secondary">
               Sign in with your{" "}
               {allowedDomains.map((d, i) => (
                 <span key={d}>
                   {i > 0 && (i === allowedDomains.length - 1 ? " or " : ", ")}
-                  <span className="font-medium text-gray-300">@{d}</span>
+                  <span className="font-medium text-text-secondary">@{d}</span>
                 </span>
               ))}{" "}
               Google account

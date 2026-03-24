@@ -27,18 +27,11 @@ export default async function SkillDetailPage({
   if (!skill) notFound();
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <Link
-          href="/skills"
-          className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-300"
-        >
-          &larr; Back to Skills Library
-        </Link>
-
-        <div className="mt-4 flex items-start justify-between gap-4">
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               {skill.name}
             </h1>
             <span
@@ -47,7 +40,7 @@ export default async function SkillDetailPage({
                   ? "bg-yellow-900/50 border border-yellow-700 text-yellow-300"
                   : skill.active
                     ? "bg-green-900/50 border border-green-800 text-green-400"
-                    : "bg-gray-800 border border-gray-700 text-gray-400"
+                    : "bg-surface-input border border-border-default text-text-secondary"
               }`}
             >
               {skill.deprecated
@@ -70,45 +63,45 @@ export default async function SkillDetailPage({
           </div>
         )}
 
-        <p className="mt-4 text-gray-400">{skill.description}</p>
+        <p className="mt-4 text-text-secondary">{skill.description}</p>
 
         <div className="mt-8 flex flex-col gap-8 lg:flex-row">
           {/* Main content */}
           <div className="lg:flex-1 min-w-0">
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6">
               <MarkdownRenderer content={skill.content} />
             </div>
 
             {skill.sourceKnowledgeObjects && skill.sourceKnowledgeObjects.length > 0 ? (
-              <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
-                <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+              <div className="mt-6 rounded-xl border border-border-default bg-surface-card p-6">
+                <h3 className="text-xs font-medium uppercase tracking-wider text-text-muted mb-4">
                   Linked Knowledge Objects
                 </h3>
                 <div className="space-y-4">
                   {skill.sourceKnowledgeObjects.map((link) => (
-                    <div key={link.id} className="rounded-lg border border-gray-800 bg-gray-950 p-4">
+                    <div key={link.id} className="rounded-lg border border-border-default bg-surface-page p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Link
                           href={`/knowledge/${link.id}`}
-                          className="text-sm font-medium text-blue-400 hover:text-blue-300"
+                          className="text-sm font-medium text-hg-blue-bright hover:text-text-primary"
                         >
                           {link.name || link.id}
                         </Link>
-                        <span className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+                        <span className="rounded bg-surface-input px-2 py-0.5 text-xs text-text-secondary">
                           {link.collection}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-400 italic">{link.integrationPrompt}</p>
+                      <p className="text-sm text-text-secondary italic">{link.integrationPrompt}</p>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="mt-6 rounded-xl border border-gray-800 bg-gray-900 p-6">
-                <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+              <div className="mt-6 rounded-xl border border-border-default bg-surface-card p-6">
+                <h3 className="text-xs font-medium uppercase tracking-wider text-text-muted mb-4">
                   Linked Knowledge Objects
                 </h3>
-                <p className="text-sm text-gray-500">No linked knowledge objects.</p>
+                <p className="text-sm text-text-muted">No linked knowledge objects.</p>
               </div>
             )}
 
@@ -119,22 +112,22 @@ export default async function SkillDetailPage({
 
           {/* Sidebar */}
           <div className="lg:w-80 space-y-6">
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-4">
               {/* Version */}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Version
                 </p>
-                <p className="mt-1 text-sm text-gray-300">v{skill.version}</p>
+                <p className="mt-1 text-sm text-text-secondary">v{skill.version}</p>
               </div>
 
               {/* Category */}
               {skill.category && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Category
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">
+                  <p className="mt-1 text-sm text-text-secondary">
                     {getCategoryLabel(skill.category)}
                   </p>
                 </div>
@@ -142,7 +135,7 @@ export default async function SkillDetailPage({
 
               {/* Content Types */}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Content Types
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5">
@@ -150,20 +143,20 @@ export default async function SkillDetailPage({
                     skill.contentType.map((ct) => (
                       <span
                         key={ct}
-                        className="rounded bg-blue-900/30 border border-blue-800/50 px-2 py-0.5 text-xs text-blue-400"
+                        className="rounded bg-blue-900/30 border border-blue-800/50 px-2 py-0.5 text-xs text-hg-blue-bright"
                       >
                         {getContentTypeLabel(ct)}
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-500">None</span>
+                    <span className="text-sm text-text-muted">None</span>
                   )}
                 </div>
               </div>
 
               {/* Tags */}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Tags
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5">
@@ -171,13 +164,13 @@ export default async function SkillDetailPage({
                     skill.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
+                        className="rounded bg-surface-input px-2 py-0.5 text-xs text-text-secondary"
                       >
                         {tag}
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-500">No tags</span>
+                    <span className="text-sm text-text-muted">No tags</span>
                   )}
                 </div>
               </div>
@@ -185,20 +178,20 @@ export default async function SkillDetailPage({
               {/* Author */}
               {skill.author && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Author
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">{skill.author}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{skill.author}</p>
                 </div>
               )}
 
               {/* Output Format */}
               {skill.outputFormat && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Output Format
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">
+                  <p className="mt-1 text-sm text-text-secondary">
                     {skill.outputFormat}
                   </p>
                 </div>
@@ -206,10 +199,10 @@ export default async function SkillDetailPage({
 
               {/* Usage Stats */}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Usage
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {skill.usageCount} generated content{" "}
                   {skill.usageCount === 1 ? "item" : "items"}
                 </p>
@@ -217,35 +210,35 @@ export default async function SkillDetailPage({
 
               {/* Timestamps */}
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Created
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {formatDate(skill.createdAt)}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Updated
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {formatDate(skill.updatedAt)}
                 </p>
               </div>
 
               {skill.updatedBy && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Last Edited By
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">{skill.updatedBy}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{skill.updatedBy}</p>
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

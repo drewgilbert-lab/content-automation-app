@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { getKnowledgeObject, getTypeLabel, getCompatibleRelationships, getReverseRelationships, getInboundReferences } from "@/lib/knowledge";
+import { getKnowledgeObject, getCompatibleRelationships, getReverseRelationships, getInboundReferences } from "@/lib/knowledge";
 import { TypeBadge } from "../components/type-badge";
 import { MarkdownRenderer } from "../components/markdown-renderer";
 import { DetailActions } from "../components/detail-actions";
@@ -35,18 +34,11 @@ export default async function KnowledgeDetailPage({
   const mergedCrossReferences = { ...obj.crossReferences, ...inboundRefs };
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <Link
-          href="/knowledge"
-          className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-300"
-        >
-          &larr; Back to Knowledge Base
-        </Link>
-
-        <div className="mt-4 flex items-start justify-between gap-4">
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               {obj.name}
             </h1>
             {obj.deprecated && (
@@ -68,7 +60,7 @@ export default async function KnowledgeDetailPage({
         <div className="mt-8 flex flex-col gap-8 lg:flex-row">
           {/* Main content */}
           <div className="lg:flex-1 min-w-0">
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6">
               <MarkdownRenderer content={obj.content} />
             </div>
           </div>
@@ -76,9 +68,9 @@ export default async function KnowledgeDetailPage({
           {/* Sidebar */}
           <div className="lg:w-80 space-y-6">
             {/* Metadata */}
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Type
                 </p>
                 <div className="mt-1">
@@ -88,19 +80,19 @@ export default async function KnowledgeDetailPage({
 
               {obj.subType && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Sub Type
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">{obj.subType}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{obj.subType}</p>
                 </div>
               )}
 
               {obj.revenueRange && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Revenue Range
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">
+                  <p className="mt-1 text-sm text-text-secondary">
                     {obj.revenueRange}
                   </p>
                 </div>
@@ -108,17 +100,17 @@ export default async function KnowledgeDetailPage({
 
               {obj.employeeRange && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Employee Range
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">
+                  <p className="mt-1 text-sm text-text-secondary">
                     {obj.employeeRange}
                   </p>
                 </div>
               )}
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Tags
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5">
@@ -126,50 +118,50 @@ export default async function KnowledgeDetailPage({
                     obj.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
+                        className="rounded bg-surface-input px-2 py-0.5 text-xs text-text-secondary"
                       >
                         {tag}
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-500">No tags</span>
+                    <span className="text-sm text-text-muted">No tags</span>
                   )}
                 </div>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Created
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {formatDate(obj.createdAt)}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Updated
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {formatDate(obj.updatedAt)}
                 </p>
               </div>
 
               {obj.createdBy && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Created By
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">{obj.createdBy}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{obj.createdBy}</p>
                 </div>
               )}
 
               {obj.updatedBy && (
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                  <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                     Last Edited By
                   </p>
-                  <p className="mt-1 text-sm text-gray-300">{obj.updatedBy}</p>
+                  <p className="mt-1 text-sm text-text-secondary">{obj.updatedBy}</p>
                 </div>
               )}
             </div>
@@ -185,6 +177,6 @@ export default async function KnowledgeDetailPage({
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

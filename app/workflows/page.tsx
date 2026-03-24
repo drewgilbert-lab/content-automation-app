@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type InputType = "use_case" | "topic_theme";
@@ -151,61 +150,58 @@ export default function WorkflowsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <Link href="/" className="text-sm text-gray-400 hover:text-white">
-          ← Back to home
-        </Link>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white">Workflows</h1>
-        <p className="mt-2 text-gray-400">
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <h1 className="text-3xl font-semibold tracking-tight text-text-primary">Workflows</h1>
+        <p className="mt-2 text-text-secondary">
           Minimal test harness for content workflow runs.
         </p>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h2 className="text-lg font-medium text-white">Create Run</h2>
+          <section className="rounded-xl border border-border-default bg-surface-card p-6">
+            <h2 className="text-lg font-medium text-text-primary">Create Run</h2>
             <form className="mt-4 space-y-4" onSubmit={handleCreateRun}>
-              <label className="block text-sm text-gray-300">
+              <label className="block text-sm text-text-secondary">
                 Input Type
                 <select
                   value={inputType}
                   onChange={(event) => setInputType(event.target.value as InputType)}
-                  className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white"
+                  className="mt-1 w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary"
                 >
                   <option value="use_case">use_case</option>
                   <option value="topic_theme">topic_theme</option>
                 </select>
               </label>
 
-              <label className="block text-sm text-gray-300">
+              <label className="block text-sm text-text-secondary">
                 Input Value
                 <input
                   value={inputValue}
                   onChange={(event) => setInputValue(event.target.value)}
                   placeholder="competitive positioning"
-                  className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white"
+                  className="mt-1 w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary"
                   required
                 />
               </label>
 
-              <label className="block text-sm text-gray-300">
+              <label className="block text-sm text-text-secondary">
                 Created By
                 <input
                   value={createdBy}
                   onChange={(event) => setCreatedBy(event.target.value)}
                   placeholder="drew"
-                  className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white"
+                  className="mt-1 w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary"
                   required
                 />
               </label>
 
-              <label className="block text-sm text-gray-300">
+              <label className="block text-sm text-text-secondary">
                 Idempotency Key (optional)
                 <input
                   value={idempotencyKey}
                   onChange={(event) => setIdempotencyKey(event.target.value)}
                   placeholder="workflow-run-001"
-                  className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white"
+                  className="mt-1 w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary"
                 />
               </label>
 
@@ -219,15 +215,15 @@ export default function WorkflowsPage() {
             </form>
           </section>
 
-          <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h2 className="text-lg font-medium text-white">Run Controls</h2>
-            <label className="mt-4 block text-sm text-gray-300">
+          <section className="rounded-xl border border-border-default bg-surface-card p-6">
+            <h2 className="text-lg font-medium text-text-primary">Run Controls</h2>
+            <label className="mt-4 block text-sm text-text-secondary">
               Run ID
               <input
                 value={runId}
                 onChange={(event) => setRunId(event.target.value)}
                 placeholder="paste run id"
-                className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white"
+                className="mt-1 w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary"
               />
             </label>
 
@@ -236,7 +232,7 @@ export default function WorkflowsPage() {
                 type="button"
                 disabled={!isValidRunId || busyAction === "start"}
                 onClick={handleStartRun}
-                className="rounded-lg bg-blue-500 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-lg bg-action-primary px-3 py-2 text-sm font-medium text-text-primary hover:bg-action-primary-hover disabled:opacity-50"
               >
                 {busyAction === "start" ? "Starting..." : "Start Run"}
               </button>
@@ -244,7 +240,7 @@ export default function WorkflowsPage() {
                 type="button"
                 disabled={!isValidRunId || busyAction === "status"}
                 onClick={handleRefreshStatus}
-                className="rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-text-primary disabled:opacity-50"
               >
                 {busyAction === "status" ? "Loading..." : "Refresh Status"}
               </button>
@@ -252,7 +248,7 @@ export default function WorkflowsPage() {
                 type="button"
                 disabled={!isValidRunId || busyAction === "detail"}
                 onClick={handleLoadRunDetail}
-                className="rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-text-primary disabled:opacity-50"
               >
                 {busyAction === "detail" ? "Loading..." : "Load Run Detail"}
               </button>
@@ -260,7 +256,7 @@ export default function WorkflowsPage() {
                 type="button"
                 disabled={!isValidRunId || busyAction === "package"}
                 onClick={handleLoadPackage}
-                className="rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-lg bg-gray-700 px-3 py-2 text-sm font-medium text-text-primary disabled:opacity-50"
               >
                 {busyAction === "package" ? "Loading..." : "Load Package"}
               </button>
@@ -281,20 +277,20 @@ export default function WorkflowsPage() {
         </div>
 
         <div className="mt-6 grid gap-6">
-          <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-400">
+          <section className="rounded-xl border border-border-default bg-surface-card p-6">
+            <h3 className="text-sm font-medium uppercase tracking-wider text-text-secondary">
               Create Response
             </h3>
-            <pre className="mt-3 overflow-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-200">
+            <pre className="mt-3 overflow-auto rounded-lg bg-surface-page p-4 text-xs text-text-primary">
               {json.create ? prettyJson(json.create) : "No create response yet."}
             </pre>
           </section>
 
-          <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-400">
+          <section className="rounded-xl border border-border-default bg-surface-card p-6">
+            <h3 className="text-sm font-medium uppercase tracking-wider text-text-secondary">
               Status Response
             </h3>
-            <pre className="mt-3 overflow-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-200">
+            <pre className="mt-3 overflow-auto rounded-lg bg-surface-page p-4 text-xs text-text-primary">
               {busyAction === "status"
                 ? "Loading..."
                 : json.status
@@ -303,11 +299,11 @@ export default function WorkflowsPage() {
             </pre>
           </section>
 
-          <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-400">
+          <section className="rounded-xl border border-border-default bg-surface-card p-6">
+            <h3 className="text-sm font-medium uppercase tracking-wider text-text-secondary">
               Run Detail Response
             </h3>
-            <pre className="mt-3 overflow-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-200">
+            <pre className="mt-3 overflow-auto rounded-lg bg-surface-page p-4 text-xs text-text-primary">
               {busyAction === "detail"
                 ? "Loading..."
                 : json.detail
@@ -316,11 +312,11 @@ export default function WorkflowsPage() {
             </pre>
           </section>
 
-          <section className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-            <h3 className="text-sm font-medium uppercase tracking-wider text-gray-400">
+          <section className="rounded-xl border border-border-default bg-surface-card p-6">
+            <h3 className="text-sm font-medium uppercase tracking-wider text-text-secondary">
               Package Response
             </h3>
-            <pre className="mt-3 overflow-auto rounded-lg bg-gray-950 p-4 text-xs text-gray-200">
+            <pre className="mt-3 overflow-auto rounded-lg bg-surface-page p-4 text-xs text-text-primary">
               {busyAction === "package"
                 ? "Loading..."
                 : json.package
@@ -330,6 +326,6 @@ export default function WorkflowsPage() {
           </section>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

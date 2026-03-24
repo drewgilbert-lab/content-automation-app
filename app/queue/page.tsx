@@ -1,6 +1,5 @@
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
 import { listSubmissions } from "@/lib/submissions";
 import { SubmissionList } from "./components/submission-list";
 
@@ -8,23 +7,15 @@ export default async function QueuePage() {
   const submissions = await listSubmissions();
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        {/* Back link */}
-        <Link
-          href="/"
-          className="mb-8 inline-block text-sm text-gray-400 hover:text-gray-300 transition-colors"
-        >
-          &larr; Back to Home
-        </Link>
-
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
         {/* Header */}
         <div className="mb-10 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               Review Queue
             </h1>
-            <p className="mt-2 text-gray-400">
+            <p className="mt-2 text-text-secondary">
               Review and approve pending knowledge base submissions.
             </p>
           </div>
@@ -33,6 +24,6 @@ export default async function QueuePage() {
         {/* Submission list */}
         <SubmissionList submissions={submissions} />
       </div>
-    </main>
+    </div>
   );
 }

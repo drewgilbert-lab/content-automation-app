@@ -721,6 +721,7 @@ resolvePermissions(user):
 | ADR-020 | Permission Set Architecture (Group W Phase 3) | Mar 2026 | Decided (implemented) |
 | ADR-021 | Semantic Design Tokens via Tailwind v4 @theme inline (Group S) | Mar 2026 | Decided (implemented) |
 | ADR-022 | Production Redis Configuration (Group Y) | Mar 2026 | Decided (implemented) |
+| ADR-023 | Lucide React Icon Library (Group AA Phase 2) | Mar 2026 | Decided (implemented) |
 
 ---
 
@@ -741,6 +742,18 @@ resolvePermissions(user):
 **Context:** Two production features depend on Upstash Redis: bulk upload session persistence (`lib/upload-session.ts`, ADR-017) and external API rate limiting (`lib/rate-limit.ts`, ADR-007). Both modules already include graceful fallback — in-memory sessions and no rate limiting, respectively — when Redis credentials are absent. In production on Vercel, the in-memory fallback is unreliable because serverless functions cold-start frequently, losing upload session state.
 **Decision:** Provision an Upstash Redis database (free tier, us-east-1 region to match Vercel deployment) and configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` as Vercel environment variables for Production and Preview environments. Added integration test suite at `__tests__/integration/redis-validation.test.ts` (14 tests) validating Redis round-trips, rate limiting enforcement, and graceful fallback behavior.
 **Consequences:** Upload sessions now survive serverless cold starts. Rate limiting is enforced on the external API. The free tier provides 10,000 commands/day; if exceeded, features degrade gracefully rather than crashing. Credentials are stored only in Vercel environment variables (encrypted at rest), never committed to the repository.
+
+---
+
+### ADR-023: Lucide React Icon Library
+
+**Status:** Decided (implemented)
+**Date:** March 2026
+**Context:** The app previously used Unicode glyphs for navigation icons. The navigation shell (Group AA Phase 2) required consistent, accessible icons across the sidebar, top bar, and page headers.
+**Decision:** Use `lucide-react` for all UI icons in the Content Engine.
+**Rationale:** Lucide is tree-shakeable (only imported icons are bundled), has a consistent 24x24 grid sizing, supports `className` and `size` props for easy Tailwind integration, and is the de facto standard for Next.js/React projects.
+**Alternative rejected:** Heroicons (larger bundle per icon), custom SVGs (maintenance burden).
+**Implications:** All new icon usage should import from `lucide-react`. Existing Unicode glyphs in pages outside the navigation shell can be migrated incrementally.
 
 ---
 

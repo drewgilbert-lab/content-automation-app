@@ -108,7 +108,7 @@ app/
   skills/components/      — SkillList, SkillForm, SkillDetailActions
   components/             — RoleProvider, RoleToggle, SessionProvider, UserMenu
   components/ui/          — Button, Input, Select, Textarea, FormField, Badge (Phase 2 done); LoadingSpinner, PageSkeleton, ErrorState, TagEditor, MarkdownRenderer, VisualDiff, FilterableList, ConfirmDialog planned (Phase 3-4); prefer semantic tokens + cn()
-  components/layout/      — PageLayout (S2+ per roadmap)
+  components/layout/      — SidebarNav (AA5), AppShell (AA6), TopBar (AA7); PageLayout planned (S10+)
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
 lib/
@@ -193,6 +193,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | J | J1–J12 Done; J13–J22+ pending |
 | Content Workflow | CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | S | Phase 1-2 done (S1–S9); Phase 3+ pending |
+| AA | Phase 1-2 Done (AA1–AA9); Phase 3–5 pending |
 | N, O, P, Q, R, T, U, V, X, Z | Planned |
 
 Authoritative grid: `docs/roadmap/README.md`.
@@ -219,6 +220,7 @@ Authoritative grid: `docs/roadmap/README.md`.
 | Content Workflow (Pillar Research) | Partial — CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | Content Narratives | Planned (Group R) |
 | Design System Foundation | Phase 1-2 Done (Group S) |
+| HG Brand Theming | Phase 1-2 Done (Group AA) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |

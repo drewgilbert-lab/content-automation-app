@@ -84,7 +84,7 @@ async function parseErrorMessage(res: Response): Promise<string> {
 function Spinner({ className = "h-8 w-8" }: { className?: string }) {
   return (
     <svg
-      className={`animate-spin text-gray-400 ${className}`}
+      className={`animate-spin text-text-secondary ${className}`}
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
@@ -210,88 +210,70 @@ export default function EditRolePage() {
 
   if (roleLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
+      <div className="flex min-h-[50vh] items-center justify-center text-text-primary">
         <div className="flex flex-col items-center gap-3">
           <Spinner className="h-10 w-10" />
-          <p className="text-sm text-gray-400">Checking access…</p>
+          <p className="text-sm text-text-secondary">Checking access…</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-gray-950 px-6 py-16 text-white">
-        <div className="mx-auto max-w-lg rounded-xl border border-red-900/40 bg-red-950/20 px-6 py-8">
-          <h1 className="text-xl font-semibold text-red-300">Access denied</h1>
-          <p className="mt-2 text-sm text-gray-400">
+      <div className="px-6 py-10 text-text-primary">
+        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+          <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-          >
-            Back to home
-          </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (fetchLoading) {
     return (
-      <main className="min-h-screen bg-gray-950 text-white">
-        <div className="mx-auto max-w-3xl px-6 py-16">
-          <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900/50 py-20">
+      <div className="text-text-primary">
+        <div className="mx-auto max-w-3xl px-6 py-10">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
             <Spinner className="h-10 w-10" />
-            <p className="mt-4 text-sm text-gray-400">
+            <p className="mt-4 text-sm text-text-secondary">
               Loading permission set…
             </p>
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (fetchError || !record) {
     return (
-      <main className="min-h-screen bg-gray-950 text-white">
-        <div className="mx-auto max-w-3xl px-6 py-16">
-          <Link
-            href="/admin/roles"
-            className="text-sm text-gray-400 transition-colors hover:text-white"
-          >
-            ← Permission Sets
-          </Link>
-          <div className="mt-6 rounded-lg border border-red-900/50 bg-red-950/20 px-4 py-3 text-sm text-red-300">
+      <div className="text-text-primary">
+        <div className="mx-auto max-w-3xl px-6 py-10">
+          <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger">
             {fetchError || "Permission set not found."}
           </div>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-3xl px-6 py-16">
+    <div className="text-text-primary">
+      <div className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
-          <Link
-            href="/admin/roles"
-            className="text-sm text-gray-400 transition-colors hover:text-white"
-          >
-            ← Permission Sets
-          </Link>
-          <div className="mt-4 flex items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               Edit {record.name}
             </h1>
             {record.isBuiltIn && (
-              <span className="inline-flex rounded-md bg-amber-600/20 px-2 py-0.5 text-xs font-medium text-amber-400">
+              <span className="inline-flex rounded-md bg-amber-600/20 px-2 py-0.5 text-xs font-medium text-status-warning">
                 Built-in
               </span>
             )}
           </div>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-text-secondary">
             {record.isBuiltIn
               ? "Built-in roles cannot be renamed, but you can adjust permissions."
               : "Update the role name, description, and permissions."}
@@ -299,18 +281,18 @@ export default function EditRolePage() {
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-red-900/50 bg-red-950/20 px-4 py-3 text-sm text-red-300">
+          <div className="mb-6 rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
+          <div className="rounded-xl border border-border-default bg-surface-card p-6">
             <div className="space-y-6">
               <div>
                 <label
                   htmlFor="role-name"
-                  className="mb-2 block text-xs font-medium uppercase tracking-wider text-gray-500"
+                  className="mb-2 block text-xs font-medium uppercase tracking-wider text-text-muted"
                 >
                   Name
                 </label>
@@ -322,10 +304,10 @@ export default function EditRolePage() {
                   onChange={(e) => setName(e.target.value)}
                   disabled={record.isBuiltIn}
                   placeholder="e.g. Content Editor"
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg border border-border-default bg-surface-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 {record.isBuiltIn && (
-                  <p className="mt-1.5 text-xs text-gray-600">
+                  <p className="mt-1.5 text-xs text-text-muted">
                     Built-in role names cannot be changed.
                   </p>
                 )}
@@ -334,7 +316,7 @@ export default function EditRolePage() {
               <div>
                 <label
                   htmlFor="role-description"
-                  className="mb-2 block text-xs font-medium uppercase tracking-wider text-gray-500"
+                  className="mb-2 block text-xs font-medium uppercase tracking-wider text-text-muted"
                 >
                   Description
                 </label>
@@ -344,12 +326,12 @@ export default function EditRolePage() {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe what this role is for…"
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-border-default bg-surface-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
                 />
               </div>
 
               <div>
-                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="mb-4 text-xs font-medium uppercase tracking-wider text-text-muted">
                   Permissions
                 </p>
                 <div className="space-y-4">
@@ -365,7 +347,7 @@ export default function EditRolePage() {
                     return (
                       <div
                         key={cat.label}
-                        className="rounded-lg border border-gray-800 bg-gray-950/50 p-4"
+                        className="rounded-lg border border-border-default bg-surface-page/50 p-4"
                       >
                         <label className="flex items-center gap-3">
                           <input
@@ -375,9 +357,9 @@ export default function EditRolePage() {
                               if (el) el.indeterminate = someChecked;
                             }}
                             onChange={() => toggleCategory(catKeys)}
-                            className="h-4 w-4 rounded border-gray-600 bg-gray-800 accent-blue-500"
+                            className="h-4 w-4 rounded border-gray-600 bg-surface-input accent-blue-500"
                           />
-                          <span className="text-sm font-medium text-white">
+                          <span className="text-sm font-medium text-text-primary">
                             {cat.label}
                           </span>
                         </label>
@@ -391,12 +373,12 @@ export default function EditRolePage() {
                                 type="checkbox"
                                 checked={permissions.has(p.key)}
                                 onChange={() => togglePermission(p.key)}
-                                className="h-4 w-4 rounded border-gray-600 bg-gray-800 accent-blue-500"
+                                className="h-4 w-4 rounded border-gray-600 bg-surface-input accent-blue-500"
                               />
-                              <span className="text-sm text-gray-300">
+                              <span className="text-sm text-text-secondary">
                                 {p.label}
                               </span>
-                              <span className="text-xs text-gray-600">
+                              <span className="text-xs text-text-muted">
                                 {p.key}
                               </span>
                             </label>
@@ -413,14 +395,14 @@ export default function EditRolePage() {
           <div className="mt-6 flex items-center justify-between">
             <Link
               href="/admin/roles"
-              className="text-sm text-gray-400 transition-colors hover:text-white"
+              className="text-sm text-text-secondary transition-colors hover:text-text-primary"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={saving || (!record.isBuiltIn && !name.trim())}
-              className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+              className="rounded-lg bg-action-primary px-6 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-action-primary-hover disabled:opacity-50"
             >
               {saving ? (
                 <span className="inline-flex items-center gap-2">
@@ -434,6 +416,6 @@ export default function EditRolePage() {
           </div>
         </form>
       </div>
-    </main>
+    </div>
   );
 }

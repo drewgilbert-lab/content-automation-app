@@ -33,22 +33,14 @@ export default async function DashboardPage() {
     data.gaps.customerEvidenceNoSubType.length;
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        {/* Back link */}
-        <Link
-          href="/"
-          className="mb-8 inline-block text-sm text-gray-400 hover:text-gray-300 transition-colors"
-        >
-          &larr; Back to Home
-        </Link>
-
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight text-white">
+          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
             Knowledge Base Health
           </h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-text-secondary">
             Object counts, staleness, and relationship gap analysis across all
             collections.
           </p>
@@ -56,7 +48,7 @@ export default async function DashboardPage() {
 
         {/* Health Summary */}
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-500">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
             Overview
           </h2>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
@@ -89,7 +81,7 @@ export default async function DashboardPage() {
 
         {/* Relationship Gap Report */}
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-500">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
             Relationship Gaps
           </h2>
           <GapTable
@@ -104,7 +96,7 @@ export default async function DashboardPage() {
 
         {/* Staleness Report */}
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-500">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
             Staleness Report
           </h2>
           <StalenessList
@@ -115,24 +107,24 @@ export default async function DashboardPage() {
 
         {/* Review Queue */}
         <section>
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-gray-500">
+          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
             Review Queue
           </h2>
           <div className="space-y-3">
             <Link
               href="/queue"
-              className="block rounded-xl border border-gray-800 bg-gray-900 p-6 hover:border-gray-700 transition-colors"
+              className="block rounded-xl border border-border-default bg-surface-card p-6 hover:border-border-focus transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-300">
+                  <p className="text-sm font-medium text-text-secondary">
                     Pending Submissions
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-text-muted">
                     Submissions awaiting review
                   </p>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-yellow-500/15 text-yellow-400" : "bg-gray-800 text-gray-500"}`}>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-yellow-500/15 text-yellow-400" : "bg-surface-input text-text-muted"}`}>
                   {pendingCount}
                 </span>
               </div>
@@ -140,14 +132,14 @@ export default async function DashboardPage() {
             {data.pendingSystemSkillSubmissions > 0 && (
               <Link
                 href="/queue"
-                className="block rounded-xl border border-fuchsia-900/50 bg-gray-900 p-6 hover:border-fuchsia-800/50 transition-colors"
+                className="block rounded-xl border border-fuchsia-900/50 bg-surface-card p-6 hover:border-fuchsia-800/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-300">
+                    <p className="text-sm font-medium text-text-secondary">
                       Skill Refresh Suggestions
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-text-muted">
                       System-generated skill updates from knowledge changes
                     </p>
                   </div>
@@ -160,6 +152,6 @@ export default async function DashboardPage() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

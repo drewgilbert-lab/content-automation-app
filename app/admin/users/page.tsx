@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRole } from "@/app/components/role-provider";
 import type { UserRole } from "@/lib/user-types";
@@ -33,10 +32,10 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 const ROLE_BADGE: Record<UserRole, string> = {
-  admin: "bg-red-600/20 text-red-400",
-  editor: "bg-blue-600/20 text-blue-400",
+  admin: "bg-red-600/20 text-status-danger",
+  editor: "bg-blue-600/20 text-hg-blue-bright",
   contributor: "bg-green-600/20 text-green-400",
-  viewer: "bg-gray-600/20 text-gray-400",
+  viewer: "bg-gray-600/20 text-text-secondary",
 };
 
 function formatLastLogin(iso: string | null | undefined): string {
@@ -63,7 +62,7 @@ async function parseErrorMessage(res: Response): Promise<string> {
 function Spinner({ className = "h-8 w-8" }: { className?: string }) {
   return (
     <svg
-      className={`animate-spin text-gray-400 ${className}`}
+      className={`animate-spin text-text-secondary ${className}`}
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
@@ -173,60 +172,40 @@ export default function AdminUsersPage() {
 
   if (roleLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
+      <div className="flex min-h-[50vh] items-center justify-center text-text-primary">
         <div className="flex flex-col items-center gap-3">
           <Spinner className="h-10 w-10" />
-          <p className="text-sm text-gray-400">Checking access…</p>
+          <p className="text-sm text-text-secondary">Checking access…</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-gray-950 px-6 py-16 text-white">
-        <div className="mx-auto max-w-lg rounded-xl border border-red-900/40 bg-red-950/20 px-6 py-8">
-          <h1 className="text-xl font-semibold text-red-300">Access denied</h1>
-          <p className="mt-2 text-sm text-gray-400">
+      <div className="px-6 py-10 text-text-primary">
+        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+          <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-          >
-            Back to home
-          </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
+    <div className="text-text-primary">
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <Link
-            href="/"
-            className="text-sm text-gray-400 transition-colors hover:text-white"
-          >
-            ← Home
-          </Link>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white">
+          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
             User Management
           </h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-text-secondary">
             {listLoading && users.length === 0
               ? "Loading users…"
               : `${users.length} user${users.length === 1 ? "" : "s"} total`}
           </p>
-          <div className="mt-3 flex gap-4 text-sm">
-            <Link href="/admin/roles" className="text-blue-400 hover:text-blue-300 transition-colors">
-              Roles &amp; Permissions
-            </Link>
-            <Link href="/admin/audit" className="text-blue-400 hover:text-blue-300 transition-colors">
-              Audit Log
-            </Link>
-          </div>
         </div>
 
         <div className="mb-6">
@@ -239,27 +218,27 @@ export default function AdminUsersPage() {
             placeholder="Search by name or email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-lg border border-border-default bg-surface-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
           />
         </div>
 
         {listError && (
-          <div className="mb-6 rounded-lg border border-red-900/50 bg-red-950/20 px-4 py-3 text-sm text-red-300">
+          <div className="mb-6 rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger">
             {listError}
           </div>
         )}
 
         {listLoading && users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900/50 py-20">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
             <Spinner className="h-10 w-10" />
-            <p className="mt-4 text-sm text-gray-400">Loading users…</p>
+            <p className="mt-4 text-sm text-text-secondary">Loading users…</p>
           </div>
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-gray-800 bg-gray-900/40 md:block">
+            <div className="hidden overflow-hidden rounded-xl border border-border-default bg-surface-card md:block">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-800 bg-gray-900/80 text-xs uppercase tracking-wide text-gray-500">
+                <thead className="border-b border-border-default bg-surface-card text-xs uppercase tracking-wide text-text-muted">
                   <tr>
                     <th className="px-4 py-3 font-medium">User</th>
                     <th className="px-4 py-3 font-medium">Role</th>
@@ -269,14 +248,14 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-3 font-medium">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className="divide-y divide-border-default">
                   {filteredUsers.map((u) => (
                     <tr key={u.id} className="align-middle">
                       <td className="px-4 py-4">
-                        <div className="font-medium text-white">{u.name}</div>
-                        <div className="text-gray-500">{u.email}</div>
+                        <div className="font-medium text-text-primary">{u.name}</div>
+                        <div className="text-text-muted">{u.email}</div>
                         {rowErrors[u.id] && (
-                          <p className="mt-1 text-xs text-red-400">
+                          <p className="mt-1 text-xs text-status-danger">
                             {rowErrors[u.id]}
                           </p>
                         )}
@@ -297,7 +276,7 @@ export default function AdminUsersPage() {
                             if (next === (u.permissionSetId || "")) return;
                             void patchUser(u.id, { permissionSetId: next } as { role?: UserRole; active?: boolean });
                           }}
-                          className="rounded-lg border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                          className="rounded-lg border border-border-default bg-surface-page px-2 py-1.5 text-xs text-text-primary focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:opacity-50"
                         >
                           <option value="">Default (role-based)</option>
                           {permissionSets.map((ps) => (
@@ -307,7 +286,7 @@ export default function AdminUsersPage() {
                           ))}
                         </select>
                       </td>
-                      <td className="px-4 py-4 text-gray-300">
+                      <td className="px-4 py-4 text-text-secondary">
                         {formatLastLogin(u.lastLoginAt)}
                       </td>
                       <td className="px-4 py-4">
@@ -315,7 +294,7 @@ export default function AdminUsersPage() {
                           className={
                             u.active
                               ? "inline-flex rounded-md bg-emerald-600/20 px-2 py-0.5 text-xs font-medium text-emerald-400"
-                              : "inline-flex rounded-md bg-gray-600/20 px-2 py-0.5 text-xs font-medium text-gray-400"
+                              : "inline-flex rounded-md bg-gray-600/20 px-2 py-0.5 text-xs font-medium text-text-secondary"
                           }
                         >
                           {u.active ? "Active" : "Inactive"}
@@ -331,7 +310,7 @@ export default function AdminUsersPage() {
                               if (next === u.role) return;
                               void patchUser(u.id, { role: next });
                             }}
-                            className="rounded-lg border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                            className="rounded-lg border border-border-default bg-surface-page px-2 py-1.5 text-xs text-text-primary focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:opacity-50"
                           >
                             {VALID_ROLES.map((r) => (
                               <option key={r} value={r}>
@@ -345,7 +324,7 @@ export default function AdminUsersPage() {
                             onClick={() =>
                               void patchUser(u.id, { active: !u.active })
                             }
-                            className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-700 disabled:opacity-50"
+                            className="rounded-lg border border-border-default bg-surface-input px-3 py-1.5 text-xs font-medium text-text-primary transition-colors hover:bg-surface-input disabled:opacity-50"
                           >
                             {updatingId === u.id ? (
                               <span className="inline-flex items-center gap-1">
@@ -365,7 +344,7 @@ export default function AdminUsersPage() {
                 </tbody>
               </table>
               {filteredUsers.length === 0 && !listLoading && (
-                <p className="px-4 py-12 text-center text-sm text-gray-500">
+                <p className="px-4 py-12 text-center text-sm text-text-muted">
                   {users.length === 0
                     ? "No users to display."
                     : "No users match your search."}
@@ -378,12 +357,12 @@ export default function AdminUsersPage() {
               {filteredUsers.map((u) => (
                 <li
                   key={u.id}
-                  className="rounded-xl border border-gray-800 bg-gray-900/50 p-4"
+                  className="rounded-xl border border-border-default bg-surface-card p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <div className="font-medium text-white">{u.name}</div>
-                      <div className="text-sm text-gray-500">{u.email}</div>
+                      <div className="font-medium text-text-primary">{u.name}</div>
+                      <div className="text-sm text-text-muted">{u.email}</div>
                     </div>
                     <span
                       className={`inline-flex rounded-md px-2 py-0.5 text-xs font-medium ${ROLE_BADGE[u.role]}`}
@@ -391,18 +370,18 @@ export default function AdminUsersPage() {
                       {ROLE_LABELS[u.role]}
                     </span>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-400">
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-text-secondary">
                     <span>Last login: {formatLastLogin(u.lastLoginAt)}</span>
                     <span
                       className={
-                        u.active ? "text-emerald-400" : "text-gray-500"
+                        u.active ? "text-emerald-400" : "text-text-muted"
                       }
                     >
                       {u.active ? "Active" : "Inactive"}
                     </span>
                   </div>
                   {rowErrors[u.id] && (
-                    <p className="mt-2 text-xs text-red-400">{rowErrors[u.id]}</p>
+                    <p className="mt-2 text-xs text-status-danger">{rowErrors[u.id]}</p>
                   )}
                   <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
                     <select
@@ -413,7 +392,7 @@ export default function AdminUsersPage() {
                         if (next === u.role) return;
                         void patchUser(u.id, { role: next });
                       }}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 sm:w-auto"
+                      className="w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:opacity-50 sm:w-auto"
                     >
                       {VALID_ROLES.map((r) => (
                         <option key={r} value={r}>
@@ -429,7 +408,7 @@ export default function AdminUsersPage() {
                         if (next === (u.permissionSetId || "")) return;
                         void patchUser(u.id, { permissionSetId: next });
                       }}
-                      className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 sm:w-auto"
+                      className="w-full rounded-lg border border-border-default bg-surface-page px-3 py-2 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:opacity-50 sm:w-auto"
                     >
                       <option value="">Default (role-based)</option>
                       {permissionSets.map((ps) => (
@@ -442,7 +421,7 @@ export default function AdminUsersPage() {
                       type="button"
                       disabled={updatingId === u.id}
                       onClick={() => void patchUser(u.id, { active: !u.active })}
-                      className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700 disabled:opacity-50"
+                      className="rounded-lg border border-border-default bg-surface-input px-3 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-input disabled:opacity-50"
                     >
                       {updatingId === u.id ? (
                         <span className="inline-flex items-center justify-center gap-2">
@@ -459,7 +438,7 @@ export default function AdminUsersPage() {
                 </li>
               ))}
               {filteredUsers.length === 0 && !listLoading && (
-                <li className="py-12 text-center text-sm text-gray-500">
+                <li className="py-12 text-center text-sm text-text-muted">
                   {users.length === 0
                     ? "No users to display."
                     : "No users match your search."}
@@ -469,6 +448,6 @@ export default function AdminUsersPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

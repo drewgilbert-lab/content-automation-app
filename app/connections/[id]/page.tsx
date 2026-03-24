@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { getConnectedSystem } from "@/lib/connections";
 import { getRateLimitTierLabel } from "@/lib/connection-types";
 import { ConnectionDetailActions } from "../components/connection-detail-actions";
@@ -54,23 +53,23 @@ function McpConfigCard({
   );
 
   return (
-    <div className="rounded-xl border border-violet-800/50 bg-violet-950/20 p-6 space-y-5">
+    <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-5">
       <div>
         <h3 className="text-sm font-semibold text-violet-300">
           MCP Configuration
         </h3>
-        <p className="mt-1 text-xs text-gray-400">
+        <p className="mt-1 text-xs text-text-secondary">
           This connection has MCP {mcpScopes} access. Use the config below with
           Streamable HTTP clients (Claude Desktop remote, Gemini, etc.).
         </p>
       </div>
 
       <div>
-        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-muted">
           Server URL
         </p>
         {mcpServerUrl ? (
-          <code className="block break-all rounded bg-gray-800 px-3 py-2 font-mono text-sm text-gray-300">
+          <code className="block break-all rounded bg-surface-input px-3 py-2 font-mono text-sm text-text-secondary">
             {mcpServerUrl}/mcp
           </code>
         ) : (
@@ -85,29 +84,29 @@ function McpConfigCard({
       </div>
 
       <div>
-        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-muted">
           Claude Desktop / Cursor Config
         </p>
-        <pre className="overflow-x-auto rounded bg-gray-800 px-3 py-2.5 font-mono text-xs text-gray-300 leading-relaxed">
+        <pre className="overflow-x-auto rounded bg-surface-input px-3 py-2.5 font-mono text-xs text-text-secondary leading-relaxed">
           {configSnippet}
         </pre>
       </div>
 
       <div>
-        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-text-muted">
           API Key
         </p>
-        <p className="text-sm text-gray-300">
+        <p className="text-sm text-text-secondary">
           Use the key starting with{" "}
-          <code className="font-mono text-xs text-gray-400">
+          <code className="font-mono text-xs text-text-secondary">
             {apiKeyPrefix}...
           </code>
         </p>
       </div>
 
-      <p className="text-xs text-gray-500">
+      <p className="text-xs text-text-muted">
         For local development (stdio transport), no API key is needed. See{" "}
-        <code className="font-mono text-xs text-gray-400">
+        <code className="font-mono text-xs text-text-secondary">
           mcp-server/README.md
         </code>{" "}
         for full setup docs.
@@ -130,25 +129,18 @@ export default async function ConnectionDetailPage({
     system.subscribedTypes.length === 1 && system.subscribedTypes[0] === "*";
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
-        <Link
-          href="/connections"
-          className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-gray-300"
-        >
-          &larr; Back to Connected Systems
-        </Link>
-
-        <div className="mt-4 flex items-start justify-between gap-4">
+    <div>
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-white">
+            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
               {system.name}
             </h1>
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 system.active
                   ? "bg-green-900/50 border border-green-800 text-green-400"
-                  : "bg-gray-800 border border-gray-700 text-gray-400"
+                  : "bg-surface-input border border-border-default text-text-secondary"
               }`}
             >
               {system.active ? "Active" : "Inactive"}
@@ -158,33 +150,33 @@ export default async function ConnectionDetailPage({
         </div>
 
         {system.description && (
-          <p className="mt-4 text-gray-400">{system.description}</p>
+          <p className="mt-4 text-text-secondary">{system.description}</p>
         )}
 
         <div className="mt-8 flex flex-col gap-8 lg:flex-row">
           {/* Main info */}
           <div className="lg:flex-1 min-w-0 space-y-6">
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-6">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-6">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   API Key Prefix
                 </p>
-                <p className="mt-1 font-mono text-sm text-gray-300">
+                <p className="mt-1 font-mono text-sm text-text-secondary">
                   {system.apiKeyPrefix}...
                 </p>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Description
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {system.description || "No description"}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Permissions
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5">
@@ -192,13 +184,13 @@ export default async function ConnectionDetailPage({
                     system.permissions.map((perm) => (
                       <span
                         key={perm}
-                        className="rounded bg-blue-900/30 border border-blue-800/50 px-2 py-0.5 text-xs text-blue-400"
+                        className="rounded bg-status-info-bg border border-border-default px-2 py-0.5 text-xs text-hg-blue-bright"
                       >
                         {perm}
                       </span>
                     ))
                   ) : (
-                    <span className="text-sm text-gray-500">None</span>
+                    <span className="text-sm text-text-muted">None</span>
                   )}
                 </div>
               </div>
@@ -215,21 +207,21 @@ export default async function ConnectionDetailPage({
 
           {/* Sidebar */}
           <div className="lg:w-80 space-y-6">
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-4">
+            <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-4">
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Subscribed Types
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {isAllTypes ? (
-                    <span className="rounded bg-purple-900/30 border border-purple-800/50 px-2 py-0.5 text-xs text-purple-400">
+                    <span className="rounded bg-surface-input border border-border-default px-2 py-0.5 text-xs text-purple-400">
                       All types
                     </span>
                   ) : (
                     system.subscribedTypes.map((t) => (
                       <span
                         key={t}
-                        className="rounded bg-purple-900/30 border border-purple-800/50 px-2 py-0.5 text-xs text-purple-400"
+                        className="rounded bg-surface-input border border-border-default px-2 py-0.5 text-xs text-purple-400"
                       >
                         {formatTypeName(t)}
                       </span>
@@ -239,28 +231,28 @@ export default async function ConnectionDetailPage({
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Rate Limit Tier
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {getRateLimitTierLabel(system.rateLimitTier)}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Created
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {formatDate(system.createdAt)}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Updated
                 </p>
-                <p className="mt-1 text-sm text-gray-300">
+                <p className="mt-1 text-sm text-text-secondary">
                   {formatDate(system.updatedAt)}
                 </p>
               </div>
@@ -268,6 +260,6 @@ export default async function ConnectionDetailPage({
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -6,6 +6,23 @@
 
 ## 2026-03-24
 
+### Group AA Phase 2 — Navigation Shell and App Chrome (AA5–AA9)
+
+- **AA5 — Sidebar Navigation Component**: Created `app/components/layout/sidebar-nav.tsx` with fixed left sidebar, 4 nav groups (Core, Operations, Intelligence, Admin), Lucide icons, active state highlighting via `usePathname()`, admin-only group conditional rendering via `useRole()`, "Content Engine by HG Insights" wordmark, and user role indicator.
+- **AA6 — App Shell Layout**: Created `app/components/layout/app-shell.tsx` wrapping sidebar + main content area. Integrated into root `app/layout.tsx`. Auth pages (`/auth/*`) excluded from shell and render full-page.
+- **AA7 — Top Bar Component**: Created `app/components/layout/top-bar.tsx` with URL-derived breadcrumbs, `RoleToggle` and `UserMenu` migrated from per-page headers into global top bar.
+- **AA8 — Accent Bar**: Added 4px `bg-hg-blue` fixed accent bar at top of viewport in root layout. Visible on all pages including sign-in, matching HG branded deliverable pattern.
+- **AA9 — Phase 2 Validation**: `npm run build` passes. Sign-in page confirmed rendering without sidebar (full-page layout). All semantic token replacements verified. No lint errors.
+
+**Page migration**: All 25 `page.tsx` files updated — removed `<main>` wrappers (shell provides background), removed per-page `RoleToggle`/`UserMenu` (top bar), removed back links (sidebar navigation), replaced raw `gray-*`/`blue-*` Tailwind classes with semantic tokens (`bg-surface-card`, `text-text-primary`, `border-border-default`, `bg-action-primary`, etc.). Home page converted from navigation card grid to dashboard landing with system status card.
+**New files**: `app/components/layout/sidebar-nav.tsx`, `app/components/layout/app-shell.tsx`, `app/components/layout/top-bar.tsx`
+**Modified files**: `app/layout.tsx`, 25 `page.tsx` files, `package.json`
+**Dependency added**: `lucide-react`
+**Documentation**: `docs/roadmap/group-aa.md` (AA5–AA9 marked done), `docs/roadmap/README.md` (AA status updated), `docs/SCOPE.md` (status updated), `docs/CHANGELOG.md` (this entry).
+**User guide update**: N/A — navigation shell is an internal UI infrastructure change; no new user-facing workflow requiring guide updates.
+
+---
+
 ### Group AA Phase 1 — Token Migration and Brand Foundation (AA1–AA4)
 
 - **AA1 — Update Semantic Token Values**: Replaced all semantic color tokens in `app/globals.css` from generic Tailwind gray/blue primitives to HG-branded navy-tinted dark palette. Surfaces now use navy-tinted hex values (`#0B1121`, `#162032`, `#243550`). Text tokens use Slate scale with blue undertone. Status background tints reduced from 15% to 12% opacity. Removed `border-hover` and `text-link` tokens.

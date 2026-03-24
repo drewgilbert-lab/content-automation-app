@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRole } from "@/app/components/role-provider";
 
@@ -38,12 +37,12 @@ const EVENT_LABELS: Record<AuditLogRecord["eventType"], string> = {
 };
 
 const EVENT_BADGE: Record<AuditLogRecord["eventType"], string> = {
-  sign_in: "bg-blue-600/20 text-blue-400",
-  sign_out: "bg-blue-600/20 text-blue-400",
-  sign_in_failed: "bg-red-600/20 text-red-400",
-  role_change: "bg-amber-600/20 text-amber-400",
+  sign_in: "bg-blue-600/20 text-hg-blue-bright",
+  sign_out: "bg-blue-600/20 text-hg-blue-bright",
+  sign_in_failed: "bg-red-600/20 text-status-danger",
+  role_change: "bg-amber-600/20 text-status-warning",
   user_activated: "bg-emerald-600/20 text-emerald-400",
-  user_deactivated: "bg-gray-600/20 text-gray-400",
+  user_deactivated: "bg-gray-600/20 text-text-secondary",
   permission_set_change: "bg-purple-600/20 text-purple-400",
   permission_set_created: "bg-purple-600/20 text-purple-400",
   permission_set_deleted: "bg-purple-600/20 text-purple-400",
@@ -99,7 +98,7 @@ function formatExact(iso: string): string {
 function Spinner({ className = "h-8 w-8" }: { className?: string }) {
   return (
     <svg
-      className={`animate-spin text-gray-400 ${className}`}
+      className={`animate-spin text-text-secondary ${className}`}
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden
@@ -203,73 +202,47 @@ export default function AdminAuditPage() {
 
   if (roleLoading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
+      <div className="flex min-h-[50vh] items-center justify-center text-text-primary">
         <div className="flex flex-col items-center gap-3">
           <Spinner className="h-10 w-10" />
-          <p className="text-sm text-gray-400">Checking access…</p>
+          <p className="text-sm text-text-secondary">Checking access…</p>
         </div>
-      </main>
+      </div>
     );
   }
 
   if (!isAdmin) {
     return (
-      <main className="min-h-screen bg-gray-950 px-6 py-16 text-white">
-        <div className="mx-auto max-w-lg rounded-xl border border-red-900/40 bg-red-950/20 px-6 py-8">
-          <h1 className="text-xl font-semibold text-red-300">Access denied</h1>
-          <p className="mt-2 text-sm text-gray-400">
+      <div className="px-6 py-10 text-text-primary">
+        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+          <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
-          <Link
-            href="/"
-            className="mt-6 inline-block rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800"
-          >
-            Back to home
-          </Link>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <div className="mx-auto max-w-5xl px-6 py-16">
+    <div className="text-text-primary">
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <Link
-            href="/"
-            className="text-sm text-gray-400 transition-colors hover:text-white"
-          >
-            ← Home
-          </Link>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white">
+          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
             Audit Log
           </h1>
-          <p className="mt-2 text-gray-400">
+          <p className="mt-2 text-text-secondary">
             {loading && events.length === 0
               ? "Loading events…"
               : `${total} event${total === 1 ? "" : "s"} total`}
           </p>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm">
-            <Link
-              href="/admin/users"
-              className="text-gray-400 transition-colors hover:text-white"
-            >
-              User Management →
-            </Link>
-            <Link
-              href="/admin/roles"
-              className="text-gray-400 transition-colors hover:text-white"
-            >
-              Roles & Permissions →
-            </Link>
-          </div>
         </div>
 
         <div className="mb-6 flex flex-col gap-3 sm:flex-row">
           <select
             value={typeFilter}
             onChange={(e) => handleTypeChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-56"
+            className="w-full rounded-lg border border-border-default bg-surface-card px-4 py-2.5 text-sm text-text-primary focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus sm:w-56"
           >
             <option value="">All event types</option>
             {EVENT_TYPES.map((t) => (
@@ -287,31 +260,31 @@ export default function AdminAuditPage() {
             placeholder="Filter by actor email…"
             value={actorFilter}
             onChange={(e) => handleActorChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2.5 text-sm text-white placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:flex-1"
+            className="w-full rounded-lg border border-border-default bg-surface-card px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus sm:flex-1"
           />
         </div>
 
         {error && (
-          <div className="mb-6 rounded-lg border border-red-900/50 bg-red-950/20 px-4 py-3 text-sm text-red-300">
+          <div className="mb-6 rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-sm text-status-danger">
             {error}
           </div>
         )}
 
         {loading && events.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900/50 py-20">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
             <Spinner className="h-10 w-10" />
-            <p className="mt-4 text-sm text-gray-400">Loading events…</p>
+            <p className="mt-4 text-sm text-text-secondary">Loading events…</p>
           </div>
         ) : events.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-gray-800 bg-gray-900/50 py-20">
-            <p className="text-sm text-gray-500">No audit events found.</p>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
+            <p className="text-sm text-text-muted">No audit events found.</p>
           </div>
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-gray-800 bg-gray-900/40 md:block">
+            <div className="hidden overflow-hidden rounded-xl border border-border-default bg-surface-card md:block">
               <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-800 bg-gray-900/80 text-xs uppercase tracking-wide text-gray-500">
+                <thead className="border-b border-border-default bg-surface-card text-xs uppercase tracking-wide text-text-muted">
                   <tr>
                     <th className="px-4 py-3 font-medium">Event</th>
                     <th className="px-4 py-3 font-medium">Actor</th>
@@ -320,7 +293,7 @@ export default function AdminAuditPage() {
                     <th className="px-4 py-3 font-medium">Time</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-800">
+                <tbody className="divide-y divide-border-default">
                   {events.map((ev) => {
                     const details = parseDetails(ev.details);
                     const target = ev.targetEmail || ev.targetId;
@@ -334,12 +307,12 @@ export default function AdminAuditPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <div className="font-medium text-white">
+                          <div className="font-medium text-text-primary">
                             {ev.actorName}
                           </div>
-                          <div className="text-gray-500">{ev.actorEmail}</div>
+                          <div className="text-text-muted">{ev.actorEmail}</div>
                         </td>
-                        <td className="px-4 py-4 text-gray-300">
+                        <td className="px-4 py-4 text-text-secondary">
                           {target || "—"}
                         </td>
                         <td className="px-4 py-4">
@@ -347,17 +320,17 @@ export default function AdminAuditPage() {
                             <dl className="space-y-0.5 text-xs">
                               {Object.entries(details).map(([k, v]) => (
                                 <div key={k} className="flex gap-1.5">
-                                  <dt className="text-gray-500">{k}:</dt>
-                                  <dd className="text-gray-300">{v}</dd>
+                                  <dt className="text-text-muted">{k}:</dt>
+                                  <dd className="text-text-secondary">{v}</dd>
                                 </div>
                               ))}
                             </dl>
                           ) : (
-                            <span className="text-gray-600">—</span>
+                            <span className="text-text-muted">—</span>
                           )}
                         </td>
                         <td
-                          className="whitespace-nowrap px-4 py-4 text-gray-400"
+                          className="whitespace-nowrap px-4 py-4 text-text-secondary"
                           title={formatExact(ev.timestamp)}
                         >
                           {relativeTime(ev.timestamp)}
@@ -377,7 +350,7 @@ export default function AdminAuditPage() {
                 return (
                   <li
                     key={ev.id}
-                    className="rounded-xl border border-gray-800 bg-gray-900/50 p-4"
+                    className="rounded-xl border border-border-default bg-surface-card p-4"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <span
@@ -386,22 +359,22 @@ export default function AdminAuditPage() {
                         {EVENT_LABELS[ev.eventType]}
                       </span>
                       <span
-                        className="text-xs text-gray-500"
+                        className="text-xs text-text-muted"
                         title={formatExact(ev.timestamp)}
                       >
                         {relativeTime(ev.timestamp)}
                       </span>
                     </div>
                     <div className="mt-3">
-                      <div className="text-sm font-medium text-white">
+                      <div className="text-sm font-medium text-text-primary">
                         {ev.actorName}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-text-muted">
                         {ev.actorEmail}
                       </div>
                     </div>
                     {target && (
-                      <div className="mt-2 text-xs text-gray-400">
+                      <div className="mt-2 text-xs text-text-secondary">
                         Target: {target}
                       </div>
                     )}
@@ -409,8 +382,8 @@ export default function AdminAuditPage() {
                       <dl className="mt-2 space-y-0.5 text-xs">
                         {Object.entries(details).map(([k, v]) => (
                           <div key={k} className="flex gap-1.5">
-                            <dt className="text-gray-500">{k}:</dt>
-                            <dd className="text-gray-300">{v}</dd>
+                            <dt className="text-text-muted">{k}:</dt>
+                            <dd className="text-text-secondary">{v}</dd>
                           </div>
                         ))}
                       </dl>
@@ -422,7 +395,7 @@ export default function AdminAuditPage() {
 
             {/* Pagination */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 text-sm">
-              <p className="text-gray-400">
+              <p className="text-text-secondary">
                 Showing {rangeStart}–{rangeEnd} of {total} event
                 {total === 1 ? "" : "s"}
               </p>
@@ -431,7 +404,7 @@ export default function AdminAuditPage() {
                   type="button"
                   disabled={!hasPrev || loading}
                   onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-                  className="rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-border-default bg-surface-card px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-input disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Previous
                 </button>
@@ -439,7 +412,7 @@ export default function AdminAuditPage() {
                   type="button"
                   disabled={!hasNext || loading}
                   onClick={() => setOffset(offset + PAGE_SIZE)}
-                  className="rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-lg border border-border-default bg-surface-card px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-surface-input disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
                 </button>
@@ -448,6 +421,6 @@ export default function AdminAuditPage() {
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

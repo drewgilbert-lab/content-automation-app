@@ -225,14 +225,14 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-body text-status-danger">
           {error}
         </div>
       )}
 
       {/* Name */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Name
         </label>
         <input
@@ -240,13 +240,13 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Campaign Brief Generator"
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
       </div>
 
       {/* Description */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Description
         </label>
         <input
@@ -254,30 +254,30 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Short summary of what this skill does..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
       </div>
 
       {/* Content with preview toggle */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-medium text-gray-300">
+          <label className="block text-body font-medium text-text-secondary">
             Instruction Content
           </label>
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="text-xs font-medium text-gray-400 hover:text-gray-300 transition-colors"
+            className="text-caption text-text-secondary hover:text-text-primary transition-colors"
           >
             {showPreview ? "Edit" : "Preview"}
           </button>
         </div>
         {showPreview ? (
-          <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 min-h-[200px]">
+          <div className="rounded-lg border border-border-default bg-surface-input px-4 py-3 min-h-[200px]">
             {content.trim() ? (
               <MarkdownRenderer content={content} />
             ) : (
-              <p className="text-gray-500 text-sm italic">Nothing to preview</p>
+              <p className="text-text-muted text-body italic">Nothing to preview</p>
             )}
           </div>
         ) : (
@@ -286,14 +286,14 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
             onChange={(e) => setContent(e.target.value)}
             placeholder="Step-by-step instructions in markdown..."
             rows={12}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none font-mono text-sm resize-y"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none font-mono text-sm resize-y"
           />
         )}
       </div>
 
       {/* Content Types (multi-select) */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Content Types
         </label>
         <div className="flex flex-wrap gap-2">
@@ -304,28 +304,28 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
               onClick={() => toggleContentType(ct)}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                 contentType.includes(ct)
-                  ? "border-blue-600 bg-blue-600/20 text-blue-400"
-                  : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                  ? "border-border-focus bg-action-primary/20 text-hg-blue-bright"
+                  : "border-border-default bg-surface-input text-text-secondary hover:border-border-default/80"
               }`}
             >
               {getContentTypeLabel(ct)}
             </button>
           ))}
         </div>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-caption text-text-muted">
           Select which content types trigger this skill
         </p>
       </div>
 
       {/* Category */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Category
         </label>
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary focus:border-border-focus focus:outline-none"
         >
           <option value="">Select category...</option>
           {SKILL_CATEGORIES.map((cat) => (
@@ -338,7 +338,7 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
 
       {/* Tags */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Tags
         </label>
         <input
@@ -346,16 +346,16 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
           placeholder="Comma-separated tags..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-caption text-text-muted">
           Separate multiple tags with commas
         </p>
       </div>
 
       {/* Output Format */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Output Format
         </label>
         <input
@@ -363,13 +363,13 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           value={outputFormat}
           onChange={(e) => setOutputFormat(e.target.value)}
           placeholder="Describe the expected output structure..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
       </div>
 
       {/* Author */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Author
         </label>
         <input
@@ -377,13 +377,13 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           value={author}
           onChange={(e) => setAuthor(e.target.value)}
           placeholder="Who created this skill..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
       </div>
 
       {/* Parameters (JSON) */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Parameters (JSON)
         </label>
         <textarea
@@ -391,32 +391,32 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
           onChange={(e) => setParameters(e.target.value)}
           placeholder='[{"name": "tone", "type": "select", "description": "Output tone", "required": false, "options": ["formal", "casual"]}]'
           rows={3}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none font-mono text-sm resize-y"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none font-mono text-sm resize-y"
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-caption text-text-muted">
           Optional JSON array of SkillParameter objects
         </p>
       </div>
 
       {/* Knowledge Links */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Linked Knowledge Objects
         </label>
 
         {links.length > 0 && (
           <div className="space-y-3 mb-4">
             {links.map((link) => (
-              <div key={link.id} className="rounded-lg border border-gray-700 bg-gray-800 p-3">
+              <div key={link.id} className="rounded-lg border border-border-default bg-surface-input p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">{link.name || link.id}</span>
-                    <span className="rounded bg-gray-700 px-2 py-0.5 text-xs text-gray-400">{link.collection}</span>
+                    <span className="text-body font-medium text-text-primary">{link.name || link.id}</span>
+                    <span className="rounded bg-surface-active px-2 py-0.5 text-caption text-text-secondary">{link.collection}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeLink(link.id)}
-                    className="text-xs text-red-400 hover:text-red-300"
+                    className="text-caption text-status-danger hover:text-status-danger/80"
                   >
                     Remove
                   </button>
@@ -426,10 +426,10 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
                   onChange={(e) => updateLinkPrompt(link.id, e.target.value)}
                   placeholder="How should this object's content be incorporated into the skill? e.g. 'Update references to job titles, pain points, and language patterns to reflect any changes in the linked persona.'"
                   rows={2}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none resize-y"
+                  className="w-full rounded-lg border border-border-default bg-surface-card px-3 py-2 text-body text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none resize-y"
                 />
                 {!link.integrationPrompt.trim() && (
-                  <p className="mt-1 text-xs text-amber-400">Integration prompt is required</p>
+                  <p className="mt-1 text-caption text-status-warning">Integration prompt is required</p>
                 )}
               </div>
             ))}
@@ -443,35 +443,35 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
             onChange={(e) => setLinkSearch(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleLinkSearch(); } }}
             placeholder="Search knowledge objects to link..."
-            className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2 text-sm text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+            className="flex-1 rounded-lg border border-border-default bg-surface-input px-4 py-2 text-body text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
           />
           <button
             type="button"
             onClick={handleLinkSearch}
             disabled={linkSearching || !linkSearch.trim()}
-            className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50"
+            className="rounded-lg border border-border-default px-4 py-2 text-body font-medium text-text-secondary hover:border-border-default/80 disabled:opacity-50"
           >
             {linkSearching ? "Searching..." : "Search"}
           </button>
         </div>
 
         {linkSearchResults.length > 0 && (
-          <div className="mt-2 rounded-lg border border-gray-700 bg-gray-800 divide-y divide-gray-700">
+          <div className="mt-2 rounded-lg border border-border-default bg-surface-input divide-y divide-border-default">
             {linkSearchResults.map((result) => (
               <button
                 key={result.id}
                 type="button"
                 onClick={() => addLink(result)}
-                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-700"
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-body text-text-secondary hover:bg-surface-active"
               >
                 <span>{result.name}</span>
-                <span className="rounded bg-gray-600 px-1.5 py-0.5 text-xs text-gray-400">{result.type}</span>
+                <span className="rounded bg-surface-active px-1.5 py-0.5 text-caption text-text-secondary">{result.type}</span>
               </button>
             ))}
           </div>
         )}
 
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-caption text-text-muted">
           Link knowledge objects that this skill depends on. Each link requires an integration prompt.
         </p>
       </div>
@@ -479,7 +479,7 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
       {/* Version bump (edit only) */}
       {mode === "edit" && (
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-body font-medium text-text-secondary mb-1.5">
             Version Bump (current: v{initialData!.version})
           </label>
           <div className="flex gap-2">
@@ -490,8 +490,8 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
                 onClick={() => setVersionBump(bump)}
                 className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
                   versionBump === bump
-                    ? "border-blue-600 bg-blue-600/20 text-blue-400"
-                    : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                    ? "border-border-focus bg-action-primary/20 text-hg-blue-bright"
+                    : "border-border-default bg-surface-input text-text-secondary hover:border-border-default/80"
                 }`}
               >
                 {bump} ({bumpVersion(initialData!.version, bump)})
@@ -506,14 +506,14 @@ export function SkillForm({ mode, initialData }: SkillFormProps) {
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="rounded-lg bg-action-primary px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {saving ? "Saving..." : mode === "create" ? "Create Skill" : "Save Changes"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
+          className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80 hover:text-text-primary transition-colors"
         >
           Cancel
         </button>

@@ -102,7 +102,7 @@ export function SkillDetailActions({
           className={cn(
             "inline-flex items-center justify-center transition-colors",
             "border border-border-default text-text-tertiary hover:border-border-focus hover:text-text-secondary",
-            "rounded-lg px-4 py-2.5 text-sm font-medium",
+            "rounded-lg px-4 py-2.5 text-body font-medium",
           )}
         >
           Edit
@@ -114,8 +114,8 @@ export function SkillDetailActions({
             disabled={togglingActive}
             className={cn(
               active
-                ? "border-gray-700 text-orange-400 hover:border-orange-700 hover:text-orange-300"
-                : "border-gray-700 text-green-400 hover:border-green-700 hover:text-green-300",
+                ? "border-border-default text-status-warning hover:border-status-warning/30 hover:text-status-warning"
+                : "border-border-default text-status-success hover:border-status-success/30 hover:text-status-success",
             )}
           >
             {togglingActive ? "..." : active ? "Deactivate" : "Activate"}
@@ -125,7 +125,7 @@ export function SkillDetailActions({
           variant="secondary"
           onClick={handleToggleDeprecation}
           disabled={togglingDeprecation}
-          className="border-gray-700 text-yellow-400 hover:border-yellow-700 hover:text-yellow-300"
+          className="border-border-default text-status-warning hover:border-status-warning/30 hover:text-status-warning"
         >
           {togglingDeprecation
             ? "..."
@@ -144,11 +144,11 @@ export function SkillDetailActions({
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="mx-4 w-full max-w-md rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-white">
+          <div className="mx-4 w-full max-w-md rounded-card border border-border-default bg-surface-card p-6 shadow-xl">
+            <h3 className="text-subheading text-text-primary">
               Confirm Deletion
             </h3>
-            <p className="mt-2 text-sm text-gray-300">{deleteWarning}</p>
+            <p className="mt-2 text-body text-text-secondary">{deleteWarning}</p>
             <div className="mt-6 flex justify-end gap-3">
               <Button
                 variant="secondary"

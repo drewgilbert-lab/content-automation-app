@@ -9,15 +9,15 @@ interface StatCardProps {
 }
 
 const variantStyles = {
-  default: "border-gray-800 bg-gray-900",
-  warning: "border-amber-800/50 bg-amber-950/30",
-  danger: "border-red-800/50 bg-red-950/30",
+  default: "border-border-default bg-surface-card",
+  warning: "border-status-warning/30 bg-status-warning-bg",
+  danger: "border-status-danger/30 bg-status-danger-bg",
 };
 
 const valueStyles = {
-  default: "text-white",
-  warning: "text-amber-400",
-  danger: "text-red-400",
+  default: "text-text-primary",
+  warning: "text-status-warning",
+  danger: "text-status-danger",
 };
 
 export function StatCard({ label, value, type, variant = "default" }: StatCardProps) {
@@ -26,11 +26,11 @@ export function StatCard({ label, value, type, variant = "default" }: StatCardPr
 
   return (
     <div
-      className={`rounded-xl border p-4 ${variantStyles[effectiveVariant]}`}
+      className={`rounded-card border p-4 ${variantStyles[effectiveVariant]}`}
     >
       <div className="flex items-center gap-2">
         {type && <TypeBadge type={type} />}
-        <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="text-label uppercase tracking-widest text-text-muted">
           {label}
         </p>
       </div>

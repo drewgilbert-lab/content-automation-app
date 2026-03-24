@@ -276,9 +276,9 @@ Verify: type scale tokens resolve as Tailwind utilities. Spot-check three pages 
 
 ---
 
-## Phase 4 — Page-Level Styling Migration
+## Phase 4 — Page-Level Styling Migration — **Done**
 
-**AA13 — Home Page Rebrand**
+**AA13 — Home Page Rebrand** — ✅ Done (2026-03-24)
 Restyle `app/page.tsx` to use the new brand tokens and navigation shell:
 
 - Remove the inline nav card grid (sidebar handles navigation now)
@@ -288,7 +288,7 @@ Restyle `app/page.tsx` to use the new brand tokens and navigation shell:
 - Apply type scale tokens to all headings and labels
 - Status badges: use `bg-status-success-bg text-status-success` / danger variants with updated brand colors
 
-**AA14 — Auth/Sign-In Page**
+**AA14 — Auth/Sign-In Page** — ✅ Done (2026-03-24)
 Restyle `app/auth/signin/page.tsx`:
 
 - Full-page centered layout (no sidebar)
@@ -298,7 +298,7 @@ Restyle `app/auth/signin/page.tsx`:
 - 4px accent bar at top of card (matching global accent bar pattern)
 - Google OAuth button: `bg-surface-input border border-border-default hover:border-border-focus`
 
-**AA15 — List Page Pattern (Knowledge, Skills, Queue)**
+**AA15 — List Page Pattern (Knowledge, Skills, Queue)** — ✅ Done (2026-03-24)
 Apply a consistent list-page treatment to `/knowledge`, `/skills`, `/queue`:
 
 - Page title via `PageLayout` with `text-display`
@@ -307,7 +307,7 @@ Apply a consistent list-page treatment to `/knowledge`, `/skills`, `/queue`:
 - Card items: `bg-surface-card border border-border-default rounded-card hover:border-border-focus transition-colors`
 - Empty state: centered `text-text-muted` message with subtle illustration or icon
 
-**AA16 — Detail Page Pattern (Knowledge/[id], Skills/[id], Queue/[id])**
+**AA16 — Detail Page Pattern (Knowledge/[id], Skills/[id], Queue/[id])** — ✅ Done (2026-03-24)
 Apply a consistent detail-page treatment:
 
 - Back link: `text-hg-blue-bright hover:text-hg-blue-muted` with left arrow icon
@@ -316,7 +316,7 @@ Apply a consistent detail-page treatment:
 - Metadata sidebar: `bg-surface-card border border-border-default rounded-card p-5` with `text-caption` labels and `text-body-sm` values
 - Markdown content: apply branded markdown styles (headings in `text-text-primary`, code blocks in `bg-surface-input border border-border-default rounded-lg`, links in `text-hg-blue-bright`)
 
-**AA17 — Form Page Pattern (New/Edit pages)**
+**AA17 — Form Page Pattern (New/Edit pages)** — ✅ Done (2026-03-24)
 Apply a consistent form-page treatment to `/knowledge/new`, `/knowledge/[id]/edit`, `/skills/new`, `/skills/[id]/edit`, `/connections/new`, `/connections/[id]/edit`:
 
 - Form container: `bg-surface-card border border-border-default rounded-card p-6`
@@ -324,13 +324,13 @@ Apply a consistent form-page treatment to `/knowledge/new`, `/knowledge/[id]/edi
 - Submit button: `bg-action-primary hover:bg-action-primary-hover text-text-primary`
 - Cancel button: secondary variant (transparent, `border-border-default`)
 
-**AA18 — Admin Pages**
+**AA18 — Admin Pages** — ✅ Done (2026-03-24)
 Apply brand treatment to `/admin/users`, `/admin/roles`, `/admin/audit`:
 
 - Table styling: `bg-surface-card` container, `border-border-default` row borders, `bg-surface-elevated` header row, `text-text-secondary` header text, `text-text-primary` cell text
 - Action buttons in table rows: ghost variant, `text-text-tertiary hover:text-text-primary`
 
-**AA19 — Phase 4 Validation**
+**AA19 — Phase 4 Validation** — ✅ Done (2026-03-24)
 Full smoke test of all pages. Verify: consistent surface/border/text token usage across all migrated pages. Verify: no remaining raw `gray-*` class references in migrated files. Verify: navigation shell integrates cleanly. Verify: responsive behavior is acceptable on `md:` and `lg:` breakpoints (detailed responsive work can be a follow-up). Verify: `npm run build` passes.
 
 ---

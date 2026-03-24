@@ -6,7 +6,7 @@ export function SignInButton({ callbackUrl }: { callbackUrl?: string }) {
   return (
     <button
       onClick={() => signIn("google", { callbackUrl: callbackUrl || "/" })}
-      className="flex w-full items-center justify-center gap-3 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+      className="flex w-full items-center justify-center gap-3 rounded-lg border border-border-default bg-surface-input px-5 py-2.5 text-body font-medium text-text-primary transition-colors hover:border-border-focus"
     >
       <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
         <path

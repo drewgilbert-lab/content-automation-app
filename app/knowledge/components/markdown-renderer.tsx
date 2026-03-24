@@ -6,31 +6,31 @@ import type { Components } from "react-markdown";
 
 const components: Components = {
   h1: ({ children }) => (
-    <h1 className="text-2xl font-bold text-white mt-8 mb-4">{children}</h1>
+    <h1 className="text-display text-text-primary mt-8 mb-4">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-xl font-semibold text-white mt-6 mb-3">{children}</h2>
+    <h2 className="text-heading text-text-primary mt-6 mb-3">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-lg font-medium text-white mt-4 mb-2">{children}</h3>
+    <h3 className="text-subheading text-text-primary mt-4 mb-2">{children}</h3>
   ),
   p: ({ children }) => (
-    <p className="text-gray-300 leading-relaxed">{children}</p>
+    <p className="text-text-secondary leading-relaxed">{children}</p>
   ),
   ul: ({ children }) => (
-    <ul className="list-disc pl-6 space-y-1 text-gray-300">{children}</ul>
+    <ul className="list-disc pl-6 space-y-1 text-text-secondary">{children}</ul>
   ),
   ol: ({ children }) => (
-    <ol className="list-decimal pl-6 space-y-1 text-gray-300">{children}</ol>
+    <ol className="list-decimal pl-6 space-y-1 text-text-secondary">{children}</ol>
   ),
-  li: ({ children }) => <li className="text-gray-300">{children}</li>,
+  li: ({ children }) => <li className="text-text-secondary">{children}</li>,
   a: ({ href, children }) => (
-    <a href={href} className="text-blue-400 hover:text-blue-300 underline">
+    <a href={href} className="text-hg-blue-bright hover:text-hg-blue-muted underline">
       {children}
     </a>
   ),
   strong: ({ children }) => (
-    <strong className="text-white font-semibold">{children}</strong>
+    <strong className="text-text-primary font-semibold">{children}</strong>
   ),
   code: ({ className, children }) => {
     const isBlock = className?.includes("language-");
@@ -38,16 +38,16 @@ const components: Components = {
       return <code className={className}>{children}</code>;
     }
     return (
-      <code className="bg-gray-800 text-gray-200 px-1.5 py-0.5 rounded text-sm font-mono">
+      <code className="bg-surface-input text-text-primary px-1.5 py-0.5 rounded text-body-sm font-mono">
         {children}
       </code>
     );
   },
   pre: ({ children }) => (
-    <pre className="bg-gray-800 rounded-lg p-4 overflow-x-auto">{children}</pre>
+    <pre className="bg-surface-input rounded-lg p-4 overflow-x-auto">{children}</pre>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-gray-700 pl-4 italic text-gray-400">
+    <blockquote className="border-l-4 border-border-default pl-4 italic text-text-secondary">
       {children}
     </blockquote>
   ),
@@ -55,12 +55,12 @@ const components: Components = {
     <table className="w-full border-collapse">{children}</table>
   ),
   th: ({ children }) => (
-    <th className="border border-gray-700 px-3 py-2 text-left text-white bg-gray-800">
+    <th className="border border-border-default px-3 py-2 text-left text-text-primary bg-surface-input">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="border border-gray-700 px-3 py-2 text-gray-300">
+    <td className="border border-border-default px-3 py-2 text-text-secondary">
       {children}
     </td>
   ),
@@ -68,7 +68,7 @@ const components: Components = {
 
 export function MarkdownRenderer({ content }: { content: string }) {
   return (
-    <div className="space-y-4 text-gray-300 leading-relaxed">
+    <div className="space-y-4 text-text-secondary leading-relaxed">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>

@@ -172,8 +172,8 @@ export default function NewRolePage() {
   if (!isAdmin) {
     return (
       <div className="px-6 py-10 text-text-primary">
-        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
-          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+        <div className="mx-auto max-w-lg rounded-card border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-heading text-status-danger">Access denied</h1>
           <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
@@ -186,7 +186,7 @@ export default function NewRolePage() {
     <div className="text-text-primary">
       <div className="mx-auto max-w-3xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+          <h1 className="text-display tracking-tight text-text-primary">
             New Permission Set
           </h1>
           <p className="mt-2 text-text-secondary">
@@ -201,7 +201,7 @@ export default function NewRolePage() {
         )}
 
         <form onSubmit={handleSubmit}>
-          <div className="rounded-xl border border-border-default bg-surface-card p-6">
+          <div className="rounded-card border border-border-default bg-surface-card p-6">
             <div className="space-y-6">
               <div>
                 <label
@@ -265,7 +265,7 @@ export default function NewRolePage() {
                               if (el) el.indeterminate = someChecked;
                             }}
                             onChange={() => toggleCategory(catKeys)}
-                            className="h-4 w-4 rounded border-gray-600 bg-surface-input accent-blue-500"
+                            className="h-4 w-4 rounded border-border-default bg-surface-input accent-hg-blue"
                           />
                           <span className="text-sm font-medium text-text-primary">
                             {cat.label}
@@ -281,7 +281,7 @@ export default function NewRolePage() {
                                 type="checkbox"
                                 checked={permissions.has(p.key)}
                                 onChange={() => togglePermission(p.key)}
-                                className="h-4 w-4 rounded border-gray-600 bg-surface-input accent-blue-500"
+                                className="h-4 w-4 rounded border-border-default bg-surface-input accent-hg-blue"
                               />
                               <span className="text-sm text-text-secondary">
                                 {p.label}

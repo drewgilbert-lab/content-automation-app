@@ -18,27 +18,27 @@ import { MergeEditor } from "./merge-editor";
 import { ReplaceConfirm } from "./replace-confirm";
 
 const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
-  pending: "bg-yellow-500/15 text-yellow-400",
-  deferred: "bg-orange-500/15 text-orange-400",
-  accepted: "bg-green-500/15 text-green-400",
-  rejected: "bg-red-500/15 text-red-400",
+  pending: "bg-status-warning-bg text-status-warning",
+  deferred: "bg-status-warning-bg text-status-warning",
+  accepted: "bg-status-success-bg text-status-success",
+  rejected: "bg-status-danger-bg text-status-danger",
 };
 
 const SUBMISSION_TYPE_BADGE_CLASSES: Record<string, string> = {
-  new: "bg-cyan-500/15 text-cyan-400",
-  update: "bg-indigo-500/15 text-indigo-400",
-  document_add: "bg-teal-500/15 text-teal-400",
+  new: "bg-status-info-bg text-hg-blue-bright",
+  update: "bg-status-info-bg text-status-info",
+  document_add: "bg-status-success-bg text-status-success",
 };
 
 const TYPE_BADGE_CLASSES: Record<string, string> = {
-  persona: "bg-blue-500/15 text-blue-400",
-  segment: "bg-emerald-500/15 text-emerald-400",
-  use_case: "bg-amber-500/15 text-amber-400",
-  business_rule: "bg-purple-500/15 text-purple-400",
-  icp: "bg-rose-500/15 text-rose-400",
-  skill: "bg-pink-500/15 text-pink-400",
-  competitor: "bg-orange-500/15 text-orange-400",
-  customer_evidence: "bg-lime-500/15 text-lime-400",
+  persona: "bg-hg-blue/15 text-hg-blue-bright",
+  segment: "bg-status-success-bg text-status-success",
+  use_case: "bg-status-warning-bg text-status-warning",
+  business_rule: "bg-status-info-bg text-hg-blue-muted",
+  icp: "bg-status-danger-bg text-status-danger",
+  skill: "bg-status-info-bg text-hg-blue-bright",
+  competitor: "bg-status-warning-bg text-status-warning",
+  customer_evidence: "bg-status-success-bg text-status-success",
 };
 
 function formatDate(iso: string): string {
@@ -150,29 +150,29 @@ export function SubmissionReview({
   return (
     <div className="space-y-8">
       {/* Metadata card */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h2 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <h2 className="text-label uppercase tracking-widest text-text-muted mb-4">
           Submission Details
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div>
-            <p className="text-sm font-medium text-gray-300">Submitter</p>
-            <p className="text-sm text-white">{submission.submitter}</p>
+            <p className="text-body font-medium text-text-secondary">Submitter</p>
+            <p className="text-body text-text-primary">{submission.submitter}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-300">Object Type</p>
+            <p className="text-body font-medium text-text-secondary">Object Type</p>
             <span
-              className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
-                TYPE_BADGE_CLASSES[submission.objectType] ?? "bg-gray-500/15 text-gray-400"
+              className={`inline-block rounded px-2 py-0.5 text-caption ${
+                TYPE_BADGE_CLASSES[submission.objectType] ?? "bg-surface-input/50 text-text-secondary"
               }`}
             >
               {getObjectTypeLabel(submission.objectType)}
             </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-300">Submission Type</p>
+            <p className="text-body font-medium text-text-secondary">Submission Type</p>
             <span
-              className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
+              className={`inline-block rounded px-2 py-0.5 text-caption ${
                 SUBMISSION_TYPE_BADGE_CLASSES[submission.submissionType]
               }`}
             >
@@ -180,9 +180,9 @@ export function SubmissionReview({
             </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-300">Status</p>
+            <p className="text-body font-medium text-text-secondary">Status</p>
             <span
-              className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
+              className={`inline-block rounded px-2 py-0.5 text-caption ${
                 STATUS_BADGE_CLASSES[submission.status]
               }`}
             >
@@ -190,43 +190,43 @@ export function SubmissionReview({
             </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-300">Object Name</p>
-            <p className="text-sm text-white">{submission.objectName}</p>
+            <p className="text-body font-medium text-text-secondary">Object Name</p>
+            <p className="text-body text-text-primary">{submission.objectName}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-300">Submitted</p>
-            <p className="text-sm text-gray-400">{formatDate(submission.createdAt)}</p>
+            <p className="text-body font-medium text-text-secondary">Submitted</p>
+            <p className="text-body text-text-secondary">{formatDate(submission.createdAt)}</p>
           </div>
           {submission.reviewedAt && (
             <div>
-              <p className="text-sm font-medium text-gray-300">Reviewed</p>
-              <p className="text-sm text-gray-400">{formatDate(submission.reviewedAt)}</p>
+              <p className="text-body font-medium text-text-secondary">Reviewed</p>
+              <p className="text-body text-text-secondary">{formatDate(submission.reviewedAt)}</p>
             </div>
           )}
           {submission.status !== "pending" && submission.reviewedBy && (
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+              <p className="text-label uppercase tracking-widest text-text-muted">
                 Reviewed By
               </p>
-              <p className="mt-1 text-sm text-gray-300">{submission.reviewedBy}</p>
+              <p className="mt-1 text-body text-text-secondary">{submission.reviewedBy}</p>
             </div>
           )}
           {submission.sourceChannel && (
             <div>
-              <p className="text-sm font-medium text-gray-300">Source</p>
-              <p className="text-sm text-white">{getSourceChannelLabel(submission.sourceChannel)}</p>
+              <p className="text-body font-medium text-text-secondary">Source</p>
+              <p className="text-body text-text-primary">{getSourceChannelLabel(submission.sourceChannel)}</p>
             </div>
           )}
           {submission.sourceAppId && (
             <div>
-              <p className="text-sm font-medium text-gray-300">Source App</p>
-              <p className="text-sm text-white">{submission.sourceAppId}</p>
+              <p className="text-body font-medium text-text-secondary">Source App</p>
+              <p className="text-body text-text-primary">{submission.sourceAppId}</p>
             </div>
           )}
           {submission.sourceDescription && (
             <div className="sm:col-span-2">
-              <p className="text-sm font-medium text-gray-300">Source Description</p>
-              <p className="text-sm text-gray-400">{submission.sourceDescription}</p>
+              <p className="text-body font-medium text-text-secondary">Source Description</p>
+              <p className="text-body text-text-secondary">{submission.sourceDescription}</p>
             </div>
           )}
         </div>
@@ -234,25 +234,25 @@ export function SubmissionReview({
 
       {/* Status banners */}
       {submission.status === "rejected" && submission.reviewComment && (
-        <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
-          <p className="text-sm font-medium text-red-300">Rejection reason</p>
-          <p className="mt-1 text-sm text-red-200">{submission.reviewComment}</p>
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3">
+          <p className="text-body font-medium text-status-danger">Rejection reason</p>
+          <p className="mt-1 text-body text-status-danger">{submission.reviewComment}</p>
         </div>
       )}
 
       {submission.status === "deferred" && submission.reviewNote && (
-        <div className="rounded-lg border border-yellow-800 bg-yellow-950/30 px-4 py-3">
-          <p className="text-sm font-medium text-yellow-300">Deferral note</p>
-          <p className="mt-1 text-sm text-yellow-200">{submission.reviewNote}</p>
+        <div className="rounded-lg border border-status-warning/30 bg-status-warning-bg px-4 py-3">
+          <p className="text-body font-medium text-status-warning">Deferral note</p>
+          <p className="mt-1 text-body text-status-warning">{submission.reviewNote}</p>
         </div>
       )}
 
       {submission.status === "accepted" && submission.targetObjectId && (
-        <div className="rounded-lg border border-green-800 bg-green-950/30 px-4 py-3">
-          <p className="text-sm font-medium text-green-300">Accepted</p>
+        <div className="rounded-lg border border-status-success/30 bg-status-success-bg px-4 py-3">
+          <p className="text-body font-medium text-status-success">Accepted</p>
           <Link
             href={submission.objectType === "skill" ? `/skills/${submission.targetObjectId}` : `/knowledge/${submission.targetObjectId}`}
-            className="mt-1 inline-block text-sm text-green-200 underline hover:text-green-100"
+            className="mt-1 inline-block text-body text-status-success underline hover:text-status-success/80"
           >
             {submission.objectType === "skill" ? "View skill in Skills Library →" : "View object in Knowledge Base →"}
           </Link>
@@ -260,14 +260,14 @@ export function SubmissionReview({
       )}
 
       {submission.status === "accepted" && !submission.targetObjectId && (
-        <div className="rounded-lg border border-green-800 bg-green-950/30 px-4 py-3">
-          <p className="text-sm font-medium text-green-300">Accepted</p>
-          <p className="mt-1 text-sm text-green-200">
+        <div className="rounded-lg border border-status-success/30 bg-status-success-bg px-4 py-3">
+          <p className="text-body font-medium text-status-success">Accepted</p>
+          <p className="mt-1 text-body text-status-success">
             Object was created in the Knowledge Base.
           </p>
           <Link
             href="/knowledge"
-            className="mt-2 inline-block text-sm text-green-200 underline hover:text-green-100"
+            className="mt-2 inline-block text-body text-status-success underline hover:text-status-success/80"
           >
             View Knowledge Base →
           </Link>
@@ -305,51 +305,51 @@ export function SubmissionReview({
         <>
           {/* Content preview */}
           {submission.submissionType === "new" && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+            <div className="rounded-card border border-border-default bg-surface-card p-6">
+              <h3 className="text-label uppercase tracking-widest text-text-muted mb-4">
                 Proposed Content
               </h3>
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-300">Name</p>
-                  <p className="text-sm text-white">{proposedContent.name ?? submission.objectName}</p>
+                  <p className="text-body font-medium text-text-secondary">Name</p>
+                  <p className="text-body text-text-primary">{proposedContent.name ?? submission.objectName}</p>
                 </div>
                 {proposedContent.subType && (
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Sub Type</p>
-                    <p className="text-sm text-gray-400">{proposedContent.subType}</p>
+                    <p className="text-body font-medium text-text-secondary">Sub Type</p>
+                    <p className="text-body text-text-secondary">{proposedContent.subType}</p>
                   </div>
                 )}
                 {proposedContent.revenueRange && (
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Revenue Range</p>
-                    <p className="text-sm text-gray-400">{proposedContent.revenueRange}</p>
+                    <p className="text-body font-medium text-text-secondary">Revenue Range</p>
+                    <p className="text-body text-text-secondary">{proposedContent.revenueRange}</p>
                   </div>
                 )}
                 {proposedContent.employeeRange && (
                   <div>
-                    <p className="text-sm font-medium text-gray-300">Employee Range</p>
-                    <p className="text-sm text-gray-400">{proposedContent.employeeRange}</p>
+                    <p className="text-body font-medium text-text-secondary">Employee Range</p>
+                    <p className="text-body text-text-secondary">{proposedContent.employeeRange}</p>
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-medium text-gray-300 mb-2">Content</p>
+                  <p className="text-body font-medium text-text-secondary mb-2">Content</p>
                   <MarkdownRenderer content={proposedContent.content ?? ""} />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-300 mb-2">Tags</p>
+                  <p className="text-body font-medium text-text-secondary mb-2">Tags</p>
                   <div className="flex flex-wrap gap-1.5">
                     {(proposedContent.tags?.length ?? 0) > 0 ? (
                       (proposedContent.tags ?? []).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
+                          className="rounded bg-surface-input px-2 py-0.5 text-caption text-text-secondary"
                         >
                           {tag}
                         </span>
                       ))
                     ) : (
-                      <span className="text-sm text-gray-500">No tags</span>
+                      <span className="text-body text-text-muted">No tags</span>
                     )}
                   </div>
                 </div>
@@ -365,17 +365,17 @@ export function SubmissionReview({
           )}
 
           {submission.submissionType === "update" && !currentObject && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-              <p className="text-sm text-gray-500">
+            <div className="rounded-card border border-border-default bg-surface-card p-6">
+              <p className="text-body text-text-muted">
                 Current object could not be loaded. Showing proposed content only.
               </p>
               <div className="mt-4 space-y-4">
                 <div>
-                  <p className="text-sm font-medium text-gray-300">Name</p>
-                  <p className="text-sm text-white">{proposedContent.name ?? submission.objectName}</p>
+                  <p className="text-body font-medium text-text-secondary">Name</p>
+                  <p className="text-body text-text-primary">{proposedContent.name ?? submission.objectName}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-300 mb-2">Content</p>
+                  <p className="text-body font-medium text-text-secondary mb-2">Content</p>
                   <MarkdownRenderer content={proposedContent.content ?? ""} />
                 </div>
               </div>
@@ -383,24 +383,24 @@ export function SubmissionReview({
           )}
 
           {submission.submissionType === "document_add" && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+            <div className="rounded-card border border-border-default bg-surface-card p-6">
+              <h3 className="text-label uppercase tracking-widest text-text-muted mb-4">
                 Uploaded Document
               </h3>
               {proposedContent.sourceFile && (
                 <div className="mb-4 flex items-center gap-2">
-                  <span className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+                  <span className="rounded bg-surface-input px-2 py-0.5 text-caption text-text-secondary">
                     Source: {proposedContent.sourceFile}
                   </span>
                 </div>
               )}
               <div>
-                <p className="text-sm font-medium text-gray-300 mb-2">Document Content</p>
+                <p className="text-body font-medium text-text-secondary mb-2">Document Content</p>
                 <MarkdownRenderer content={proposedContent.content ?? ""} />
               </div>
               {currentObject && (
-                <div className="mt-6 border-t border-gray-800 pt-6">
-                  <p className="text-sm font-medium text-gray-300 mb-2">
+                <div className="mt-6 border-t border-border-default pt-6">
+                  <p className="text-body font-medium text-text-secondary mb-2">
                     Current Object Content
                   </p>
                   <MarkdownRenderer content={currentObject.content} />
@@ -410,24 +410,24 @@ export function SubmissionReview({
           )}
 
           {submission.objectType === "skill" && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+            <div className="rounded-card border border-border-default bg-surface-card p-6">
+              <h3 className="text-label uppercase tracking-widest text-text-muted mb-4">
                 Skill Refresh Suggestion
               </h3>
               {currentSkill && (
                 <div className="mb-6">
-                  <p className="text-sm font-medium text-gray-300 mb-2">Current Skill Content</p>
+                  <p className="text-body font-medium text-text-secondary mb-2">Current Skill Content</p>
                   <MarkdownRenderer content={currentSkill.content} />
                 </div>
               )}
-              <div className="border-t border-gray-800 pt-6">
-                <p className="text-sm font-medium text-gray-300 mb-2">Updated Knowledge Object</p>
+              <div className="border-t border-border-default pt-6">
+                <p className="text-body font-medium text-text-secondary mb-2">Updated Knowledge Object</p>
                 <MarkdownRenderer content={proposedContent.content ?? ""} />
               </div>
               {(proposedContent as Record<string, unknown>).integrationPrompt ? (
-                <div className="border-t border-gray-800 pt-6 mt-6">
-                  <p className="text-sm font-medium text-gray-300 mb-2">Integration Prompt</p>
-                  <p className="text-sm text-gray-400 italic">
+                <div className="border-t border-border-default pt-6 mt-6">
+                  <p className="text-body font-medium text-text-secondary mb-2">Integration Prompt</p>
+                  <p className="text-body text-text-secondary italic">
                     {String((proposedContent as Record<string, unknown>).integrationPrompt)}
                   </p>
                 </div>
@@ -437,15 +437,15 @@ export function SubmissionReview({
 
           {/* Error display */}
           {error && (
-            <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
-              <p className="text-sm text-red-200">{error}</p>
+            <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3">
+              <p className="text-body text-status-danger">{error}</p>
             </div>
           )}
 
           {/* Action buttons */}
           {canReview && (
-            <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-              <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+            <div className="rounded-card border border-border-default bg-surface-card p-6">
+              <h3 className="text-label uppercase tracking-widest text-text-muted mb-4">
                 Actions
               </h3>
 
@@ -454,21 +454,21 @@ export function SubmissionReview({
                   <button
                     onClick={handleAccept}
                     disabled={loading}
-                    className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg bg-action-primary px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? "Processing…" : "Accept"}
                   </button>
                   <button
                     onClick={() => setActionMode("reject")}
                     disabled={loading}
-                    className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg bg-action-danger px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-danger-hover disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reject
                   </button>
                   <button
                     onClick={() => setActionMode("defer")}
                     disabled={loading}
-                    className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Defer
                   </button>
@@ -476,7 +476,7 @@ export function SubmissionReview({
                     <button
                       onClick={() => setActionMode("merge")}
                       disabled={loading}
-                      className="rounded-lg border border-indigo-600 bg-indigo-600/10 px-5 py-2.5 text-sm font-medium text-indigo-300 hover:bg-indigo-600/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg border border-status-info/30 bg-status-info-bg px-5 py-2.5 text-body font-medium text-status-info hover:bg-status-info-bg/80 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {submission.submissionType === "document_add" ? "Merge Document" : "Merge with AI"}
                     </button>
@@ -485,7 +485,7 @@ export function SubmissionReview({
                     <button
                       onClick={() => setActionMode("replace")}
                       disabled={loading}
-                      className="rounded-lg border border-amber-700 bg-amber-700/10 px-5 py-2.5 text-sm font-medium text-amber-300 hover:bg-amber-700/20 disabled:cursor-not-allowed disabled:opacity-50"
+                      className="rounded-lg border border-status-warning/30 bg-status-warning-bg px-5 py-2.5 text-body font-medium text-status-warning hover:bg-status-warning-bg/80 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       Replace with Proposed
                     </button>
@@ -500,13 +500,13 @@ export function SubmissionReview({
                     onChange={(e) => setRejectComment(e.target.value)}
                     placeholder="Required: explain why this submission is being rejected"
                     rows={4}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+                    className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
                   />
                   <div className="flex gap-3">
                     <button
                       onClick={handleReject}
                       disabled={loading || !rejectComment.trim()}
-                      className="rounded-lg bg-red-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg bg-action-danger px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-danger-hover disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? "Rejecting…" : "Confirm Reject"}
                     </button>
@@ -517,7 +517,7 @@ export function SubmissionReview({
                         setError(null);
                       }}
                       disabled={loading}
-                      className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600"
+                      className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80"
                     >
                       Cancel
                     </button>
@@ -532,13 +532,13 @@ export function SubmissionReview({
                     onChange={(e) => setDeferNote(e.target.value)}
                     placeholder="Optional: add a note for why this was deferred"
                     rows={3}
-                    className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+                    className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
                   />
                   <div className="flex gap-3">
                     <button
                       onClick={handleDefer}
                       disabled={loading}
-                      className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loading ? "Deferring…" : "Confirm Defer"}
                     </button>
@@ -549,7 +549,7 @@ export function SubmissionReview({
                         setError(null);
                       }}
                       disabled={loading}
-                      className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600"
+                      className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80"
                     >
                       Cancel
                     </button>

@@ -70,15 +70,15 @@ export function SkillList({ skills }: { skills: SkillListItem[] }) {
   return (
     <div className="mt-10 space-y-6">
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-gray-900 p-1">
+      <div className="flex gap-1 rounded-lg bg-surface-card p-1">
         {TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-md px-3 py-1.5 text-body font-medium transition-colors ${
               activeTab === tab.value
-                ? "bg-gray-700 text-white"
-                : "text-gray-400 hover:text-gray-300"
+                ? "bg-surface-active text-text-primary"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
             {tab.label}
@@ -93,12 +93,12 @@ export function SkillList({ skills }: { skills: SkillListItem[] }) {
           placeholder="Search by name, description, or tag..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="flex-1 rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
         <select
           value={contentTypeFilter}
           onChange={(e) => setContentTypeFilter(e.target.value)}
-          className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-gray-600 focus:outline-none"
+          className="rounded-lg border border-border-default bg-surface-input px-3 py-2.5 text-body text-text-primary focus:border-border-focus focus:outline-none"
         >
           <option value="">All Types</option>
           {CONTENT_TYPES.map((ct) => (
@@ -110,7 +110,7 @@ export function SkillList({ skills }: { skills: SkillListItem[] }) {
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="rounded-lg border border-gray-700 bg-gray-800 px-3 py-2.5 text-sm text-white focus:border-gray-600 focus:outline-none"
+          className="rounded-lg border border-border-default bg-surface-input px-3 py-2.5 text-body text-text-primary focus:border-border-focus focus:outline-none"
         >
           <option value="">All Categories</option>
           {SKILL_CATEGORIES.map((cat) => (
@@ -122,14 +122,14 @@ export function SkillList({ skills }: { skills: SkillListItem[] }) {
       </div>
 
       {/* Result count */}
-      <p className="text-sm text-gray-500">
+      <p className="text-body text-text-muted">
         {filtered.length} {filtered.length === 1 ? "skill" : "skills"}
       </p>
 
       {/* Skill list */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 px-6 py-12 text-center">
-          <p className="text-gray-500">No skills found.</p>
+        <div className="rounded-card border border-border-default bg-surface-card px-6 py-12 text-center">
+          <p className="text-text-muted">No skills found.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -146,49 +146,49 @@ function SkillRow({ skill }: { skill: SkillListItem }) {
   return (
     <Link
       href={`/skills/${skill.id}`}
-      className={`flex items-center gap-4 rounded-lg border px-5 py-4 transition-colors ${
+      className={`flex items-center gap-4 rounded-card border px-5 py-4 transition-colors ${
         skill.deprecated
-          ? "border-gray-800/60 bg-gray-900/60 opacity-60"
-          : "border-gray-800 bg-gray-900 hover:border-gray-700"
+          ? "border-border-default/60 bg-surface-card/60 opacity-60"
+          : "border-border-default bg-surface-card hover:border-border-default/80"
       }`}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-white">{skill.name}</span>
+          <span className="font-medium text-text-primary">{skill.name}</span>
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+            className={`rounded-full px-2 py-0.5 text-micro ${
               skill.active && !skill.deprecated
-                ? "bg-green-900/50 border border-green-800 text-green-400"
-                : "bg-gray-800 border border-gray-700 text-gray-400"
+                ? "bg-status-success-bg border border-status-success/30 text-status-success"
+                : "bg-surface-input border border-border-default text-text-secondary"
             }`}
           >
             {skill.deprecated ? "Deprecated" : skill.active ? "Active" : "Inactive"}
           </span>
-          <span className="text-xs text-gray-500">v{skill.version}</span>
+          <span className="text-caption text-text-muted">v{skill.version}</span>
         </div>
-        <p className="mt-0.5 truncate text-sm text-gray-400">{skill.description}</p>
+        <p className="mt-0.5 truncate text-body text-text-secondary">{skill.description}</p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {skill.contentType.slice(0, 2).map((ct) => (
           <span
             key={ct}
-            className="rounded bg-blue-900/30 border border-blue-800/50 px-2 py-0.5 text-[10px] font-medium text-blue-400"
+            className="rounded bg-status-info-bg border border-border-focus/50 px-2 py-0.5 text-micro text-hg-blue-bright"
           >
             {getContentTypeLabel(ct)}
           </span>
         ))}
         {skill.contentType.length > 2 && (
-          <span className="text-xs text-gray-500">
+          <span className="text-caption text-text-muted">
             +{skill.contentType.length - 2}
           </span>
         )}
       </div>
       {skill.category && (
-        <span className="shrink-0 rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+        <span className="shrink-0 rounded bg-surface-input px-2 py-0.5 text-caption text-text-secondary">
           {getCategoryLabel(skill.category)}
         </span>
       )}
-      <span className="shrink-0 text-xs text-gray-500">
+      <span className="shrink-0 text-caption text-text-muted">
         {formatDate(skill.updatedAt)}
       </span>
     </Link>

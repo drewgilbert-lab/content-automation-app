@@ -37,15 +37,15 @@ const EVENT_LABELS: Record<AuditLogRecord["eventType"], string> = {
 };
 
 const EVENT_BADGE: Record<AuditLogRecord["eventType"], string> = {
-  sign_in: "bg-blue-600/20 text-hg-blue-bright",
-  sign_out: "bg-blue-600/20 text-hg-blue-bright",
-  sign_in_failed: "bg-red-600/20 text-status-danger",
-  role_change: "bg-amber-600/20 text-status-warning",
-  user_activated: "bg-emerald-600/20 text-emerald-400",
-  user_deactivated: "bg-gray-600/20 text-text-secondary",
-  permission_set_change: "bg-purple-600/20 text-purple-400",
-  permission_set_created: "bg-purple-600/20 text-purple-400",
-  permission_set_deleted: "bg-purple-600/20 text-purple-400",
+  sign_in: "bg-status-info-bg text-hg-blue-bright",
+  sign_out: "bg-status-info-bg text-hg-blue-bright",
+  sign_in_failed: "bg-status-danger-bg text-status-danger",
+  role_change: "bg-status-warning-bg text-status-warning",
+  user_activated: "bg-status-success-bg text-status-success",
+  user_deactivated: "bg-surface-input text-text-secondary",
+  permission_set_change: "bg-status-info-bg text-hg-blue-muted",
+  permission_set_created: "bg-status-info-bg text-hg-blue-muted",
+  permission_set_deleted: "bg-status-info-bg text-hg-blue-muted",
 };
 
 const EVENT_TYPES = Object.keys(EVENT_LABELS) as AuditLogRecord["eventType"][];
@@ -214,8 +214,8 @@ export default function AdminAuditPage() {
   if (!isAdmin) {
     return (
       <div className="px-6 py-10 text-text-primary">
-        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
-          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+        <div className="mx-auto max-w-lg rounded-card border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-heading text-status-danger">Access denied</h1>
           <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
@@ -228,7 +228,7 @@ export default function AdminAuditPage() {
     <div className="text-text-primary">
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+          <h1 className="text-display tracking-tight text-text-primary">
             Audit Log
           </h1>
           <p className="mt-2 text-text-secondary">
@@ -271,18 +271,18 @@ export default function AdminAuditPage() {
         )}
 
         {loading && events.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
+          <div className="flex flex-col items-center justify-center rounded-card border border-border-default bg-surface-card py-20">
             <Spinner className="h-10 w-10" />
             <p className="mt-4 text-sm text-text-secondary">Loading events…</p>
           </div>
         ) : events.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
+          <div className="flex flex-col items-center justify-center rounded-card border border-border-default bg-surface-card py-20">
             <p className="text-sm text-text-muted">No audit events found.</p>
           </div>
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-border-default bg-surface-card md:block">
+            <div className="hidden overflow-hidden rounded-card border border-border-default bg-surface-card md:block">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-border-default bg-surface-card text-xs uppercase tracking-wide text-text-muted">
                   <tr>
@@ -350,7 +350,7 @@ export default function AdminAuditPage() {
                 return (
                   <li
                     key={ev.id}
-                    className="rounded-xl border border-border-default bg-surface-card p-4"
+                    className="rounded-card border border-border-default bg-surface-card p-4"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <span

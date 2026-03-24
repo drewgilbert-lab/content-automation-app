@@ -47,30 +47,30 @@ export function ReplaceConfirm({
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h3 className="text-lg font-semibold text-white">Replace with Proposed</h3>
-        <p className="mt-1 text-sm text-gray-400">
+        <h3 className="text-subheading text-text-primary">Replace with Proposed</h3>
+        <p className="mt-1 text-body text-text-secondary">
           Review the proposed content below. Confirming will overwrite the current version entirely.
         </p>
       </div>
 
       {/* Warning banner */}
-      <div className="rounded-lg border border-amber-700 bg-amber-950/30 px-4 py-3">
-        <p className="text-sm font-medium text-amber-300">Warning</p>
-        <p className="mt-1 text-sm text-amber-200">
+      <div className="rounded-lg border border-status-warning/30 bg-status-warning-bg px-4 py-3">
+        <p className="text-body font-medium text-status-warning">Warning</p>
+        <p className="mt-1 text-body text-status-warning">
           This will fully replace the current version with the proposed content. The existing content will be permanently overwritten and cannot be recovered.
         </p>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
-          <p className="text-sm text-red-200">{error}</p>
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3">
+          <p className="text-body text-status-danger">{error}</p>
         </div>
       )}
 
       {/* Proposed content preview */}
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <h4 className="mb-4 text-label uppercase tracking-widest text-text-muted">
           Proposed Content (will become the new version)
         </h4>
         <MarkdownRenderer content={proposedContent} />
@@ -81,14 +81,14 @@ export function ReplaceConfirm({
         <button
           onClick={handleConfirm}
           disabled={saving}
-          className="rounded-lg bg-amber-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-amber-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-action-primary px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Replacing..." : "Confirm Replace"}
         </button>
         <button
           onClick={onDiscard}
           disabled={saving}
-          className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Cancel
         </button>

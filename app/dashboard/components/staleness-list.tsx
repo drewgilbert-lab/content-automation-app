@@ -29,8 +29,8 @@ function formatDate(iso: string): string {
 function StaleBadge({ label }: { label: "Never Reviewed" | "Stale" }) {
   const styles =
     label === "Never Reviewed"
-      ? "bg-amber-500/15 text-amber-400"
-      : "bg-red-500/15 text-red-400";
+      ? "bg-status-warning-bg text-status-warning"
+      : "bg-status-danger-bg text-status-danger";
 
   return (
     <span
@@ -54,8 +54,8 @@ export function StalenessList({ neverReviewed, stale }: StalenessListProps) {
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <p className="text-sm text-gray-400">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <p className="text-sm text-text-secondary">
           All objects are up to date. No stale or unreviewed items found.
         </p>
       </div>
@@ -63,20 +63,20 @@ export function StalenessList({ neverReviewed, stale }: StalenessListProps) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-      <div className="divide-y divide-gray-800">
+    <div className="rounded-card border border-border-default bg-surface-card overflow-hidden">
+      <div className="divide-y divide-border-default">
         {items.map((item) => (
           <Link
             key={item.id}
             href={`/knowledge/${item.id}`}
-            className="flex items-center justify-between px-4 py-3 hover:bg-gray-800/50 transition-colors"
+            className="flex items-center justify-between px-4 py-3 hover:bg-surface-input/50 transition-colors"
           >
             <div className="flex items-center gap-3 min-w-0">
               <StaleBadge label={item.label} />
               <TypeBadge type={item.type} />
-              <span className="text-sm text-gray-300 truncate">{item.name}</span>
+              <span className="text-sm text-text-secondary truncate">{item.name}</span>
             </div>
-            <span className="ml-3 shrink-0 text-xs text-gray-500">
+            <span className="ml-3 shrink-0 text-xs text-text-muted">
               {formatDate(item.updatedAt)}
             </span>
           </Link>

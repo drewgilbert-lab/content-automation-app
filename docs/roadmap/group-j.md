@@ -238,6 +238,57 @@ Define MCP tool contract updates so skill payloads can be pushed/pulled in a Cla
 **J25 — MCP Validation and Error Semantics for Skill Bundles**
 Add strict validation and deterministic error messages for malformed skill payloads (invalid frontmatter keys, invalid `name` format, unsupported type values, missing required fields). Errors should be machine-actionable and consistent across stdio and Streamable HTTP transports so Claude and automation clients can retry with corrected payloads.
 
+## Phase 7: Content Library Tools
+
+> Dependencies: [Phase 2 Module 3](./phase-2.md) (Content Library) and [Module 5](./phase-2.md) (External Content Ingestion) must define the `GeneratedContent` collection and editorial workflow. Phases 1–2 of Group J (read/write tools for knowledge) must be complete.
+
+The existing MCP tools (Phases 1–2) operate on the **Knowledge Base** — personas, segments, use cases, skills, etc. This phase adds a parallel set of tools for the **Content Library** (`GeneratedContent` collection), enabling MCP clients to read, search, and submit finished content pieces.
+
+This is the key enabler for the Claude-to-Content-Library workflow: a user drafts content in a Claude conversation, then pushes it into the Content Library as a draft via MCP — no copy-pasting into the web UI.
+
+**J26 — Content Read Tools**
+Expose tools that allow MCP clients to browse and search the Content Library.
+
+| Tool | Description | Input | Returns |
+|---|---|---|---|
+| `list_content` | List content pieces with optional filtering | `contentType?`, `status?`, `sourceChannel?`, `limit?` (default 50, max 200), `offset?` | `{ id, title, contentType, status, sourceChannel, createdAt, updatedAt }` per piece |
+| `get_content` | Full detail of a single content piece | `id` (string) | Full detail including body, metadata, source provenance, and cross-referenced knowledge objects |
+| `search_content` | Semantic search across content body | `query` (string), `contentType?`, `status?`, `limit?` (default 10, max 25), `certaintyThreshold?` (default 0.5) | Results ranked by vector similarity: `{ id, title, contentType, status, snippet, score }` |
+
+Response formatting follows the same conventions as knowledge read tools (J5): structured JSON with clear field names, body truncated to 500-char snippets in list/search results. The LLM calls `get_content` for full body when needed.
+
+**J27 — Content Write Tools**
+Expose tools that create or update content pieces in the Content Library. Unlike knowledge write tools (J9) which create Submission records, content write tools write directly to the `GeneratedContent` collection as `draft` entries — the Module 4 editorial workflow is the quality gate.
+
+| Tool | Description | Key Input | Returns |
+|---|---|---|---|
+| `submit_content` | Push a new content piece into the library as a draft | `body`, `contentType`, `title?`, `tags?`, `personaId?`, `segmentId?`, `useCaseIds?`, `sourceDescription?` | `{ contentId, status: "draft", sourceChannel: "mcp" }` |
+| `update_content` | Update an existing draft content piece | `contentId`, any writable fields (`body`, `title`, `tags`, knowledge object links) | `{ contentId, status, updatedAt }` |
+
+Write tool flow: validate `contentType` against canonical list → validate optional knowledge object IDs exist → write to `GeneratedContent` with `sourceChannel: "mcp"`, `sourceAppId` from authenticated API key, `status: "draft"` → return content ID.
+
+**Constraints:**
+- Only `draft` and `rejected` content can be updated via MCP. Content in `submitted`, `in_review`, `approved`, or `published` status is read-only from external tools.
+- `contentType` must be a valid value from the canonical `CONTENT_TYPES` list. Invalid types return an error with the list of accepted values.
+- Content size limit: 100KB per submission (consistent with J14 knowledge submission limits).
+
+**J28 — Content Tool Access Control**
+New permission scopes on `ConnectedSystem` control access to content tools independently from knowledge tools:
+
+| Scope | Tools Available |
+|---|---|
+| `mcp-content-read` | `list_content`, `get_content`, `search_content` |
+| `mcp-content-write` | `submit_content`, `update_content` (requires `mcp-content-read` as well) |
+
+These are additive to existing scopes (`mcp-read`, `mcp-write`). A connection can have knowledge read + content write, or any other combination. The Connected Systems admin UI gains checkboxes for the new scopes.
+
+### Phase 7 Example Use Cases
+
+- **Claude Desktop drafting:** User asks Claude to write a competitive email. Claude generates the email in the conversation, then calls `submit_content({ body: "...", contentType: "email", title: "Competitive displacement — ZoomInfo", sourceDescription: "Drafted in Claude Desktop for Q3 campaign" })`. The email appears in the Content Library as a draft. The user opens the web UI to submit it for editorial review.
+- **Cursor inline workflow:** Developer uses Cursor to generate internal documentation. After iterating, they instruct Cursor to push the final version via `submit_content` with `contentType: "internal_doc"`.
+- **n8n content pipeline:** An automation workflow generates social posts from approved blog posts. Each social post is pushed via `submit_content` with `sourceAppId: "n8n-social-repurpose"`. Marketing reviews the batch in the Content Library.
+- **Content search for context:** Before drafting new content, an LLM calls `search_content({ query: "territory planning email" })` to find existing content on the same topic, avoiding duplication and ensuring consistency.
+
 ## Risks and Gaps
 
 | Risk | Impact | Mitigation |

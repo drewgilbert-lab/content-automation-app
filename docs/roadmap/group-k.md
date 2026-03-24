@@ -151,6 +151,50 @@ Surface push failures prominently so admins are aware without navigating to the 
 **K12 — Phase 2 Testing and Documentation**
 Unit tests for `lib/push-sync.ts` (payload building, HMAC signing, retry logic, cycle orchestration). Unit tests for PushLog CRUD. Integration tests for the cron endpoint (mock webhook targets, verify delivery and logging). Integration tests for push failure UI (verify notifications appear). End-to-end test: create a connected system with push enabled, update a knowledge object, trigger the cron, verify the webhook was called with the correct payload. Update `docs/API.md` with webhook payload format and signature verification instructions. Update `docs/EXTERNAL_API.md` with push configuration section and webhook setup guide. Update `docs/CHANGELOG.md`.
 
+## Phase 3 — Content API
+
+> Scope: Extend the `/api/v1/` REST API to support the Content Library (`GeneratedContent` collection). Read endpoints allow external consumers to browse and search content. Write endpoints allow external tools and automation workflows to push content into the library as drafts. Push sync (K7–K12) is extended to deliver content changes alongside knowledge changes.
+> Dependencies: Phase 1 (K1–K6) complete. [Phase 2 Module 3](./phase-2.md) (Content Library) and [Module 5](./phase-2.md) (External Content Ingestion) must define the `GeneratedContent` collection and editorial workflow.
+
+**K13 — Content Read Endpoints**
+Versioned read endpoints for the Content Library at `/api/v1/content`. All require `X-API-Key` auth via K2 middleware. Responses follow the same `{ "data": ..., "meta": ... }` shape used by knowledge endpoints.
+
+| Endpoint | Description | Key Parameters | Reuses |
+|---|---|---|---|
+| `GET /api/v1/content` | List content pieces | `content_type`, `status`, `source_channel`, `tags`, `limit` (default 100, max 500), `offset` | New `listContent()` in `lib/content.ts` |
+| `GET /api/v1/content/:id` | Single content piece with full body and resolved cross-references | — | New `getContent()` in `lib/content.ts` |
+| `GET /api/v1/content/search` | Semantic search across content body via Weaviate `nearText` | `q` (required), `content_type?`, `status?`, `limit` (default 10, max 50), `certainty` (default 0.7) | New `semanticSearchContent()` in `lib/content.ts` |
+
+Search results include `score` (float 0.0–1.0) and `snippet` (first 500 characters of body). Default filtering excludes `rejected` content; use `status=rejected` to include it explicitly.
+
+Implementation files: `app/api/v1/content/route.ts`, `app/api/v1/content/[id]/route.ts`, `app/api/v1/content/search/route.ts`.
+
+**K14 — Content Write Endpoints**
+Write endpoints that create or update content pieces directly in the `GeneratedContent` collection as drafts. Unlike knowledge writes (which go through the Submission review queue), content writes enter the editorial workflow directly — Module 4 is the quality gate.
+
+| Endpoint | Description | Key Input | Returns |
+|---|---|---|---|
+| `POST /api/v1/content` | Create a new content piece as draft | `body`, `contentType`, `title?`, `tags?`, `personaId?`, `segmentId?`, `useCaseIds?`, `sourceDescription?` | `{ data: { id, status: "draft", sourceChannel: "api", createdAt } }` |
+| `PUT /api/v1/content/:id` | Update an existing draft | Any writable fields (`body`, `title`, `tags`, knowledge object links) | `{ data: { id, status, updatedAt } }` |
+
+Write flow: authenticate via `X-API-Key` → validate `contentType` against canonical list → validate optional knowledge object IDs exist → write to `GeneratedContent` with `sourceChannel: "api"`, `sourceAppId` from authenticated `ConnectedSystem` record, `status: "draft"` → return content ID.
+
+**Constraints:**
+- Only `draft` and `rejected` content can be updated via API. Content in other workflow states returns `409 Conflict`.
+- `contentType` must be a valid value from the canonical `CONTENT_TYPES` list. Invalid types return `400` with the list of accepted values.
+- Content size limit: 100KB per `body` field.
+- Rate limiting follows the same tiers as knowledge endpoints (K5): standard (100 req/min) and elevated (300 req/min).
+
+**K15 — Content Push Sync Extension**
+Extend the Phase 2 push sync infrastructure (K7–K12) to deliver content changes alongside knowledge changes. When a content piece transitions to `approved` or `published`, subscribed systems receive a webhook push.
+
+New event types: `content.created`, `content.updated`, `content.approved`, `content.published`. Payload shape follows the same pattern as knowledge webhooks (K8): `{ "event": "content.approved", "timestamp": "ISO-8601", "content": { id, title, contentType, body, status, tags, sourceChannel, createdAt, updatedAt } }`.
+
+The `ConnectedSystem.subscribedTypes` field is extended to accept content-related subscriptions (e.g. `["content:email", "content:blog"]` or `["content:*"]` for all content types). Knowledge and content subscriptions are independent — a system can subscribe to knowledge pushes only, content pushes only, or both.
+
+**K16 — Phase 3 Testing and Documentation**
+Unit tests for content CRUD functions in `lib/content.ts`. Integration tests for all `/api/v1/content` endpoints (auth, responses, error cases, pagination, status filtering). Integration tests for content push sync (verify webhook delivery on content approval). Update `docs/API.md` with content endpoint contracts. Update `docs/EXTERNAL_API.md` with content API section, curl examples, and content push configuration. Update `docs/CHANGELOG.md`.
+
 **Risks and Gaps:**
 
 | Risk | Impact | Mitigation |

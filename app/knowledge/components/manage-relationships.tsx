@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { X, Plus } from "lucide-react";
 import type {
   KnowledgeType,
   CrossReference,
@@ -12,13 +13,13 @@ import type {
 import { getTypeLabel } from "@/lib/knowledge-types";
 
 const TYPE_COLORS: Record<KnowledgeType, string> = {
-  persona: "bg-blue-500/15 text-blue-400",
-  segment: "bg-emerald-500/15 text-emerald-400",
-  use_case: "bg-amber-500/15 text-amber-400",
-  business_rule: "bg-purple-500/15 text-purple-400",
-  icp: "bg-rose-500/15 text-rose-400",
-  competitor: "bg-orange-500/15 text-orange-400",
-  customer_evidence: "bg-lime-500/15 text-lime-400",
+  persona: "bg-hg-blue/15 text-hg-blue-bright",
+  segment: "bg-status-success-bg text-status-success",
+  use_case: "bg-status-warning-bg text-status-warning",
+  business_rule: "bg-status-info-bg text-hg-blue-muted",
+  icp: "bg-status-danger-bg text-status-danger",
+  competitor: "bg-status-warning-bg text-status-warning",
+  customer_evidence: "bg-status-success-bg text-status-success",
 };
 
 interface ManageRelationshipsProps {
@@ -203,22 +204,22 @@ export function ManageRelationships({
   }
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-6 space-y-5">
+    <div className="rounded-card border border-border-default bg-surface-card p-6 space-y-5">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="text-label uppercase tracking-widest text-text-muted">
           Relationships
         </p>
         {allConfigs.length > 0 && (
           <button
             onClick={openDropdown}
-            className="text-xs text-blue-400 hover:text-blue-300"
+            className="flex items-center gap-1 text-caption text-hg-blue-bright hover:text-hg-blue-muted"
           >
-            + Add
+            <Plus className="h-3 w-3" /> Add
           </button>
         )}
       </div>
 
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-caption text-status-danger">{error}</p>}
 
       {dropdownOpen && (
         <div ref={dropdownRef} className="relative">
@@ -228,13 +229,13 @@ export function ManageRelationships({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search all content..."
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-3 py-2 text-body text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
           />
-          <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-700 bg-gray-800 shadow-lg">
+          <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-border-default bg-surface-input shadow-lg">
             {loadingCandidates ? (
-              <p className="px-3 py-2 text-xs text-gray-500">Loading...</p>
+              <p className="px-3 py-2 text-caption text-text-muted">Loading...</p>
             ) : filtered.length === 0 ? (
-              <p className="px-3 py-2 text-xs text-gray-500">
+              <p className="px-3 py-2 text-caption text-text-muted">
                 No matches found
               </p>
             ) : (
@@ -243,11 +244,11 @@ export function ManageRelationships({
                   key={c.id}
                   onClick={() => handleAdd(c)}
                   disabled={addingId === c.id}
-                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm text-gray-300 hover:bg-gray-700 disabled:opacity-50"
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-body text-text-secondary hover:bg-surface-active disabled:opacity-50"
                 >
                   <span>{addingId === c.id ? "Adding..." : c.name}</span>
                   <span
-                    className={`ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${TYPE_COLORS[c.type]}`}
+                    className={`ml-2 shrink-0 rounded-full px-2 py-0.5 text-micro ${TYPE_COLORS[c.type]}`}
                   >
                     {getTypeLabel(c.type)}
                   </span>
@@ -263,28 +264,28 @@ export function ManageRelationships({
         if (refs.length === 0) return null;
         return (
           <div key={`${config.property}-${config.label}`}>
-            <p className="text-xs font-medium text-gray-500">{config.label}</p>
+            <p className="text-caption font-medium text-text-muted">{config.label}</p>
             <div className="mt-1.5 space-y-1">
               {refs.map((ref) => (
                 <div
                   key={ref.id}
-                  className="group flex items-center justify-between rounded px-1 -mx-1 hover:bg-gray-800/50"
+                  className="group flex items-center justify-between rounded px-1 -mx-1 hover:bg-surface-input/50"
                 >
                   <Link
                     href={`/knowledge/${ref.id}`}
-                    className="text-sm text-blue-400 hover:text-blue-300"
+                    className="text-body text-hg-blue-bright hover:text-hg-blue-muted"
                   >
                     {ref.name}
                   </Link>
                   {removingId === ref.id ? (
-                    <span className="text-xs text-gray-500">Removing...</span>
+                    <span className="text-caption text-text-muted">Removing...</span>
                   ) : (
                     <button
                       onClick={() => handleRemove(ref.id, config.label)}
-                      className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 text-sm px-1 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 text-status-danger hover:text-status-danger/80 px-1 transition-opacity"
                       aria-label={`Remove ${ref.name}`}
                     >
-                      ×
+                      <X className="h-3.5 w-3.5" />
                     </button>
                   )}
                 </div>
@@ -303,13 +304,13 @@ export function ManageRelationships({
         )
         .map(([label, refs]) => (
           <div key={label}>
-            <p className="text-xs font-medium text-gray-500">{label}</p>
+            <p className="text-caption font-medium text-text-muted">{label}</p>
             <div className="mt-1.5 space-y-1">
               {refs.map((ref) => (
                 <div key={ref.id}>
                   <Link
                     href={`/knowledge/${ref.id}`}
-                    className="text-sm text-blue-400 hover:text-blue-300"
+                    className="text-body text-hg-blue-bright hover:text-hg-blue-muted"
                   >
                     {ref.name}
                   </Link>
@@ -320,7 +321,7 @@ export function ManageRelationships({
         ))}
 
       {!hasAnyRefs && (
-        <p className="text-sm text-gray-600">No relationships yet</p>
+        <p className="text-body text-text-muted">No relationships yet</p>
       )}
     </div>
   );

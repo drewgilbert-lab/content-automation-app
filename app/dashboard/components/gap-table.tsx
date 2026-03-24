@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import type { KnowledgeType } from "@/lib/knowledge-types";
 import { TypeBadge } from "@/app/knowledge/components/type-badge";
 
@@ -24,16 +25,20 @@ function GapSection({ title, items, defaultOpen = false }: GapSectionProps) {
   if (items.length === 0) return null;
 
   return (
-    <div className="border-b border-gray-800 last:border-b-0">
+    <div className="border-b border-border-default last:border-b-0">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-800/50 transition-colors"
+        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-surface-input/50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">{open ? "▾" : "▸"}</span>
-          <span className="text-sm font-medium text-gray-300">{title}</span>
+          {open ? (
+            <ChevronDown className="h-4 w-4 text-text-muted" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-text-muted" />
+          )}
+          <span className="text-sm font-medium text-text-secondary">{title}</span>
         </div>
-        <span className="rounded-full bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-400">
+        <span className="rounded-full bg-surface-input px-2.5 py-0.5 text-xs font-medium text-text-secondary">
           {items.length}
         </span>
       </button>
@@ -43,22 +48,22 @@ function GapSection({ title, items, defaultOpen = false }: GapSectionProps) {
             {items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between rounded-lg bg-gray-800/50 px-3 py-2"
+                className="flex items-center justify-between rounded-lg bg-surface-input/50 px-3 py-2"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <TypeBadge type={item.type} />
-                  <span className="text-sm text-gray-300 truncate">
+                  <span className="text-sm text-text-secondary truncate">
                     {item.name}
                   </span>
                   {item.gapDetail && (
-                    <span className="hidden sm:inline text-xs text-gray-500">
+                    <span className="hidden sm:inline text-xs text-text-muted">
                       {item.gapDetail}
                     </span>
                   )}
                 </div>
                 <Link
                   href={`/knowledge/${item.id}`}
-                  className="ml-3 shrink-0 rounded-lg border border-gray-700 px-3 py-1 text-xs font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
+                  className="ml-3 shrink-0 rounded-lg border border-border-default px-3 py-1 text-xs font-medium text-text-secondary hover:border-border-focus hover:text-text-primary transition-colors"
                 >
                   Fix
                 </Link>
@@ -98,8 +103,8 @@ export function GapTable({
 
   if (totalGaps === 0) {
     return (
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <p className="text-sm text-gray-400">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <p className="text-sm text-text-secondary">
           No relationship gaps detected. All objects are properly connected.
         </p>
       </div>
@@ -107,7 +112,7 @@ export function GapTable({
   }
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
+    <div className="rounded-card border border-border-default bg-surface-card overflow-hidden">
       <GapSection
         title="No Relationships"
         items={noRelationships}

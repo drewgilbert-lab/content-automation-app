@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-5xl px-6 py-10">
         {/* Header */}
         <div className="mb-10">
-          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+          <h1 className="text-display tracking-tight text-text-primary">
             Knowledge Base Health
           </h1>
           <p className="mt-2 text-text-secondary">
@@ -48,7 +48,7 @@ export default async function DashboardPage() {
 
         {/* Health Summary */}
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
+          <h2 className="mb-4 text-label uppercase tracking-widest text-text-muted">
             Overview
           </h2>
           <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
 
         {/* Relationship Gap Report */}
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
+          <h2 className="mb-4 text-label uppercase tracking-widest text-text-muted">
             Relationship Gaps
           </h2>
           <GapTable
@@ -96,7 +96,7 @@ export default async function DashboardPage() {
 
         {/* Staleness Report */}
         <section className="mb-10">
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
+          <h2 className="mb-4 text-label uppercase tracking-widest text-text-muted">
             Staleness Report
           </h2>
           <StalenessList
@@ -107,13 +107,13 @@ export default async function DashboardPage() {
 
         {/* Review Queue */}
         <section>
-          <h2 className="mb-4 text-sm font-medium uppercase tracking-wider text-text-muted">
+          <h2 className="mb-4 text-label uppercase tracking-widest text-text-muted">
             Review Queue
           </h2>
           <div className="space-y-3">
             <Link
               href="/queue"
-              className="block rounded-xl border border-border-default bg-surface-card p-6 hover:border-border-focus transition-colors"
+              className="block rounded-card border border-border-default bg-surface-card p-6 hover:border-border-focus transition-colors"
             >
               <div className="flex items-center justify-between">
                 <div>
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
                     Submissions awaiting review
                   </p>
                 </div>
-                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-yellow-500/15 text-yellow-400" : "bg-surface-input text-text-muted"}`}>
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${pendingCount > 0 ? "bg-status-warning-bg text-status-warning" : "bg-surface-input text-text-muted"}`}>
                   {pendingCount}
                 </span>
               </div>
@@ -132,7 +132,7 @@ export default async function DashboardPage() {
             {data.pendingSystemSkillSubmissions > 0 && (
               <Link
                 href="/queue"
-                className="block rounded-xl border border-fuchsia-900/50 bg-surface-card p-6 hover:border-fuchsia-800/50 transition-colors"
+                className="block rounded-card border border-status-info/30 bg-surface-card p-6 hover:border-status-info/50 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -143,7 +143,7 @@ export default async function DashboardPage() {
                       System-generated skill updates from knowledge changes
                     </p>
                   </div>
-                  <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-fuchsia-500/15 text-fuchsia-400">
+                  <span className="rounded-full px-2.5 py-0.5 text-xs font-medium bg-status-info-bg text-hg-blue-muted">
                     {data.pendingSystemSkillSubmissions}
                   </span>
                 </div>

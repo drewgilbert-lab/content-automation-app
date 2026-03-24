@@ -32,10 +32,10 @@ const ROLE_LABELS: Record<UserRole, string> = {
 };
 
 const ROLE_BADGE: Record<UserRole, string> = {
-  admin: "bg-red-600/20 text-status-danger",
-  editor: "bg-blue-600/20 text-hg-blue-bright",
-  contributor: "bg-green-600/20 text-green-400",
-  viewer: "bg-gray-600/20 text-text-secondary",
+  admin: "bg-status-danger-bg text-status-danger",
+  editor: "bg-status-info-bg text-hg-blue-bright",
+  contributor: "bg-status-success-bg text-status-success",
+  viewer: "bg-surface-input text-text-secondary",
 };
 
 function formatLastLogin(iso: string | null | undefined): string {
@@ -184,8 +184,8 @@ export default function AdminUsersPage() {
   if (!isAdmin) {
     return (
       <div className="px-6 py-10 text-text-primary">
-        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
-          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+        <div className="mx-auto max-w-lg rounded-card border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-heading text-status-danger">Access denied</h1>
           <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
@@ -198,7 +198,7 @@ export default function AdminUsersPage() {
     <div className="text-text-primary">
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+          <h1 className="text-display tracking-tight text-text-primary">
             User Management
           </h1>
           <p className="mt-2 text-text-secondary">
@@ -229,14 +229,14 @@ export default function AdminUsersPage() {
         )}
 
         {listLoading && users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
+          <div className="flex flex-col items-center justify-center rounded-card border border-border-default bg-surface-card py-20">
             <Spinner className="h-10 w-10" />
             <p className="mt-4 text-sm text-text-secondary">Loading users…</p>
           </div>
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-border-default bg-surface-card md:block">
+            <div className="hidden overflow-hidden rounded-card border border-border-default bg-surface-card md:block">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-border-default bg-surface-card text-xs uppercase tracking-wide text-text-muted">
                   <tr>
@@ -293,8 +293,8 @@ export default function AdminUsersPage() {
                         <span
                           className={
                             u.active
-                              ? "inline-flex rounded-md bg-emerald-600/20 px-2 py-0.5 text-xs font-medium text-emerald-400"
-                              : "inline-flex rounded-md bg-gray-600/20 px-2 py-0.5 text-xs font-medium text-text-secondary"
+                              ? "inline-flex rounded-md bg-status-success-bg px-2 py-0.5 text-xs font-medium text-status-success"
+                              : "inline-flex rounded-md bg-surface-input px-2 py-0.5 text-xs font-medium text-text-secondary"
                           }
                         >
                           {u.active ? "Active" : "Inactive"}
@@ -357,7 +357,7 @@ export default function AdminUsersPage() {
               {filteredUsers.map((u) => (
                 <li
                   key={u.id}
-                  className="rounded-xl border border-border-default bg-surface-card p-4"
+                  className="rounded-card border border-border-default bg-surface-card p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -374,7 +374,7 @@ export default function AdminUsersPage() {
                     <span>Last login: {formatLastLogin(u.lastLoginAt)}</span>
                     <span
                       className={
-                        u.active ? "text-emerald-400" : "text-text-muted"
+                        u.active ? "text-status-success" : "text-text-muted"
                       }
                     >
                       {u.active ? "Active" : "Inactive"}

@@ -161,3 +161,98 @@ draft → submitted → in_review → approved → published
 **WF-6** — As a **marketing manager**, I want to mark an approved piece as published so our team knows it's live.
 - "Publish" transitions status from `approved` → `published`
 - Published pieces cannot be edited without resetting to `draft`
+
+---
+
+## Module 5: External Content Ingestion
+
+> Scope: The Content Library accepts content from multiple channels — not just the in-app Generate UI. Users working in Claude Desktop, Cursor, or other MCP-compatible tools can push finished content directly into the library. Automation workflows and REST API consumers can do the same. All externally submitted content enters as `draft` and goes through the Module 4 editorial workflow. No separate content review queue is needed — the editorial pipeline is the quality gate.
+> Dependencies: Module 3 (Content Library) and Module 4 (Workflows) must be built first. MCP tools depend on [Group J](./group-j.md) Phase 7. REST API endpoints depend on [Group K](./group-k.md) Phase 3.
+
+### Why This Matters
+
+The Generate UI (Module 2) is one way to create content, but not the only way content gets created. Marketing teams draft content in Claude Desktop conversations, SDRs iterate on emails in Cursor, and automation workflows produce content from templates. Without an ingestion path, all of that content lives outside the system — untracked, unreviewed, and disconnected from the knowledge base.
+
+External content ingestion turns the Content Library into a **platform** rather than a single-app feature. The same editorial workflow (Module 4) that governs in-app generated content also governs externally submitted content, so quality standards are enforced regardless of source.
+
+### Source Channels
+
+| Channel | `sourceChannel` value | Entry Point | Auth |
+|---|---|---|---|
+| Generate UI (Module 2) | `generate_ui` | In-app generation flow | Session auth |
+| Direct Upload UI | `direct_upload` | Content Library "Submit Content" action | Session auth |
+| MCP Server | `mcp` | `submit_content` tool ([Group J](./group-j.md) J27) | API key (mcp-content-write scope) |
+| REST API | `api` | `POST /api/v1/content` ([Group K](./group-k.md) K14) | API key (X-API-Key header) |
+| Bulk Content Import | `bulk_import` | Batch upload of markdown files | Session auth |
+
+### Design Decisions
+
+**No submission review queue for content.** Knowledge Base writes go through the `Submission` review queue because knowledge objects are shared, long-lived source-of-truth records. Content pieces are individual drafts owned by their creator. The Module 4 editorial workflow (draft → submitted → in_review → approved → published) already provides the review gate. Adding a separate review queue would create unnecessary friction.
+
+**Source provenance on `GeneratedContent`.** The `GeneratedContent` collection gains `sourceChannel`, `sourceAppId`, and `sourceDescription` fields — the same provenance pattern used on `Submission` records (J10). This enables filtering and auditing by source.
+
+**Content type validation on ingest.** External submissions must specify a valid `contentType` from the canonical list. Invalid types are rejected with a descriptive error. This prevents the library from accumulating untyped or mistyped content.
+
+**Optional knowledge object linking.** External submissions can optionally declare which knowledge objects informed the content (persona, segment, use cases). These are stored as cross-references on `GeneratedContent`, identical to how the Generate UI records context. If omitted, the cross-references are left empty.
+
+### Functional Requirements
+
+- [ ] Accept content directly in the Content Library UI without going through the Generate flow
+- [ ] Accept content via MCP `submit_content` tool from any MCP-compatible client
+- [ ] Accept content via REST API `POST /api/v1/content` from automation workflows
+- [ ] Accept bulk content import from markdown files
+- [ ] Track source provenance (channel, app ID, description) on every content piece
+- [ ] Display source badges and source filter in the Content Library list view
+- [ ] Validate `contentType` on all external submissions
+- [ ] Support optional knowledge object linking on external submissions
+
+### User Stories
+
+**EXT-1** — As a **content creator**, I want to submit existing content directly into the Content Library so I can track and manage content I wrote outside the app.
+- "Submit Content" action on the Content Library page opens a form with: title, content type (dropdown), body (markdown editor with preview), optional tags
+- Submitted content enters as `draft` with `sourceChannel: "direct_upload"`
+- No generation prompt or knowledge object context is required
+
+**EXT-2** — As a **content creator working in Claude Desktop**, I want to push content I've drafted in a Claude conversation into the Content Library so it enters the editorial workflow without copy-pasting.
+- Claude calls the MCP `submit_content` tool with body, content type, and optional metadata
+- Content appears in the Content Library as `draft` with `sourceChannel: "mcp"` and the `sourceAppId` from the authenticated API key
+- The MCP tool returns the content ID and status for confirmation
+
+**EXT-3** — As a **marketing ops engineer**, I want to push content from automation workflows via the REST API so templated or AI-generated content from external tools enters the editorial pipeline.
+- `POST /api/v1/content` accepts `body`, `contentType`, `title`, optional `tags`, optional knowledge object IDs, and optional `sourceDescription`
+- Response returns `{ data: { id, status: "draft", sourceChannel: "api" } }`
+- Source provenance auto-populated from the authenticated API key
+
+**EXT-4** — As a **marketing manager**, I want to see where a content piece originated so I can assess whether it needs more review.
+- Content detail page shows a source badge (e.g. "MCP — claude-desktop", "Direct Upload", "Generated")
+- `sourceDescription` displayed if present (e.g. "Drafted during Q3 campaign planning session")
+
+**EXT-5** — As a **marketing manager**, I want to filter the Content Library by source channel so I can review all externally submitted content separately from in-app generated content.
+- Filter dropdown in Content Library list view with options: All, Generated, Direct Upload, MCP, API, Bulk Import
+- Filter combines with existing content type and status filters
+
+**EXT-6** — As a **system**, I want to validate content type on all external submissions so the library maintains consistent categorization.
+- MCP `submit_content` and REST `POST /api/v1/content` reject submissions with invalid `contentType` values
+- Error response includes the list of valid content types
+- Valid types sourced from the canonical `CONTENT_TYPES` list in `lib/skill-types.ts`
+
+**EXT-7** — As a **content creator**, I want to optionally link knowledge objects when submitting external content so the Content Library tracks which personas, segments, and use cases informed the piece.
+- Direct Upload form, MCP tool, and REST API all accept optional knowledge object IDs: `personaId`, `segmentId`, `useCaseIds[]`
+- Linked objects are stored as cross-references on `GeneratedContent` (same as Generate UI)
+- If omitted, cross-references are empty — linking is not required
+
+**EXT-8** — As a **content creator**, I want to bulk import content from markdown files so I can migrate existing content into the library without submitting each piece individually.
+- Bulk import page accepts multiple `.md` files
+- Each file requires a YAML frontmatter block with `title` and `contentType`; optional `tags` and `sourceDescription`
+- All imported content enters as `draft` with `sourceChannel: "bulk_import"`
+- Import summary shows success/failure count per file
+
+### Risks and Gaps
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| External content quality varies widely | Low-quality content clutters the library | Editorial workflow (Module 4) is the quality gate; reviewers can reject |
+| No duplicate detection on content submissions | Same content submitted multiple times from different channels | Defer to Phase 2+ hardening; manual detection by reviewers initially |
+| Bulk import YAML frontmatter errors | Files without valid frontmatter fail silently | Validate frontmatter before import; show per-file error messages |
+| MCP content tools increase attack surface | Unauthorized content pushed into library | Permission scoping (mcp-content-write); all content enters as draft, never published directly |
+| Content submitted without knowledge object links | Loss of context traceability | Links are optional by design; Generate UI content always has links; external content may not |

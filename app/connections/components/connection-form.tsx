@@ -186,21 +186,21 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
     return (
       <div className="space-y-6">
-        <div className="rounded-lg border border-green-800 bg-green-950/30 p-6">
-          <h3 className="text-lg font-semibold text-green-300">
+        <div className="rounded-lg border border-status-success/30 bg-status-success-bg p-6">
+          <h3 className="text-subheading text-status-success">
             Connection Created
           </h3>
-          <p className="mt-2 text-sm text-gray-300">
+          <p className="mt-2 text-body text-text-secondary">
             Your API key has been generated. Copy it now — it cannot be shown
             again.
           </p>
 
-          <div className="mt-4 rounded-lg border border-yellow-700 bg-yellow-950/30 p-4">
-            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-yellow-400">
+          <div className="mt-4 rounded-lg border border-status-warning/30 bg-status-warning-bg p-4">
+            <p className="mb-2 text-label uppercase tracking-widest text-status-warning">
               API Key
             </p>
             <div className="flex items-center gap-3">
-              <code className="flex-1 break-all rounded bg-gray-800 px-3 py-2 font-mono text-sm text-white">
+              <code className="flex-1 break-all rounded bg-surface-input px-3 py-2 font-mono text-body text-text-primary">
                 {createdKey.apiKey}
               </code>
               <Button
@@ -213,35 +213,35 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
                 {copied ? "Copied!" : "Copy"}
               </Button>
             </div>
-            <p className="mt-3 text-xs text-yellow-400">
+            <p className="mt-3 text-caption text-status-warning">
               ⚠ Save this key now. It cannot be shown again.
             </p>
           </div>
         </div>
 
         {hasMcpPermission && (
-          <div className="rounded-lg border border-violet-800 bg-violet-950/30 p-6 space-y-5">
+          <div className="rounded-lg border border-status-info/30 bg-status-info-bg p-6 space-y-5">
             <div>
-              <h3 className="text-lg font-semibold text-violet-300">
+              <h3 className="text-subheading text-status-info">
                 MCP Setup
               </h3>
-              <p className="mt-1 text-sm text-gray-400">
+              <p className="mt-1 text-body text-text-secondary">
                 This key has MCP {mcpPermissionSummary} access. Use the
                 configuration below to connect MCP clients.
               </p>
             </div>
 
             <div>
-              <p className="mb-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+              <p className="mb-1.5 text-label uppercase tracking-widest text-text-muted">
                 Server URL
               </p>
               {mcpServerUrl ? (
-                <code className="block break-all rounded bg-gray-800 px-3 py-2 font-mono text-sm text-gray-300">
+                <code className="block break-all rounded bg-surface-input px-3 py-2 font-mono text-body text-text-secondary">
                   {mcpServerUrl}/mcp
                 </code>
               ) : (
-                <p className="text-sm text-yellow-400">
-                  Set <code className="font-mono text-xs">NEXT_PUBLIC_MCP_SERVER_URL</code> in
+                <p className="text-body text-status-warning">
+                  Set <code className="font-mono text-caption">NEXT_PUBLIC_MCP_SERVER_URL</code> in
                   your environment to display the server URL here.
                 </p>
               )}
@@ -249,7 +249,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
 
             <div>
               <div className="mb-1.5 flex items-center justify-between">
-                <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+                <p className="text-label uppercase tracking-widest text-text-muted">
                   Claude Desktop / Cursor Config
                 </p>
                 <Button
@@ -261,14 +261,14 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
                   {copiedConfig ? "Copied!" : "Copy"}
                 </Button>
               </div>
-              <pre className="overflow-x-auto rounded bg-gray-800 px-3 py-2.5 font-mono text-xs text-gray-300 leading-relaxed">
+              <pre className="overflow-x-auto rounded bg-surface-input px-3 py-2.5 font-mono text-caption text-text-secondary leading-relaxed">
                 {configSnippet}
               </pre>
             </div>
 
-            <p className="text-xs text-gray-500">
+            <p className="text-caption text-text-muted">
               For local development (stdio transport), no API key is needed. See{" "}
-              <code className="font-mono text-xs text-gray-400">mcp-server/README.md</code>{" "}
+              <code className="font-mono text-caption text-text-secondary">mcp-server/README.md</code>{" "}
               for stdio setup instructions.
             </p>
           </div>
@@ -290,7 +290,7 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-body text-status-danger">
           {error}
         </div>
       )}
@@ -327,8 +327,8 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
               className={cn(
                 "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                 permissions.includes(perm)
-                  ? "border-blue-600 bg-blue-600/20 text-blue-400"
-                  : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                  ? "border-border-focus bg-action-primary/20 text-hg-blue-bright"
+                  : "border-border-default bg-surface-input text-text-secondary hover:border-border-default/80"
               )}
             >
               {getPermissionLabel(perm)}
@@ -348,8 +348,8 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
             className={cn(
               "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
               allTypes
-                ? "border-blue-600 bg-blue-600/20 text-blue-400"
-                : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                ? "border-border-focus bg-action-primary/20 text-hg-blue-bright"
+                : "border-border-default bg-surface-input text-text-secondary hover:border-border-default/80"
             )}
           >
             All Types
@@ -364,10 +364,10 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
                 className={cn(
                   "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                   allTypes
-                    ? "border-gray-800 bg-gray-800/50 text-gray-600 cursor-not-allowed"
+                    ? "border-border-default bg-surface-input/50 text-text-muted cursor-not-allowed"
                     : subscribedTypes.includes(kt.value)
-                      ? "border-blue-600 bg-blue-600/20 text-blue-400"
-                      : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
+                      ? "border-border-focus bg-action-primary/20 text-hg-blue-bright"
+                      : "border-border-default bg-surface-input text-text-secondary hover:border-border-default/80"
                 )}
               >
                 {kt.label}

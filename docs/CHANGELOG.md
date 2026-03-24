@@ -6,6 +6,25 @@
 
 ## 2026-03-24
 
+### Group AA Phase 4 — Page-Level Styling Migration (AA13–AA19)
+
+Migrated all page surfaces and shared components across knowledge, skills, queue, connections, admin, and dashboard modules from raw Tailwind classes to the HG-branded semantic token system. Applied typography scale, rounded-card radii, Lucide icons, and consistent surface/border/text patterns. Zero raw gray/blue/status color classes remain in migrated files.
+
+- **AA13 — Home Page Rebrand**: Restyled `app/page.tsx` as branded dashboard landing with system status, quick-action cards, Lucide icons, semantic typography tokens, and `rounded-card`.
+- **AA14 — Auth/Sign-In Page**: Restyled `app/auth/signin/page.tsx` and `signin-button.tsx` with HG wordmark, "by HG Insights" subtext, card accent bar, semantic button styling.
+- **AA15 — List Page Pattern**: Migrated `knowledge/page.tsx`, `skills/page.tsx`, `queue/page.tsx` and their list components (`knowledge-list.tsx`, `skill-list.tsx`, `submission-list.tsx`) from raw gray/blue classes to semantic tokens, semantic typography, `rounded-card`, Lucide icons.
+- **AA16 — Detail Page Pattern**: Migrated `knowledge/[id]/page.tsx`, `skills/[id]/page.tsx`, `queue/[id]/page.tsx` and all shared components (`detail-actions.tsx`, `markdown-renderer.tsx`, `manage-relationships.tsx`, `type-badge.tsx`, `skill-detail-actions.tsx`, `suggest-links.tsx`, `submission-review.tsx`, `merge-editor.tsx`, `replace-confirm.tsx`, `content-diff.tsx`, `visual-diff.tsx`) to semantic tokens.
+- **AA17 — Form Page Pattern**: Migrated form pages and form components (`knowledge-form.tsx`, `skill-form.tsx`, `connection-form.tsx`) to semantic tokens.
+- **AA18 — Admin Pages**: Migrated admin pages (`users`, `roles`, `audit`, `roles/new`, `roles/[id]/edit`), dashboard page and components (`stat-card.tsx`, `gap-table.tsx`, `staleness-list.tsx`), connections pages and components (`connection-list.tsx`, `connection-detail-actions.tsx`) to semantic tokens.
+- **AA19 — Phase 4 Validation**: Full validation passed — `npm run build` clean, zero lint errors, raw-class audit clean across all in-scope directories.
+
+**Modified files**: 48 page and component files across `app/` (pages, list components, detail components, form components, admin pages, dashboard components, connection components, auth pages). No new files created.
+**No new dependencies, no API changes, no Weaviate schema changes** — CSS class migrations only.
+**Documentation**: `docs/roadmap/group-aa.md` (AA13–AA19 marked done, Phase 4 heading updated), `docs/roadmap/README.md` (AA status updated to Phase 1-4 Done), `docs/UI_STANDARDS.md` (migration notes updated), `docs/SCOPE.md` (HG Brand Theming status updated), `docs/CHANGELOG.md` (this entry).
+**User guide update**: N/A — no new user-facing features. Only visual restyling of existing pages.
+
+---
+
 ### Group AA Phase 3 — Typography Scale and Content Styling (AA10–AA12)
 
 - **AA10 — Define Typography Scale**: Added 8 semantic typography tokens to `app/globals.css` via `@theme inline`: `text-display` (30px/800/1.2), `text-heading` (20px/700/1.3), `text-subheading` (16px/600/1.4), `text-body` (14px/400/1.6), `text-body-sm` (13px/400/1.55), `text-caption` (12px/500/1.4), `text-micro` (11px/500/1.3), `text-label` (11px/700/1.0). Each token encodes font-size, line-height, and font-weight via Tailwind v4's `--text-*--line-height` and `--text-*--font-weight` companion tokens.

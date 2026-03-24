@@ -43,7 +43,7 @@ function CollapsibleUnchanged({
       <button
         type="button"
         onClick={() => setExpanded(true)}
-        className="my-1 block rounded bg-gray-800 px-3 py-1 text-xs text-gray-400 hover:bg-gray-700 hover:text-gray-300"
+        className="my-1 block rounded bg-surface-input px-3 py-1 text-caption text-text-secondary hover:bg-surface-active hover:text-text-primary"
         data-collapse-key={diffIndex}
       >
         Show {hiddenCount} unchanged lines
@@ -55,14 +55,14 @@ function CollapsibleUnchanged({
 
 function UnifiedView({ diffs }: { diffs: DiffTuple[] }) {
   return (
-    <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-sm leading-relaxed">
+    <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-body leading-relaxed">
       {diffs.map((diff, i) => {
         const [op, text] = diff;
         if (op === DIFF_INSERT) {
           return (
             <span
               key={i}
-              className="bg-green-500/20 text-green-300 underline decoration-green-500/40"
+              className="bg-status-success-bg text-status-success underline decoration-status-success/40"
             >
               {text}
             </span>
@@ -72,7 +72,7 @@ function UnifiedView({ diffs }: { diffs: DiffTuple[] }) {
           return (
             <span
               key={i}
-              className="bg-red-500/20 text-red-400 line-through"
+              className="bg-status-danger-bg text-status-danger line-through"
             >
               {text}
             </span>
@@ -107,14 +107,14 @@ function SideBySideView({ diffs }: { diffs: DiffTuple[] }) {
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <h4 className="mb-4 text-label uppercase tracking-widest text-text-muted">
           Original
         </h4>
         <div
           ref={leftRef}
           onScroll={() => handleScroll("left")}
-          className="max-h-[600px] overflow-auto prose prose-invert max-w-none whitespace-pre-wrap break-words text-sm leading-relaxed"
+          className="max-h-[600px] overflow-auto prose prose-invert max-w-none whitespace-pre-wrap break-words text-body leading-relaxed"
         >
           {diffs.map((diff, i) => {
             const [op, text] = diff;
@@ -122,7 +122,7 @@ function SideBySideView({ diffs }: { diffs: DiffTuple[] }) {
               return (
                 <span
                   key={i}
-                  className="bg-red-500/20 text-red-400 line-through"
+                  className="bg-status-danger-bg text-status-danger line-through"
                 >
                   {text}
                 </span>
@@ -136,14 +136,14 @@ function SideBySideView({ diffs }: { diffs: DiffTuple[] }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <h4 className="mb-4 text-label uppercase tracking-widest text-text-muted">
           Modified
         </h4>
         <div
           ref={rightRef}
           onScroll={() => handleScroll("right")}
-          className="max-h-[600px] overflow-auto prose prose-invert max-w-none whitespace-pre-wrap break-words text-sm leading-relaxed"
+          className="max-h-[600px] overflow-auto prose prose-invert max-w-none whitespace-pre-wrap break-words text-body leading-relaxed"
         >
           {diffs.map((diff, i) => {
             const [op, text] = diff;
@@ -151,7 +151,7 @@ function SideBySideView({ diffs }: { diffs: DiffTuple[] }) {
               return (
                 <span
                   key={i}
-                  className="bg-green-500/20 text-green-300 underline decoration-green-500/40"
+                  className="bg-status-success-bg text-status-success underline decoration-status-success/40"
                 >
                   {text}
                 </span>
@@ -184,7 +184,7 @@ export function VisualDiff({
   if (diffs.length === 0) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-gray-500">No changes</p>
+        <p className="text-body text-text-muted">No changes</p>
         <Legend />
       </div>
     );
@@ -204,17 +204,17 @@ export function VisualDiff({
 
 function Legend() {
   return (
-    <div className="flex items-center gap-6 text-xs text-gray-500">
+    <div className="flex items-center gap-6 text-caption text-text-muted">
       <span className="flex items-center gap-1.5">
-        <span className="inline-block h-3 w-6 rounded bg-green-500/20" />
+        <span className="inline-block h-3 w-6 rounded bg-status-success-bg" />
         Added
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="inline-block h-3 w-6 rounded bg-red-500/20" />
+        <span className="inline-block h-3 w-6 rounded bg-status-danger-bg" />
         Removed
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="inline-block h-3 w-6 rounded bg-gray-800" />
+        <span className="inline-block h-3 w-6 rounded bg-surface-input" />
         Unchanged
       </span>
     </div>

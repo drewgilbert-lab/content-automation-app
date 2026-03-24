@@ -50,7 +50,7 @@ This doc defines UI coding standards for the Content Engine app. It covers typog
 
 ## Migration Notes
 
-Existing pages use ad-hoc typography (e.g., `text-3xl font-semibold tracking-tight` for page titles). These will be migrated to the semantic tokens in AA Phase 4 (AA13-AA18). Until then, both patterns coexist. The mapping:
+Existing pages used ad-hoc typography (e.g., `text-3xl font-semibold tracking-tight` for page titles). These were migrated to the semantic tokens in AA Phase 4 (AA13-AA18), completed 2026-03-24. The ad-hoc patterns below should no longer appear in migrated files. The mapping remains as a reference for any future migrations:
 
 | Current pattern | Replacement |
 | --- | --- |

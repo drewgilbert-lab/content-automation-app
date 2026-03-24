@@ -56,7 +56,7 @@ export function SuggestLinks({ skillId }: { skillId: string }) {
       <button
         onClick={handleSuggest}
         disabled={loading}
-        className="rounded-lg border border-indigo-600 bg-indigo-600/10 px-4 py-2 text-sm font-medium text-indigo-300 hover:bg-indigo-600/20 disabled:opacity-50 transition-colors"
+        className="rounded-lg border border-status-info/30 bg-status-info-bg px-4 py-2 text-body font-medium text-status-info hover:bg-status-info-bg/80 disabled:opacity-50 transition-colors"
       >
         {loading ? "Analyzing..." : "Suggest Links"}
       </button>
@@ -65,12 +65,12 @@ export function SuggestLinks({ skillId }: { skillId: string }) {
 
   if (visible.length === 0) {
     return (
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <p className="text-sm text-gray-500">No suggestions found.</p>
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <p className="text-body text-text-muted">No suggestions found.</p>
         <button
           onClick={handleSuggest}
           disabled={loading}
-          className="mt-3 text-sm text-gray-400 hover:text-gray-300"
+          className="mt-3 text-body text-text-secondary hover:text-text-primary"
         >
           {loading ? "Analyzing..." : "Try again"}
         </button>
@@ -79,35 +79,35 @@ export function SuggestLinks({ skillId }: { skillId: string }) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-      <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+    <div className="rounded-card border border-border-default bg-surface-card p-6">
+      <h3 className="text-label uppercase tracking-widest text-text-muted mb-4">
         Suggested Links
       </h3>
       <div className="space-y-3">
         {visible.map((s) => (
           <div
             key={s.id}
-            className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-950 p-3"
+            className="flex items-center justify-between rounded-lg border border-border-default bg-surface-page p-3"
           >
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm font-medium text-white truncate">{s.name}</span>
-              <span className="shrink-0 rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+              <span className="text-body font-medium text-text-primary truncate">{s.name}</span>
+              <span className="shrink-0 rounded bg-surface-input px-2 py-0.5 text-caption text-text-secondary">
                 {s.type}
               </span>
-              <span className="shrink-0 text-xs text-gray-500">
+              <span className="shrink-0 text-caption text-text-muted">
                 {(s.score * 100).toFixed(0)}% match
               </span>
             </div>
             <div className="flex items-center gap-2 shrink-0 ml-3">
               <button
                 onClick={() => handleAccept(s)}
-                className="rounded bg-indigo-600/20 px-3 py-1 text-xs font-medium text-indigo-300 hover:bg-indigo-600/30"
+                className="rounded bg-status-info-bg px-3 py-1 text-caption text-status-info hover:bg-status-info-bg/80"
               >
                 Accept
               </button>
               <button
                 onClick={() => handleDismiss(s.id)}
-                className="rounded px-3 py-1 text-xs font-medium text-gray-400 hover:text-gray-300"
+                className="rounded px-3 py-1 text-caption text-text-secondary hover:text-text-primary"
               >
                 Dismiss
               </button>
@@ -118,7 +118,7 @@ export function SuggestLinks({ skillId }: { skillId: string }) {
       <button
         onClick={handleSuggest}
         disabled={loading}
-        className="mt-4 text-sm text-gray-400 hover:text-gray-300"
+        className="mt-4 text-body text-text-secondary hover:text-text-primary"
       >
         {loading ? "Analyzing..." : "Refresh suggestions"}
       </button>

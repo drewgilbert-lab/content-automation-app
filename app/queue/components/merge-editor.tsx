@@ -103,8 +103,8 @@ export function MergeEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-white">AI Merge Editor</h3>
-          <p className="mt-1 text-sm text-gray-400">
+          <h3 className="text-subheading text-text-primary">AI Merge Editor</h3>
+          <p className="mt-1 text-body text-text-secondary">
             {streaming
               ? "Generating merged content..."
               : streamComplete
@@ -113,8 +113,8 @@ export function MergeEditor({
           </p>
         </div>
         {streaming && (
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-blue-400" />
+          <div className="flex items-center gap-2 text-body text-text-secondary">
+            <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-hg-blue" />
             Streaming
           </div>
         )}
@@ -122,23 +122,23 @@ export function MergeEditor({
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/30 px-4 py-3">
-          <p className="text-sm text-red-200">{error}</p>
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3">
+          <p className="text-body text-status-danger">{error}</p>
         </div>
       )}
 
       {/* Two-panel layout */}
       <div className="grid grid-cols-2 gap-4">
         {/* Left: tracked-changes diff view */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-card border border-border-default bg-surface-card p-6">
+          <h4 className="mb-4 text-label uppercase tracking-widest text-text-muted">
             Tracked Changes
           </h4>
           {editedText ? (
             <VisualDiff original={currentContent} modified={editedText} mode="unified" />
           ) : (
-            <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-sm leading-relaxed">
-              <span className="text-gray-500">
+            <div className="prose prose-invert max-w-none whitespace-pre-wrap break-words text-body leading-relaxed">
+              <span className="text-text-muted">
                 {streaming ? "Waiting for merge output..." : "No changes"}
               </span>
             </div>
@@ -146,8 +146,8 @@ export function MergeEditor({
         </div>
 
         {/* Right: editable textarea */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <h4 className="mb-4 text-xs font-medium uppercase tracking-wider text-gray-500">
+        <div className="rounded-card border border-border-default bg-surface-card p-6">
+          <h4 className="mb-4 text-label uppercase tracking-widest text-text-muted">
             Merged Content (Editable)
           </h4>
           <textarea
@@ -155,7 +155,7 @@ export function MergeEditor({
             onChange={(e) => setEditedText(e.target.value)}
             disabled={streaming}
             rows={24}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 font-mono text-sm text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none disabled:opacity-60"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-3 font-mono text-body text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none disabled:opacity-60"
             placeholder={streaming ? "Generating..." : "Merged content will appear here"}
           />
         </div>
@@ -166,14 +166,14 @@ export function MergeEditor({
         <button
           onClick={handleSave}
           disabled={streaming || saving || !editedText.trim()}
-          className="rounded-lg bg-green-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-green-500 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-action-primary px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? "Saving..." : "Save Merged Content"}
         </button>
         <button
           onClick={onDiscard}
           disabled={saving}
-          className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Discard
         </button>

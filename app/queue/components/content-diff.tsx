@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import type { KnowledgeDetail } from "@/lib/knowledge-types";
 import { cn } from "@/lib/utils";
 import { VisualDiff } from "./visual-diff";
@@ -44,12 +45,12 @@ function TagsDiff({
 
   return (
     <div>
-      <p className="text-sm font-medium text-gray-300">Tags</p>
+      <p className="text-body font-medium text-text-secondary">Tags</p>
       <div className="mt-1 flex flex-wrap gap-1.5">
         {removed.map((tag) => (
           <span
             key={`rm-${tag}`}
-            className="rounded bg-red-900/40 px-2 py-0.5 text-xs text-red-300 line-through"
+            className="rounded bg-status-danger-bg px-2 py-0.5 text-caption text-status-danger line-through"
           >
             {tag}
           </span>
@@ -57,7 +58,7 @@ function TagsDiff({
         {unchanged.map((tag) => (
           <span
             key={`eq-${tag}`}
-            className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400"
+            className="rounded bg-surface-input px-2 py-0.5 text-caption text-text-secondary"
           >
             {tag}
           </span>
@@ -65,7 +66,7 @@ function TagsDiff({
         {added.map((tag) => (
           <span
             key={`add-${tag}`}
-            className="rounded bg-green-900/40 px-2 py-0.5 text-xs text-green-300"
+            className="rounded bg-status-success-bg px-2 py-0.5 text-caption text-status-success"
           >
             {tag}
           </span>
@@ -99,25 +100,25 @@ export function ContentDiff({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-        <h3 className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-4">
+      <div className="rounded-card border border-border-default bg-surface-card p-6">
+        <h3 className="text-label uppercase tracking-widest text-text-muted mb-4">
           Metadata Changes
         </h3>
         {hasMetadataChanges ? (
           <div className="space-y-4">
             {metadataChanges.map((field) => (
               <div key={field.key}>
-                <p className="text-sm font-medium text-gray-300">
+                <p className="text-body font-medium text-text-secondary">
                   {field.label}
                 </p>
                 <div className="mt-1 flex items-center gap-3">
-                  <span className="text-sm text-red-400 line-through">
+                  <span className="text-body text-status-danger line-through">
                     {String(
                       currentObject[field.key as keyof KnowledgeDetail] ?? "—",
                     )}
                   </span>
-                  <span className="text-gray-600">→</span>
-                  <span className="text-sm text-green-300">
+                  <ArrowRight className="h-4 w-4 text-text-muted" />
+                  <span className="text-body text-status-success">
                     {String(proposedContent[field.key] ?? "—")}
                   </span>
                 </div>
@@ -131,19 +132,19 @@ export function ContentDiff({
             )}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No metadata changes</p>
+          <p className="text-body text-text-muted">No metadata changes</p>
         )}
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-xs text-gray-500">View:</span>
+        <span className="text-caption text-text-muted">View:</span>
         <button
           onClick={() => setViewMode("unified")}
           className={cn(
-            "rounded px-2.5 py-1 text-xs font-medium transition-colors",
+            "rounded px-2.5 py-1 text-caption font-medium transition-colors",
             viewMode === "unified"
-              ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:text-gray-300",
+              ? "bg-surface-active text-text-primary"
+              : "text-text-secondary hover:text-text-primary",
           )}
         >
           Unified
@@ -151,10 +152,10 @@ export function ContentDiff({
         <button
           onClick={() => setViewMode("side-by-side")}
           className={cn(
-            "rounded px-2.5 py-1 text-xs font-medium transition-colors",
+            "rounded px-2.5 py-1 text-caption font-medium transition-colors",
             viewMode === "side-by-side"
-              ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:text-gray-300",
+              ? "bg-surface-active text-text-primary"
+              : "text-text-secondary hover:text-text-primary",
           )}
         >
           Side by Side

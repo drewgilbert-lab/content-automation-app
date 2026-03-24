@@ -208,7 +208,7 @@ export function KnowledgeForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
-        <div className="rounded-lg border border-red-800 bg-red-950/50 px-4 py-3 text-sm text-red-300">
+        <div className="rounded-lg border border-status-danger/30 bg-status-danger-bg px-4 py-3 text-body text-status-danger">
           {error}
         </div>
       )}
@@ -216,13 +216,13 @@ export function KnowledgeForm({
       {/* Type selector (create only) */}
       {mode === "create" && (
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-body font-medium text-text-secondary mb-1.5">
             Type
           </label>
           <select
             value={type}
             onChange={(e) => setType(e.target.value as KnowledgeType)}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary focus:border-border-focus focus:outline-none"
           >
             {VALID_TYPES.map((t) => (
               <option key={t} value={t}>
@@ -235,7 +235,7 @@ export function KnowledgeForm({
 
       {/* Name */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Name
         </label>
         <input
@@ -243,30 +243,30 @@ export function KnowledgeForm({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Enter name..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
       </div>
 
       {/* Content with preview toggle */}
       <div>
         <div className="flex items-center justify-between mb-1.5">
-          <label className="block text-sm font-medium text-gray-300">
+          <label className="block text-body font-medium text-text-secondary">
             Content
           </label>
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="text-xs font-medium text-gray-400 hover:text-gray-300 transition-colors"
+            className="text-caption text-text-secondary hover:text-text-primary transition-colors"
           >
             {showPreview ? "Edit" : "Preview"}
           </button>
         </div>
         {showPreview ? (
-          <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 min-h-[200px]">
+          <div className="rounded-lg border border-border-default bg-surface-input px-4 py-3 min-h-[200px]">
             {content.trim() ? (
               <MarkdownRenderer content={content} />
             ) : (
-              <p className="text-gray-500 text-sm italic">Nothing to preview</p>
+              <p className="text-text-muted text-body italic">Nothing to preview</p>
             )}
           </div>
         ) : (
@@ -275,14 +275,14 @@ export function KnowledgeForm({
             onChange={(e) => setContent(e.target.value)}
             placeholder="Markdown content..."
             rows={12}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none font-mono text-sm resize-y"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none font-mono text-sm resize-y"
           />
         )}
       </div>
 
       {/* Tags */}
       <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
+        <label className="block text-body font-medium text-text-secondary mb-1.5">
           Tags
         </label>
         <input
@@ -290,9 +290,9 @@ export function KnowledgeForm({
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
           placeholder="Comma-separated tags..."
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
         />
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-caption text-text-muted">
           Separate multiple tags with commas
         </p>
       </div>
@@ -301,7 +301,7 @@ export function KnowledgeForm({
       {activeType === "segment" && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label className="block text-body font-medium text-text-secondary mb-1.5">
               Revenue Range
             </label>
             <input
@@ -309,11 +309,11 @@ export function KnowledgeForm({
               value={revenueRange}
               onChange={(e) => setRevenueRange(e.target.value)}
               placeholder='e.g. "$1B–$10B"'
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+              className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label className="block text-body font-medium text-text-secondary mb-1.5">
               Employee Range
             </label>
             <input
@@ -321,7 +321,7 @@ export function KnowledgeForm({
               value={employeeRange}
               onChange={(e) => setEmployeeRange(e.target.value)}
               placeholder='e.g. "5,000–20,000"'
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+              className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
             />
           </div>
         </div>
@@ -330,13 +330,13 @@ export function KnowledgeForm({
       {/* BusinessRule-specific fields */}
       {activeType === "business_rule" && (
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-body font-medium text-text-secondary mb-1.5">
             Sub Type
           </label>
           <select
             value={subType}
             onChange={(e) => setSubType(e.target.value)}
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary focus:border-border-focus focus:outline-none"
           >
             <option value="">Select sub type...</option>
             {SUB_TYPES.map((st) => (
@@ -351,7 +351,7 @@ export function KnowledgeForm({
       {/* Competitor-specific fields */}
       {activeType === "competitor" && (
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1.5">
+          <label className="block text-body font-medium text-text-secondary mb-1.5">
             Website
           </label>
           <input
@@ -359,7 +359,7 @@ export function KnowledgeForm({
             value={website}
             onChange={(e) => setWebsite(e.target.value)}
             placeholder="e.g. https://competitor.com"
-            className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+            className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
           />
         </div>
       )}
@@ -368,13 +368,13 @@ export function KnowledgeForm({
       {activeType === "customer_evidence" && (
         <>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label className="block text-body font-medium text-text-secondary mb-1.5">
               Sub Type
             </label>
             <select
               value={subType}
               onChange={(e) => setSubType(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+              className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary focus:border-border-focus focus:outline-none"
             >
               <option value="">Select sub type...</option>
               {CUSTOMER_EVIDENCE_SUB_TYPES.map((st) => (
@@ -386,7 +386,7 @@ export function KnowledgeForm({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-body font-medium text-text-secondary mb-1.5">
                 Customer Name
               </label>
               <input
@@ -394,11 +394,11 @@ export function KnowledgeForm({
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 placeholder="e.g. Acme Corp"
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+                className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">
+              <label className="block text-body font-medium text-text-secondary mb-1.5">
                 Industry
               </label>
               <input
@@ -406,7 +406,7 @@ export function KnowledgeForm({
                 value={industry}
                 onChange={(e) => setIndustry(e.target.value)}
                 placeholder="e.g. Financial Services"
-                className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+                className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none"
               />
             </div>
           </div>
@@ -417,13 +417,13 @@ export function KnowledgeForm({
       {activeType === "icp" && mode === "create" && (
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label className="block text-body font-medium text-text-secondary mb-1.5">
               Persona
             </label>
             <select
               value={personaId}
               onChange={(e) => setPersonaId(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+              className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary focus:border-border-focus focus:outline-none"
             >
               <option value="">Select persona...</option>
               {personas.map((p) => (
@@ -434,13 +434,13 @@ export function KnowledgeForm({
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
+            <label className="block text-body font-medium text-text-secondary mb-1.5">
               Segment
             </label>
             <select
               value={segmentId}
               onChange={(e) => setSegmentId(e.target.value)}
-              className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
+              className="w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary focus:border-border-focus focus:outline-none"
             >
               <option value="">Select segment...</option>
               {segments.map((s) => (
@@ -458,7 +458,7 @@ export function KnowledgeForm({
         <button
           type="submit"
           disabled={saving}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="rounded-lg bg-action-primary px-5 py-2.5 text-body font-medium text-text-primary hover:bg-action-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {saving
             ? "Saving..."
@@ -471,7 +471,7 @@ export function KnowledgeForm({
         <button
           type="button"
           onClick={() => router.back()}
-          className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
+          className="rounded-lg border border-border-default px-5 py-2.5 text-body font-medium text-text-secondary hover:border-border-default/80 hover:text-text-primary transition-colors"
         >
           Cancel
         </button>

@@ -369,19 +369,19 @@ The `POST /api/skills/:id/suggest-links` endpoint uses Weaviate `nearText` seman
 
 ## External Access Patterns
 
-The knowledge base is accessible through three channels. Each channel has different capabilities and constraints. See [roadmap/README.md](./roadmap/README.md) Groups J, K, L and [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-006, ADR-007 for full scope and architecture decisions.
+The system is accessible through three channels. Each channel supports both the **Knowledge Base** (personas, segments, use cases, skills, etc.) and — in Phase 2 — the **Content Library** (generated and submitted content). See [roadmap/README.md](./roadmap/README.md) Groups J, K and [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-006, ADR-007 for full scope and architecture decisions.
 
 ### Access Channels
 
-| Channel | Protocol | Direction | App-Level Auth | Weaviate User | Hosted |
+| Channel | Protocol | Knowledge Direction | Content Direction (Phase 2) | App-Level Auth | Hosted |
 |---|---|---|---|---|---|
-| Web UI | HTTP (Next.js) | Read + Write (via review queue) | None (internal tool, Phase 3+ OIDC) | `content-engine-admin` (full CRUD) | Vercel |
-| External REST API (Group K) | REST over HTTP (`/api/v1/`) | Read-only | `X-API-Key` header per connected system | `content-engine-api-reader` (read-only) | Vercel (same app) |
-| MCP Server (Groups J + L) | MCP over stdio / SSE | Read + Write-to-submission | API key (SSE) / local (stdio) | `content-engine-mcp` (read + create Submission) | Standalone (Railway/Fly.io) |
+| Web UI | HTTP (Next.js) | Read + Write (via review queue) | Read + Write (Generate UI, Direct Upload) | Session auth | Vercel |
+| External REST API (Group K) | REST over HTTP (`/api/v1/`) | Read-only (K3) | Read + Write-as-draft (K13–K14) | `X-API-Key` header | Vercel (same app) |
+| MCP Server (Group J) | MCP over stdio / Streamable HTTP | Read + Write-to-submission (J5, J9) | Read + Write-as-draft (J26–J27) | API key (HTTP) / local (stdio) | Standalone (Railway) |
 
-### Write Path: All Channels Converge on the Review Queue
+### Knowledge Write Path: Channels Converge on the Review Queue
 
-Regardless of source, all content modifications follow the same path:
+All knowledge modifications follow the same path regardless of source:
 
 ```
 Source (UI / MCP / Bulk Upload)
@@ -404,23 +404,62 @@ Admin reviews at /queue
 Live knowledge object in Weaviate
 ```
 
-The review queue is the **universal authorization layer** for writes. No external channel can bypass it. This design means:
+The review queue is the **universal authorization layer** for knowledge writes. No external channel can bypass it. This design means:
 - The admin always has final control over what enters the live knowledge base
 - Source provenance is tracked on every submission (`sourceChannel`, `sourceAppId`, `sourceDescription`)
 - The same merge, diff, and review UI works for all submission sources
 
 Each access channel connects to Weaviate with a dedicated user whose permissions match only what that channel needs (defense-in-depth). Even if application-level auth is bypassed, the Weaviate user limits the blast radius. See [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-014 and [roadmap/README.md](./roadmap/README.md) Group K Architecture Decisions.
 
+### Content Write Path: Channels Converge on Draft (Phase 2)
+
+Content entering the Content Library follows a different path from knowledge. External content enters the `GeneratedContent` collection directly as `draft` — the Module 4 editorial workflow is the quality gate, not a separate review queue. See [phase-2.md](./roadmap/phase-2.md) Module 5 for the full spec.
+
+```
+Source (Generate UI / Direct Upload / MCP / REST API / Bulk Import)
+  │
+  ▼
+createContent()
+  │ sourceChannel: "generate_ui" | "direct_upload" | "mcp" | "api" | "bulk_import"
+  │ sourceAppId: identifier (MCP / API only)
+  │ sourceDescription: free-text provenance
+  ▼
+GeneratedContent (status: "draft") → stored in Weaviate
+  │
+  ▼
+Editorial workflow (Module 4)
+  │ Submit for review → in_review
+  │ Approve → approved
+  │ Reject → draft (with reviewer comments)
+  │ Publish → published
+  ▼
+Published content
+```
+
+**Why no review queue for content?** Knowledge objects are shared, long-lived source-of-truth records — a bad knowledge update affects every future generation. Content pieces are individual drafts owned by their creator. The editorial workflow already provides review and approval gates. Adding a separate submission queue would create friction without proportional benefit.
+
+**Source provenance** is tracked on every content piece using the same field pattern as knowledge submissions: `sourceChannel`, `sourceAppId`, `sourceDescription`. The Content Library UI displays source badges and supports filtering by source channel.
+
 ### Read Path: Protocol-Specific but Shared Implementation
 
-All read operations use the same `lib/knowledge.ts` functions regardless of channel:
+All read operations use the same `lib/knowledge.ts` and `lib/content.ts` functions regardless of channel:
 
-| Operation | Web UI | REST API (K) | MCP Server (L) |
+**Knowledge reads:**
+
+| Operation | Web UI | REST API (K) | MCP Server (J) |
 |---|---|---|---|
 | List objects | `listKnowledgeObjects()` | `GET /api/v1/knowledge` | `list_objects` tool |
 | Get detail | `getKnowledgeObject()` | `GET /api/v1/knowledge/:id` | `get_object` tool |
 | Semantic search | (planned, Module 2) | `GET /api/v1/knowledge/search` | `search_objects` tool |
 | Health metrics | `getDashboardData()` | `GET /api/v1/health` | `get_dashboard_health` tool |
+
+**Content reads (Phase 2):**
+
+| Operation | Web UI | REST API (K13) | MCP Server (J26) |
+|---|---|---|---|
+| List content | Content Library page | `GET /api/v1/content` | `list_content` tool |
+| Get detail | Content detail page | `GET /api/v1/content/:id` | `get_content` tool |
+| Semantic search | Content Library search | `GET /api/v1/content/search` | `search_content` tool |
 
 ### RAG via MCP
 
@@ -433,3 +472,5 @@ The MCP server's `search_objects` tool is the primary RAG (Retrieval-Augmented G
 5. LLM uses retrieved knowledge to ground its response
 
 This is the same semantic retrieval pattern used by the internal context assembly logic (see Context Assembly Logic above), but exposed to external LLMs rather than the internal generation pipeline.
+
+In Phase 2, the `search_content` tool (J26) extends RAG to the Content Library — an LLM can search existing content to avoid duplication or build on prior work before generating new content.

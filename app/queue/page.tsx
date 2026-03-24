@@ -12,7 +12,7 @@ export default async function QueuePage() {
         {/* Header */}
         <div className="mb-10 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+            <h1 className="text-display tracking-tight text-text-primary">
               Review Queue
             </h1>
             <p className="mt-2 text-text-secondary">

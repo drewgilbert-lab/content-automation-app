@@ -66,15 +66,15 @@ export function ConnectionList({
 
   return (
     <div className="mt-10 space-y-6">
-      <div className="flex gap-1 rounded-lg bg-gray-900 p-1">
+      <div className="flex gap-1 rounded-lg bg-surface-card p-1">
         {TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
             className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
               activeTab === tab.value
-                ? "bg-gray-700 text-white"
-                : "text-gray-400 hover:text-gray-300"
+                ? "bg-surface-input text-text-primary"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
             {tab.label}
@@ -88,17 +88,17 @@ export function ConnectionList({
           placeholder="Search by name or description..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
+          className="flex-1 rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus"
         />
       </div>
 
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-text-muted">
         {filtered.length} {filtered.length === 1 ? "connection" : "connections"}
       </p>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 px-6 py-12 text-center">
-          <p className="text-gray-500">No connected systems found.</p>
+        <div className="rounded-card border border-border-default bg-surface-card px-6 py-12 text-center">
+          <p className="text-text-muted">No connected systems found.</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -115,33 +115,33 @@ function ConnectionRow({ system }: { system: ConnectedSystemListItem }) {
   return (
     <Link
       href={`/connections/${system.id}`}
-      className="flex items-center gap-4 rounded-lg border border-gray-800 bg-gray-900 px-5 py-4 transition-colors hover:border-gray-700"
+      className="flex items-center gap-4 rounded-lg border border-border-default bg-surface-card px-5 py-4 transition-colors hover:border-border-focus"
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-white">{system.name}</span>
+          <span className="font-medium text-text-primary">{system.name}</span>
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+            className={`rounded-full px-2 py-0.5 text-micro font-medium ${
               system.active
-                ? "bg-green-900/50 border border-green-800 text-green-400"
-                : "bg-gray-800 border border-gray-700 text-gray-400"
+                ? "bg-status-success-bg border border-status-success/30 text-status-success"
+                : "bg-surface-input border border-border-default text-text-secondary"
             }`}
           >
             {system.active ? "Active" : "Inactive"}
           </span>
         </div>
-        <p className="mt-0.5 text-sm text-gray-500 font-mono">
+        <p className="mt-0.5 text-sm text-text-muted font-mono">
           {system.apiKeyPrefix}...
         </p>
       </div>
       <div className="flex shrink-0 items-center gap-3">
-        <span className="rounded bg-purple-900/30 border border-purple-800/50 px-2 py-0.5 text-[10px] font-medium text-purple-400">
+        <span className="rounded bg-status-info-bg border border-status-info/30 px-2 py-0.5 text-micro font-medium text-hg-blue-muted">
           {formatSubscribedTypes(system.subscribedTypes)}
         </span>
-        <span className="rounded bg-gray-800 px-2 py-0.5 text-xs text-gray-400">
+        <span className="rounded bg-surface-input px-2 py-0.5 text-xs text-text-secondary">
           {getRateLimitTierLabel(system.rateLimitTier)}
         </span>
-        <span className="shrink-0 text-xs text-gray-500">
+        <span className="shrink-0 text-xs text-text-muted">
           {formatDate(system.updatedAt)}
         </span>
       </div>

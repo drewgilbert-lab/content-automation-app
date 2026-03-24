@@ -213,16 +213,21 @@ Cross-references:
 
 ### Collection: `GeneratedContent`
 
-Stores all content produced by the system with full generation metadata.
+Stores all content produced by or submitted to the system with full generation and provenance metadata. Content enters from multiple channels: the in-app Generate UI, direct upload, MCP clients, REST API, and bulk import. See [phase-2.md](./roadmap/phase-2.md) Module 5 for the external content ingestion spec.
 
 | Property | Type | Description |
 |---|---|---|
 | `title` | `text` | Auto-generated or user-provided title |
 | `contentType` | `text` | `"email"`, `"blog"`, `"social"`, `"thought_leadership"`, `"internal_doc"`, `"content_narrative"`, `"pillar_research"`, `"competitor_functionality_brief"`, `"competitor_persona_messaging_brief"`, `"market_content_brief"` |
-| `body` | `text` | The generated content |
-| `prompt` | `text` | The user's original generation request |
+| `body` | `text` | The generated or submitted content |
+| `prompt` | `text` | The user's original generation request (optional — external submissions may not have a prompt) |
 | `status` | `text` | `"draft"`, `"submitted"`, `"in_review"`, `"approved"`, `"rejected"`, `"published"` |
-| `createdAt` | `date` | Generation timestamp |
+| `sourceChannel` | `text` | How the content entered the system: `"generate_ui"`, `"direct_upload"`, `"mcp"`, `"api"`, `"bulk_import"` |
+| `sourceAppId` | `text` | Identifier for the external application (from API key record; empty for UI-originated content) |
+| `sourceDescription` | `text` | Free-text describing where the content came from (provided by submitter) |
+| `createdBy` | `text` | Email of the user who created this content |
+| `updatedBy` | `text` | Email of the user who last modified this content |
+| `createdAt` | `date` | Creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
 Cross-references:

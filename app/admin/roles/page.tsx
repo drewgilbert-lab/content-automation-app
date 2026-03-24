@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { useRole } from "@/app/components/role-provider";
 
 type PermissionSetRecord = {
@@ -120,8 +121,8 @@ export default function AdminRolesPage() {
   if (!isAdmin) {
     return (
       <div className="px-6 py-10 text-text-primary">
-        <div className="mx-auto max-w-lg rounded-xl border border-status-danger/30 bg-status-danger-bg px-6 py-8">
-          <h1 className="text-xl font-semibold text-status-danger">Access denied</h1>
+        <div className="mx-auto max-w-lg rounded-card border border-status-danger/30 bg-status-danger-bg px-6 py-8">
+          <h1 className="text-heading text-status-danger">Access denied</h1>
           <p className="mt-2 text-sm text-text-secondary">
             You need an administrator account to view this page.
           </p>
@@ -136,7 +137,7 @@ export default function AdminRolesPage() {
         <div className="mb-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+              <h1 className="text-display tracking-tight text-text-primary">
                 Permission Sets
               </h1>
               <p className="mt-2 text-text-secondary">
@@ -147,9 +148,9 @@ export default function AdminRolesPage() {
             </div>
             <Link
               href="/admin/roles/new"
-              className="rounded-lg bg-action-primary px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-action-primary-hover"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-action-primary px-4 py-2.5 text-sm font-medium text-text-primary transition-colors hover:bg-action-primary-hover"
             >
-              + New Role
+              <Plus className="h-4 w-4" /> New Role
             </Link>
           </div>
         </div>
@@ -161,7 +162,7 @@ export default function AdminRolesPage() {
         )}
 
         {listLoading && sets.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-border-default bg-surface-card py-20">
+          <div className="flex flex-col items-center justify-center rounded-card border border-border-default bg-surface-card py-20">
             <Spinner className="h-10 w-10" />
             <p className="mt-4 text-sm text-text-secondary">
               Loading permission sets…
@@ -170,7 +171,7 @@ export default function AdminRolesPage() {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-border-default bg-surface-card md:block">
+            <div className="hidden overflow-hidden rounded-card border border-border-default bg-surface-card md:block">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-border-default bg-surface-card text-xs uppercase tracking-wide text-text-muted">
                   <tr>
@@ -191,18 +192,18 @@ export default function AdminRolesPage() {
                         {s.description || "—"}
                       </td>
                       <td className="px-4 py-4">
-                        <span className="inline-flex rounded-md bg-gray-600/20 px-2 py-0.5 text-xs font-medium text-text-secondary">
+                        <span className="inline-flex rounded-md bg-surface-input px-2 py-0.5 text-xs font-medium text-text-secondary">
                           {s.permissions.length} permission
                           {s.permissions.length === 1 ? "" : "s"}
                         </span>
                       </td>
                       <td className="px-4 py-4">
                         {s.isBuiltIn ? (
-                          <span className="inline-flex rounded-md bg-amber-600/20 px-2 py-0.5 text-xs font-medium text-status-warning">
+                          <span className="inline-flex rounded-md bg-status-warning-bg px-2 py-0.5 text-xs font-medium text-status-warning">
                             Built-in
                           </span>
                         ) : (
-                          <span className="inline-flex rounded-md bg-gray-600/20 px-2 py-0.5 text-xs font-medium text-text-secondary">
+                          <span className="inline-flex rounded-md bg-surface-input px-2 py-0.5 text-xs font-medium text-text-secondary">
                             Custom
                           </span>
                         )}
@@ -271,7 +272,7 @@ export default function AdminRolesPage() {
               {sets.map((s) => (
                 <li
                   key={s.id}
-                  className="rounded-xl border border-border-default bg-surface-card p-4"
+                  className="rounded-card border border-border-default bg-surface-card p-4"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -281,11 +282,11 @@ export default function AdminRolesPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="inline-flex rounded-md bg-gray-600/20 px-2 py-0.5 text-xs font-medium text-text-secondary">
+                      <span className="inline-flex rounded-md bg-surface-input px-2 py-0.5 text-xs font-medium text-text-secondary">
                         {s.permissions.length}
                       </span>
                       {s.isBuiltIn && (
-                        <span className="inline-flex rounded-md bg-amber-600/20 px-2 py-0.5 text-xs font-medium text-status-warning">
+                        <span className="inline-flex rounded-md bg-status-warning-bg px-2 py-0.5 text-xs font-medium text-status-warning">
                           Built-in
                         </span>
                       )}

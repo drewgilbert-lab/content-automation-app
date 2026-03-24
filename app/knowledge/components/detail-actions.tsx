@@ -75,14 +75,14 @@ export function DetailActions({ id, deprecated }: DetailActionsProps) {
       <div className="flex items-center gap-2 shrink-0">
         <Link
           href={`/knowledge/${id}/edit`}
-          className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
+          className="rounded-lg border border-border-default px-3.5 py-2 text-body font-medium text-text-secondary hover:border-border-default/80 hover:text-text-primary transition-colors"
         >
           Edit
         </Link>
         {!deprecated && (
           <Link
             href={`/knowledge/${id}/add-document`}
-            className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-blue-400 hover:border-blue-700 hover:text-blue-300 transition-colors"
+            className="rounded-lg border border-border-default px-3.5 py-2 text-body font-medium text-hg-blue-bright hover:border-border-focus hover:text-hg-blue-muted transition-colors"
           >
             Add Document
           </Link>
@@ -90,7 +90,7 @@ export function DetailActions({ id, deprecated }: DetailActionsProps) {
         <button
           onClick={handleToggleDeprecation}
           disabled={togglingDeprecation}
-          className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-yellow-400 hover:border-yellow-700 hover:text-yellow-300 disabled:opacity-50 transition-colors"
+          className="rounded-lg border border-border-default px-3.5 py-2 text-body font-medium text-status-warning hover:border-status-warning/30 hover:text-status-warning disabled:opacity-50 transition-colors"
         >
           {togglingDeprecation
             ? "..."
@@ -101,7 +101,7 @@ export function DetailActions({ id, deprecated }: DetailActionsProps) {
         <button
           onClick={handleDelete}
           disabled={deleting}
-          className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-red-400 hover:border-red-700 hover:text-red-300 disabled:opacity-50 transition-colors"
+          className="rounded-lg border border-border-default px-3.5 py-2 text-body font-medium text-status-danger hover:border-status-danger/30 hover:text-status-danger disabled:opacity-50 transition-colors"
         >
           {deleting ? "Deleting..." : "Delete"}
         </button>
@@ -109,22 +109,22 @@ export function DetailActions({ id, deprecated }: DetailActionsProps) {
 
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="mx-4 w-full max-w-md rounded-xl border border-gray-700 bg-gray-900 p-6 shadow-xl">
-            <h3 className="text-lg font-semibold text-white">
+          <div className="mx-4 w-full max-w-md rounded-card border border-border-default bg-surface-card p-6 shadow-xl">
+            <h3 className="text-subheading text-text-primary">
               Confirm Deletion
             </h3>
-            <p className="mt-2 text-sm text-gray-300">{deleteWarning}</p>
+            <p className="mt-2 text-body text-text-secondary">{deleteWarning}</p>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 transition-colors"
+                className="rounded-lg border border-border-default px-4 py-2 text-body font-medium text-text-secondary hover:border-border-default/80 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
                 disabled={deleting}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
+                className="rounded-lg bg-action-danger px-4 py-2 text-body font-medium text-text-primary hover:bg-action-danger-hover disabled:opacity-50 transition-colors"
               >
                 {deleting ? "Deleting..." : "Delete Anyway"}
               </button>

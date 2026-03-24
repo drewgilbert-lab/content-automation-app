@@ -28,34 +28,34 @@ const SUBMISSION_TYPE_TABS: { label: string; value: SubmissionType | "all" }[] =
 ];
 
 const TYPE_BADGE_CLASSES: Record<string, string> = {
-  persona: "bg-blue-500/15 text-blue-400",
-  segment: "bg-emerald-500/15 text-emerald-400",
-  use_case: "bg-amber-500/15 text-amber-400",
-  business_rule: "bg-purple-500/15 text-purple-400",
-  icp: "bg-rose-500/15 text-rose-400",
-  competitor: "bg-orange-500/15 text-orange-400",
-  customer_evidence: "bg-lime-500/15 text-lime-400",
-  skill: "bg-pink-500/15 text-pink-400",
+  persona: "bg-hg-blue/15 text-hg-blue-bright",
+  segment: "bg-status-success-bg text-status-success",
+  use_case: "bg-status-warning-bg text-status-warning",
+  business_rule: "bg-status-info-bg text-hg-blue-muted",
+  icp: "bg-status-danger-bg text-status-danger",
+  competitor: "bg-status-warning-bg text-status-warning",
+  customer_evidence: "bg-status-success-bg text-status-success",
+  skill: "bg-status-info-bg text-hg-blue-bright",
 };
 
 const STATUS_BADGE_CLASSES: Record<SubmissionStatus, string> = {
-  pending: "bg-yellow-500/15 text-yellow-400",
-  deferred: "bg-orange-500/15 text-orange-400",
-  accepted: "bg-green-500/15 text-green-400",
-  rejected: "bg-red-500/15 text-red-400",
+  pending: "bg-status-warning-bg text-status-warning",
+  deferred: "bg-status-warning-bg text-status-warning",
+  accepted: "bg-status-success-bg text-status-success",
+  rejected: "bg-status-danger-bg text-status-danger",
 };
 
 const SUBMISSION_TYPE_BADGE_CLASSES: Record<SubmissionType, string> = {
-  new: "bg-cyan-500/15 text-cyan-400",
-  update: "bg-indigo-500/15 text-indigo-400",
-  document_add: "bg-teal-500/15 text-teal-400",
+  new: "bg-status-info-bg text-hg-blue-bright",
+  update: "bg-status-info-bg text-status-info",
+  document_add: "bg-status-success-bg text-status-success",
 };
 
 const SOURCE_CHANNEL_BADGE_CLASSES: Record<string, string> = {
-  ui: "bg-gray-500/15 text-gray-400",
-  mcp: "bg-violet-500/15 text-violet-400",
-  bulk_upload: "bg-teal-500/15 text-teal-400",
-  system: "bg-fuchsia-500/15 text-fuchsia-400",
+  ui: "bg-surface-input/50 text-text-secondary",
+  mcp: "bg-status-info-bg text-hg-blue-muted",
+  bulk_upload: "bg-status-success-bg text-status-success",
+  system: "bg-status-info-bg text-hg-blue-bright",
 };
 
 export function SubmissionList({
@@ -93,15 +93,15 @@ export function SubmissionList({
     <div className="mt-10 space-y-6">
       {/* Tabs: submission type */}
       <div className="flex flex-wrap items-center gap-4">
-        <div className="flex gap-1 rounded-lg border border-gray-800 bg-gray-900 p-1">
+        <div className="flex gap-1 rounded-lg border border-border-default bg-surface-card p-1">
           {SUBMISSION_TYPE_TABS.map((tab) => (
             <button
               key={tab.value}
               onClick={() => setSubmissionTypeTab(tab.value)}
-              className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={`rounded-md border px-3 py-1.5 text-body font-medium transition-colors ${
                 submissionTypeTab === tab.value
-                  ? "border-blue-500 text-white"
-                  : "border-transparent text-gray-400 hover:text-gray-300"
+                  ? "border-border-focus text-text-primary"
+                  : "border-transparent text-text-secondary hover:text-text-primary"
               }`}
             >
               {tab.label}
@@ -115,19 +115,19 @@ export function SubmissionList({
             type="checkbox"
             checked={showClosed}
             onChange={(e) => setShowClosed(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-border-default bg-surface-input text-hg-blue accent-hg-blue focus:ring-border-focus"
           />
-          <span className="text-sm text-gray-400">Show closed</span>
+          <span className="text-body text-text-secondary">Show closed</span>
         </label>
       </div>
 
-      <div className="flex gap-1 rounded-lg border border-gray-800 bg-gray-900 p-1">
+      <div className="flex gap-1 rounded-lg border border-border-default bg-surface-card p-1">
         <button
           onClick={() => setSourceFilter("all")}
-          className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`rounded-md border px-3 py-1.5 text-body font-medium transition-colors ${
             sourceFilter === "all"
-              ? "border-blue-500 text-white"
-              : "border-transparent text-gray-400 hover:text-gray-300"
+              ? "border-border-focus text-text-primary"
+              : "border-transparent text-text-secondary hover:text-text-primary"
           }`}
         >
           All Sources
@@ -136,10 +136,10 @@ export function SubmissionList({
           <button
             key={ch}
             onClick={() => setSourceFilter(ch)}
-            className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`rounded-md border px-3 py-1.5 text-body font-medium transition-colors ${
               sourceFilter === ch
-                ? "border-blue-500 text-white"
-                : "border-transparent text-gray-400 hover:text-gray-300"
+                ? "border-border-focus text-text-primary"
+                : "border-transparent text-text-secondary hover:text-text-primary"
             }`}
           >
             {getSourceChannelLabel(ch)}
@@ -148,15 +148,15 @@ export function SubmissionList({
       </div>
 
       {/* Result count */}
-      <p className="text-sm text-gray-500">
+      <p className="text-body text-text-muted">
         {filtered.length}{" "}
         {filtered.length === 1 ? "submission" : "submissions"}
       </p>
 
       {/* Submission list */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-gray-800 bg-gray-900 p-6">
-          <p className="text-center text-gray-500">
+        <div className="rounded-card border border-border-default bg-surface-card p-6">
+          <p className="text-center text-text-muted">
             No submissions found.
           </p>
         </div>
@@ -175,9 +175,9 @@ function SubmissionRow({ submission }: { submission: SubmissionListItem }) {
   return (
     <Link
       href={`/queue/${submission.id}`}
-      className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-800 bg-gray-900 p-6 transition-colors hover:border-gray-700"
+      className="flex flex-wrap items-center gap-3 rounded-card border border-border-default bg-surface-card p-6 transition-colors hover:border-border-default/80"
     >
-      <span className="font-medium text-white">{submission.objectName}</span>
+      <span className="font-medium text-text-primary">{submission.objectName}</span>
       <span
         className={`rounded px-2 py-0.5 text-xs font-medium ${
           TYPE_BADGE_CLASSES[submission.objectType]
@@ -192,7 +192,7 @@ function SubmissionRow({ submission }: { submission: SubmissionListItem }) {
       >
         {getSubmissionTypeLabel(submission.submissionType)}
       </span>
-      <span className="text-sm text-gray-400">{submission.submitter}</span>
+      <span className="text-body text-text-secondary">{submission.submitter}</span>
       <span
         className={`rounded px-2 py-0.5 text-xs font-medium ${
           STATUS_BADGE_CLASSES[submission.status]
@@ -204,17 +204,17 @@ function SubmissionRow({ submission }: { submission: SubmissionListItem }) {
         <span className="flex items-center gap-1.5">
           <span
             className={`rounded px-2 py-0.5 text-xs font-medium ${
-              SOURCE_CHANNEL_BADGE_CLASSES[submission.sourceChannel] ?? "bg-gray-500/15 text-gray-400"
+              SOURCE_CHANNEL_BADGE_CLASSES[submission.sourceChannel] ?? "bg-surface-input/50 text-text-secondary"
             }`}
           >
             {getSourceChannelLabel(submission.sourceChannel)}
           </span>
           {submission.sourceChannel === "mcp" && submission.sourceAppId && (
-            <span className="text-xs text-gray-500">{submission.sourceAppId}</span>
+            <span className="text-caption text-text-muted">{submission.sourceAppId}</span>
           )}
         </span>
       )}
-      <span className="ml-auto shrink-0 text-xs text-gray-500">
+      <span className="ml-auto shrink-0 text-caption text-text-muted">
         {new Date(submission.createdAt).toLocaleDateString()}
       </span>
     </Link>

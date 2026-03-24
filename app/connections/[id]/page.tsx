@@ -53,9 +53,9 @@ function McpConfigCard({
   );
 
   return (
-    <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-5">
+    <div className="rounded-card border border-border-default bg-surface-card p-6 space-y-5">
       <div>
-        <h3 className="text-sm font-semibold text-violet-300">
+        <h3 className="text-sm font-semibold text-hg-blue-muted">
           MCP Configuration
         </h3>
         <p className="mt-1 text-xs text-text-secondary">
@@ -73,7 +73,7 @@ function McpConfigCard({
             {mcpServerUrl}/mcp
           </code>
         ) : (
-          <p className="text-sm text-yellow-400">
+          <p className="text-sm text-status-warning">
             Set{" "}
             <code className="font-mono text-xs">
               NEXT_PUBLIC_MCP_SERVER_URL
@@ -133,13 +133,13 @@ export default async function ConnectionDetailPage({
       <div className="mx-auto max-w-5xl px-6 py-10">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-semibold tracking-tight text-text-primary">
+            <h1 className="text-display tracking-tight text-text-primary">
               {system.name}
             </h1>
             <span
               className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                 system.active
-                  ? "bg-green-900/50 border border-green-800 text-green-400"
+                  ? "bg-status-success-bg border border-status-success/30 text-status-success"
                   : "bg-surface-input border border-border-default text-text-secondary"
               }`}
             >
@@ -156,7 +156,7 @@ export default async function ConnectionDetailPage({
         <div className="mt-8 flex flex-col gap-8 lg:flex-row">
           {/* Main info */}
           <div className="lg:flex-1 min-w-0 space-y-6">
-            <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-6">
+            <div className="rounded-card border border-border-default bg-surface-card p-6 space-y-6">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   API Key Prefix
@@ -207,21 +207,21 @@ export default async function ConnectionDetailPage({
 
           {/* Sidebar */}
           <div className="lg:w-80 space-y-6">
-            <div className="rounded-xl border border-border-default bg-surface-card p-6 space-y-4">
+            <div className="rounded-card border border-border-default bg-surface-card p-6 space-y-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-wider text-text-muted">
                   Subscribed Types
                 </p>
                 <div className="mt-1 flex flex-wrap gap-1.5">
                   {isAllTypes ? (
-                    <span className="rounded bg-surface-input border border-border-default px-2 py-0.5 text-xs text-purple-400">
+                    <span                     className="rounded bg-surface-input border border-border-default px-2 py-0.5 text-xs text-hg-blue-muted">
                       All types
                     </span>
                   ) : (
                     system.subscribedTypes.map((t) => (
                       <span
                         key={t}
-                        className="rounded bg-surface-input border border-border-default px-2 py-0.5 text-xs text-purple-400"
+                        className="rounded bg-surface-input border border-border-default px-2 py-0.5 text-xs text-hg-blue-muted"
                       >
                         {formatTypeName(t)}
                       </span>

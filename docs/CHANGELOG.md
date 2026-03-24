@@ -6,6 +6,25 @@
 
 ## 2026-03-24
 
+### Group S Phase 2 — Shared Atom Components (S3.5–S9)
+
+- **S3.5 — Install Headless UI**: Added `@headlessui/react` as project dependency. Foundation for Phase 3-4 organisms (Dialog, Tabs). Build verified.
+- **S4 — Button Component**: Created `app/components/ui/button.tsx` — polymorphic button with 4 variants (primary, secondary, danger, ghost), 2 sizes (sm, md), loading state with spinner, disabled styling. Uses semantic tokens via `cn()`.
+- **S5 — Input, Select, Textarea Components**: Created `app/components/ui/input.tsx`, `select.tsx`, `textarea.tsx` — `forwardRef` wrappers around native HTML elements with consistent styling (semantic tokens for surfaces, borders, text) and `error` prop for validation states.
+- **S6 — FormField Component**: Created `app/components/ui/form-field.tsx` — label + input wrapper with optional help text and error text. Error text replaces help text when present.
+- **S7 — Badge Component**: Created `app/components/ui/badge.tsx` — unified badge with 6 variants (default, success, warning, danger, info, purple), 2 sizes (sm, md). Updated `app/knowledge/components/type-badge.tsx` to be a thin wrapper around Badge with per-type color overrides. Updated `app/bulk-upload/components/confidence-badge.tsx` to use Badge internally.
+- **S8 — Migration**: Migrated 5 existing components to use shared atoms: `connection-form.tsx` (Button, Input, Select, Textarea, FormField, cn()), `skill-detail-actions.tsx` (Button, cn()), `content-diff.tsx` (cn()), `document-review-card.tsx` (Button, Input, Select, cn()), `confidence-badge.tsx` (Badge). Toggle chips and hand-rolled confirm modal left as-is (Phase 4 scope).
+- **S9 — Validation**: Build passes, TypeScript clean (no new errors), zero lint errors on all new/modified files, browser smoke test confirmed sign-in page renders correctly with dark theme and Geist Sans font.
+
+**New files:** `app/components/ui/button.tsx`, `app/components/ui/input.tsx`, `app/components/ui/select.tsx`, `app/components/ui/textarea.tsx`, `app/components/ui/form-field.tsx`, `app/components/ui/badge.tsx`
+**Modified files:** `app/knowledge/components/type-badge.tsx`, `app/bulk-upload/components/confidence-badge.tsx`, `app/connections/components/connection-form.tsx`, `app/skills/components/skill-detail-actions.tsx`, `app/queue/components/content-diff.tsx`, `app/bulk-upload/components/document-review-card.tsx`, `package.json`
+**Documentation:** `docs/DESIGN_TOKENS.md` (component usage examples), `docs/roadmap/group-s.md` (S3.5–S9 marked done), `docs/roadmap/README.md` (Group S status), `docs/CHANGELOG.md` (this entry).
+**User guide update:** N/A — design system atoms are internal infrastructure with no user-facing behavior change.
+
+---
+
+## 2026-03-24
+
 ### Group Y — Production Redis Configuration (Y1–Y4)
 
 - **Y1 — Upstash Redis Account and Database Setup**: Provisioned Upstash Redis database (free tier, us-east-1 region) for production use.

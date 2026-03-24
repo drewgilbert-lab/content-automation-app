@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { KnowledgeDetail } from "@/lib/knowledge-types";
+import { cn } from "@/lib/utils";
 import { VisualDiff } from "./visual-diff";
 
 interface ProposedContent {
@@ -138,21 +139,23 @@ export function ContentDiff({
         <span className="text-xs text-gray-500">View:</span>
         <button
           onClick={() => setViewMode("unified")}
-          className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+          className={cn(
+            "rounded px-2.5 py-1 text-xs font-medium transition-colors",
             viewMode === "unified"
               ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:text-gray-300"
-          }`}
+              : "text-gray-400 hover:text-gray-300",
+          )}
         >
           Unified
         </button>
         <button
           onClick={() => setViewMode("side-by-side")}
-          className={`rounded px-2.5 py-1 text-xs font-medium transition-colors ${
+          className={cn(
+            "rounded px-2.5 py-1 text-xs font-medium transition-colors",
             viewMode === "side-by-side"
               ? "bg-gray-700 text-white"
-              : "text-gray-400 hover:text-gray-300"
-          }`}
+              : "text-gray-400 hover:text-gray-300",
+          )}
         >
           Side by Side
         </button>

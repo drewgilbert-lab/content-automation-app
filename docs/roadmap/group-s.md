@@ -163,10 +163,10 @@ Verify: Geist Sans renders as the body font (not Arial). Verify: `prefers-color-
 
 ## Phase 2 — Shared Atom Components
 
-**S3.5 — Install Headless UI**
+**S3.5 — Install Headless UI** — ✅ Done (2026-03-24)
 Add `@headlessui/react` as a project dependency. This is a foundation step that does not produce UI components on its own but makes Headless UI available for Phase 3-4 organisms (Dialog, Tabs) that require it. Verify the import resolves correctly and `npm run build` passes.
 
-**S4 — Button Component** *(hand-rolled)*
+**S4 — Button Component** *(hand-rolled)* — ✅ Done (2026-03-24)
 Create `app/components/ui/button.tsx`. Button is a thin wrapper around the native `<button>` element and does not use Headless UI — the native element already provides correct semantics, focus behavior, and keyboard interaction. A polymorphic button component with the following API:
 
 ```tsx
@@ -197,7 +197,7 @@ Size styles:
 
 Loading state renders a spinner SVG and disables interaction. All buttons include `transition-colors` and `disabled:opacity-50 disabled:cursor-not-allowed`.
 
-**S5 — Input, Select, and Textarea Components** *(hand-rolled)*
+**S5 — Input, Select, and Textarea Components** *(hand-rolled)* — ✅ Done (2026-03-24)
 Create `app/components/ui/input.tsx`, `app/components/ui/select.tsx`, and `app/components/ui/textarea.tsx`. All three are hand-rolled wrappers around native HTML elements and share consistent styling:
 
 Base styles: `w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus transition-colors`.
@@ -206,7 +206,7 @@ Base styles: `w-full rounded-lg border border-border-default bg-surface-input px
 
 Error state: when an `error` prop is passed, border changes to `border-status-danger` and focus ring to `ring-status-danger`.
 
-**S6 — FormField Component**
+**S6 — FormField Component** — ✅ Done (2026-03-24)
 Create `app/components/ui/form-field.tsx`. A molecule that composes a label, any input component (via `children`), optional help text, and optional error message:
 
 ```tsx
@@ -221,7 +221,7 @@ interface FormFieldProps {
 
 Label style: `text-sm font-medium text-text-secondary mb-1.5`. Help text: `text-xs text-text-muted mt-1`. Error text: `text-xs text-status-danger mt-1` (replaces help text when present).
 
-**S7 — Badge Component**
+**S7 — Badge Component** — ✅ Done (2026-03-24)
 Create `app/components/ui/badge.tsx`. A unified badge component that replaces the separate `TypeBadge`, `ConfidenceBadge`, and ad-hoc status pill patterns:
 
 ```tsx
@@ -247,7 +247,7 @@ Sizes: `sm` uses `px-2 py-0.5 text-[10px]`, `md` uses `px-2.5 py-0.5 text-xs`. B
 
 `TypeBadge` is kept as a thin wrapper around `Badge` that maps knowledge types to badge variants. It stays at `app/knowledge/components/type-badge.tsx` for backward compatibility but its internal implementation switches from raw Tailwind to `<Badge variant={...}>`. This avoids a mass import rewrite across the codebase.
 
-**S8 — Phase 2 Migration — Existing Components**
+**S8 — Phase 2 Migration — Existing Components** — ✅ Done (2026-03-24)
 Migrate existing components to use the new atoms. Priority order:
 
 1. `connection-form.tsx` — replace all inline button styles with `<Button>`, all input styles with `<Input>` / `<Select>`, and form label patterns with `<FormField>`.
@@ -258,7 +258,7 @@ Migrate existing components to use the new atoms. Priority order:
 
 Migration rule: do not change component behavior or DOM structure. Only replace inline Tailwind class strings with the new shared component imports.
 
-**S9 — Phase 2 Testing and Validation**
+**S9 — Phase 2 Testing and Validation** — ✅ Done (2026-03-24)
 Verify: `@headlessui/react` is installed and importable (no runtime errors on import). Verify: all migrated components render identically (within minor sub-pixel differences from consistent padding/sizing). Verify: Button loading state works (spinner + disabled). Verify: FormField error state renders correctly. Verify: Badge renders all variants at both sizes. Verify: `npm run build` passes. Browser smoke test: navigate all pages (`/knowledge`, `/skills`, `/connections`, `/bulk-upload`, `/queue`, `/dashboard`) and confirm no visual regressions.
 
 ---
@@ -726,7 +726,7 @@ Translate audit findings into a deduplicated, dependency-aware backlog.
 ---
 
 ---
-**WS2-001: Build core primitives**
+**WS2-001: Build core primitives** — ✅ Done (2026-03-24)
 - **Workstream**: WS2
 - **Impact**: 5 ; largest reduction in duplicated UI patterns
 - **Effort**: 3 ; implement and type core primitive set

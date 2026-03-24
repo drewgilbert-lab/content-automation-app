@@ -9,6 +9,12 @@ import {
   RATE_LIMIT_TIERS,
   getRateLimitTierLabel,
 } from "@/lib/connection-types";
+import { Button } from "@/app/components/ui/button";
+import { FormField } from "@/app/components/ui/form-field";
+import { Input } from "@/app/components/ui/input";
+import { Select } from "@/app/components/ui/select";
+import { Textarea } from "@/app/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 interface ConnectionFormProps {
   mode: "create" | "edit";
@@ -197,12 +203,15 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
               <code className="flex-1 break-all rounded bg-gray-800 px-3 py-2 font-mono text-sm text-white">
                 {createdKey.apiKey}
               </code>
-              <button
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="shrink-0"
                 onClick={copyKey}
-                className="shrink-0 rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
               >
                 {copied ? "Copied!" : "Copy"}
-              </button>
+              </Button>
             </div>
             <p className="mt-3 text-xs text-yellow-400">
               ⚠ Save this key now. It cannot be shown again.
@@ -243,12 +252,14 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
                 <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
                   Claude Desktop / Cursor Config
                 </p>
-                <button
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={copyConfig}
-                  className="rounded border border-gray-700 px-2.5 py-1 text-xs font-medium text-gray-400 hover:border-gray-600 hover:text-white transition-colors"
                 >
                   {copiedConfig ? "Copied!" : "Copy"}
-                </button>
+                </Button>
               </div>
               <pre className="overflow-x-auto rounded bg-gray-800 px-3 py-2.5 font-mono text-xs text-gray-300 leading-relaxed">
                 {configSnippet}
@@ -263,15 +274,15 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
           </div>
         )}
 
-        <button
+        <Button
+          type="button"
           onClick={() => {
             router.push(`/connections/${createdKey.id}`);
             router.refresh();
           }}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
         >
           I&apos;ve saved the key — Continue
-        </button>
+        </Button>
       </div>
     );
   }
@@ -284,70 +295,62 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
         </div>
       )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
-          Name
-        </label>
-        <input
+      <FormField label="Name">
+        <Input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Marketing Hub, CRM Sync"
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none"
         />
-      </div>
+      </FormField>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
-          Description
-        </label>
-        <textarea
+      <FormField label="Description">
+        <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What this connected system does and why it needs access..."
           rows={3}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white placeholder-gray-500 focus:border-gray-600 focus:outline-none resize-y"
+          className="resize-y"
         />
-      </div>
+      </FormField>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
-          Permissions
-        </label>
+      <FormField
+        label="Permissions"
+        helpText="REST API Read is for external REST API access. MCP Read/Write control MCP server tool access."
+      >
         <div className="flex flex-wrap gap-2">
           {PERMISSIONS.map((perm) => (
             <button
               key={perm}
               type="button"
               onClick={() => togglePermission(perm)}
-              className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+              className={cn(
+                "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                 permissions.includes(perm)
                   ? "border-blue-600 bg-blue-600/20 text-blue-400"
                   : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
-              }`}
+              )}
             >
               {getPermissionLabel(perm)}
             </button>
           ))}
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          REST API Read is for external REST API access. MCP Read/Write control MCP server tool access.
-        </p>
-      </div>
+      </FormField>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
-          Subscribed Types
-        </label>
+      <FormField
+        label="Subscribed Types"
+        helpText="Which knowledge types this system can access via the API"
+      >
         <div className="space-y-3">
           <button
             type="button"
             onClick={handleAllTypesToggle}
-            className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={cn(
+              "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
               allTypes
                 ? "border-blue-600 bg-blue-600/20 text-blue-400"
                 : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
-            }`}
+            )}
           >
             All Types
           </button>
@@ -358,60 +361,46 @@ export function ConnectionForm({ mode, initialData }: ConnectionFormProps) {
                 type="button"
                 disabled={allTypes}
                 onClick={() => toggleType(kt.value)}
-                className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={cn(
+                  "rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
                   allTypes
                     ? "border-gray-800 bg-gray-800/50 text-gray-600 cursor-not-allowed"
                     : subscribedTypes.includes(kt.value)
                       ? "border-blue-600 bg-blue-600/20 text-blue-400"
                       : "border-gray-700 bg-gray-800 text-gray-400 hover:border-gray-600"
-                }`}
+                )}
               >
                 {kt.label}
               </button>
             ))}
           </div>
         </div>
-        <p className="mt-1 text-xs text-gray-500">
-          Which knowledge types this system can access via the API
-        </p>
-      </div>
+      </FormField>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-300 mb-1.5">
-          Rate Limit Tier
-        </label>
-        <select
+      <FormField label="Rate Limit Tier">
+        <Select
           value={rateLimitTier}
           onChange={(e) => setRateLimitTier(e.target.value)}
-          className="w-full rounded-lg border border-gray-700 bg-gray-800 px-4 py-2.5 text-white focus:border-gray-600 focus:outline-none"
         >
           {RATE_LIMIT_TIERS.map((tier) => (
             <option key={tier} value={tier}>
               {getRateLimitTierLabel(tier)}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+      </FormField>
 
       <div className="flex items-center gap-3 pt-2">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
+        <Button type="submit" variant="primary" loading={saving}>
           {saving
             ? "Saving..."
             : mode === "create"
               ? "Create Connection"
               : "Save Changes"}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="rounded-lg border border-gray-700 px-5 py-2.5 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={() => router.back()}>
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

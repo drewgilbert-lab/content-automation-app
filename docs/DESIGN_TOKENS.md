@@ -102,6 +102,68 @@ Tokens map Tailwind primitive values to semantic names. Use the **Tailwind utili
 
 ---
 
+## Component Usage Examples
+
+The shared atom components in `app/components/ui/` consume semantic tokens internally. Use the component API instead of raw token classes for buttons, inputs, badges, and form fields.
+
+### Button
+
+```tsx
+import { Button } from "@/app/components/ui/button";
+
+<Button variant="primary">Save</Button>
+<Button variant="secondary">Cancel</Button>
+<Button variant="danger">Delete</Button>
+<Button variant="ghost" size="sm">Toggle</Button>
+<Button loading>Saving...</Button>
+```
+
+Variants use `bg-action-primary`, `border-border-default`, `text-status-danger`, and `text-text-tertiary` tokens internally.
+
+### Input / Select / Textarea
+
+```tsx
+import { Input } from "@/app/components/ui/input";
+import { Select } from "@/app/components/ui/select";
+import { Textarea } from "@/app/components/ui/textarea";
+
+<Input placeholder="Name" />
+<Input error="Required" />
+<Select><option>Choose...</option></Select>
+<Textarea rows={3} />
+```
+
+All form controls use `bg-surface-input`, `border-border-default`, `text-text-primary`, `placeholder-text-muted`, and `border-border-focus` / `ring-border-focus` tokens.
+
+### FormField
+
+```tsx
+import { FormField } from "@/app/components/ui/form-field";
+import { Input } from "@/app/components/ui/input";
+
+<FormField label="Name" helpText="Required">
+  <Input placeholder="Enter name" />
+</FormField>
+```
+
+Labels use `text-text-secondary`. Help text uses `text-text-muted`. Error text uses `text-status-danger`.
+
+### Badge
+
+```tsx
+import { Badge } from "@/app/components/ui/badge";
+
+<Badge variant="success">Active</Badge>
+<Badge variant="warning" size="sm">Review</Badge>
+<Badge variant="danger">Failed</Badge>
+<Badge variant="info">New</Badge>
+<Badge variant="purple">MCP</Badge>
+```
+
+Badge variants use `bg-status-*-bg`, `text-status-*`, and `border-*-800` tokens.
+
+---
+
 ## Adding New Tokens
 
 1. Add the token to the `@theme inline` block in `app/globals.css` under the appropriate category.

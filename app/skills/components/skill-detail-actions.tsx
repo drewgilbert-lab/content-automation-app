@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Button } from "@/app/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface SkillDetailActionsProps {
   id: string;
@@ -97,41 +99,47 @@ export function SkillDetailActions({
       <div className="flex items-center gap-2 shrink-0">
         <Link
           href={`/skills/${id}/edit`}
-          className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 hover:text-white transition-colors"
+          className={cn(
+            "inline-flex items-center justify-center transition-colors",
+            "border border-border-default text-text-tertiary hover:border-border-hover hover:text-text-secondary",
+            "rounded-lg px-4 py-2.5 text-sm font-medium",
+          )}
         >
           Edit
         </Link>
         {!deprecated && (
-          <button
+          <Button
+            variant="secondary"
             onClick={handleToggleActive}
             disabled={togglingActive}
-            className={`rounded-lg border px-3.5 py-2 text-sm font-medium disabled:opacity-50 transition-colors ${
+            className={cn(
               active
                 ? "border-gray-700 text-orange-400 hover:border-orange-700 hover:text-orange-300"
-                : "border-gray-700 text-green-400 hover:border-green-700 hover:text-green-300"
-            }`}
+                : "border-gray-700 text-green-400 hover:border-green-700 hover:text-green-300",
+            )}
           >
             {togglingActive ? "..." : active ? "Deactivate" : "Activate"}
-          </button>
+          </Button>
         )}
-        <button
+        <Button
+          variant="secondary"
           onClick={handleToggleDeprecation}
           disabled={togglingDeprecation}
-          className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-yellow-400 hover:border-yellow-700 hover:text-yellow-300 disabled:opacity-50 transition-colors"
+          className="border-gray-700 text-yellow-400 hover:border-yellow-700 hover:text-yellow-300"
         >
           {togglingDeprecation
             ? "..."
             : deprecated
               ? "Restore"
               : "Deprecate"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="danger"
           onClick={handleDelete}
           disabled={deleting}
-          className="rounded-lg border border-gray-700 px-3.5 py-2 text-sm font-medium text-red-400 hover:border-red-700 hover:text-red-300 disabled:opacity-50 transition-colors"
         >
           {deleting ? "Deleting..." : "Delete"}
-        </button>
+        </Button>
       </div>
 
       {showDeleteConfirm && (
@@ -142,19 +150,19 @@ export function SkillDetailActions({
             </h3>
             <p className="mt-2 text-sm text-gray-300">{deleteWarning}</p>
             <div className="mt-6 flex justify-end gap-3">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setShowDeleteConfirm(false)}
-                className="rounded-lg border border-gray-700 px-4 py-2 text-sm font-medium text-gray-300 hover:border-gray-600 transition-colors"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
+                loading={deleting}
                 onClick={handleConfirmDelete}
-                disabled={deleting}
-                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:opacity-50 transition-colors"
               >
                 {deleting ? "Deleting..." : "Delete Anyway"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

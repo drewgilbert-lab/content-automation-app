@@ -64,6 +64,8 @@ Styling currently follows a **Tailwind v4 CSS-first** approach with a single glo
 
 **Dark mode**: Removed. The app is internal-only and dark-mode-only. The dead `prefers-color-scheme` media query is removed and `globals.css` is simplified to a single dark theme. If light mode is ever needed, the semantic token layer makes it trivial to add later by swapping token values per media query.
 
+**Interactive component foundation**: Complex interactive components (Dialog, Tabs, Listbox, Menu, Combobox, Popover, Switch, Disclosure, RadioGroup, Transition) use `@headlessui/react` from Tailwind Labs. Headless UI provides accessible behavior (focus trapping, keyboard navigation, ARIA roles, scroll locking) with zero styling opinions — components are styled directly with Tailwind utility classes and semantic tokens via `cn()`. Simple atoms (Button, Input, Badge, FormField) remain hand-rolled as thin wrappers around native HTML elements; Headless UI is only used where interactive behavior is too complex or accessibility-critical to implement correctly by hand. Alternative considered: shadcn/ui was evaluated but rejected due to its Radix UI dependency tree (10+ `@radix-ui/*` packages), its own CSS variable system that conflicts with the existing `@theme inline` token layer, and its Tailwind v3 origin. Headless UI is a single dependency built by the Tailwind team with first-class Tailwind v4 compatibility.
+
 ---
 
 ## Phase 1 — Infrastructure Fixes and Semantic Tokens
@@ -161,8 +163,11 @@ Verify: Geist Sans renders as the body font (not Arial). Verify: `prefers-color-
 
 ## Phase 2 — Shared Atom Components
 
-**S4 — Button Component**
-Create `app/components/ui/button.tsx`. A polymorphic button component with the following API:
+**S3.5 — Install Headless UI**
+Add `@headlessui/react` as a project dependency. This is a foundation step that does not produce UI components on its own but makes Headless UI available for Phase 3-4 organisms (Dialog, Tabs) that require it. Verify the import resolves correctly and `npm run build` passes.
+
+**S4 — Button Component** *(hand-rolled)*
+Create `app/components/ui/button.tsx`. Button is a thin wrapper around the native `<button>` element and does not use Headless UI — the native element already provides correct semantics, focus behavior, and keyboard interaction. A polymorphic button component with the following API:
 
 ```tsx
 interface ButtonProps {
@@ -192,12 +197,12 @@ Size styles:
 
 Loading state renders a spinner SVG and disables interaction. All buttons include `transition-colors` and `disabled:opacity-50 disabled:cursor-not-allowed`.
 
-**S5 — Input, Select, and Textarea Components**
-Create `app/components/ui/input.tsx`, `app/components/ui/select.tsx`, and `app/components/ui/textarea.tsx`. All three share consistent styling:
+**S5 — Input, Select, and Textarea Components** *(hand-rolled)*
+Create `app/components/ui/input.tsx`, `app/components/ui/select.tsx`, and `app/components/ui/textarea.tsx`. All three are hand-rolled wrappers around native HTML elements and share consistent styling:
 
 Base styles: `w-full rounded-lg border border-border-default bg-surface-input px-4 py-2.5 text-sm text-text-primary placeholder-text-muted focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus transition-colors`.
 
-`Input` forwards all native `<input>` props. `Select` forwards all native `<select>` props. `Textarea` forwards all native `<textarea>` props with a default `rows={4}`.
+`Input` forwards all native `<input>` props. `Select` wraps the native `<select>` element for Phase 2; if a fully custom-styled dropdown is needed later, it can be upgraded to Headless UI `Listbox` without changing the external component API. `Textarea` forwards all native `<textarea>` props with a default `rows={4}`.
 
 Error state: when an `error` prop is passed, border changes to `border-status-danger` and focus ring to `ring-status-danger`.
 
@@ -254,7 +259,7 @@ Migrate existing components to use the new atoms. Priority order:
 Migration rule: do not change component behavior or DOM structure. Only replace inline Tailwind class strings with the new shared component imports.
 
 **S9 — Phase 2 Testing and Validation**
-Verify: all migrated components render identically (within minor sub-pixel differences from consistent padding/sizing). Verify: Button loading state works (spinner + disabled). Verify: FormField error state renders correctly. Verify: Badge renders all variants at both sizes. Verify: `npm run build` passes. Browser smoke test: navigate all pages (`/knowledge`, `/skills`, `/connections`, `/bulk-upload`, `/queue`, `/dashboard`) and confirm no visual regressions.
+Verify: `@headlessui/react` is installed and importable (no runtime errors on import). Verify: all migrated components render identically (within minor sub-pixel differences from consistent padding/sizing). Verify: Button loading state works (spinner + disabled). Verify: FormField error state renders correctly. Verify: Badge renders all variants at both sizes. Verify: `npm run build` passes. Browser smoke test: navigate all pages (`/knowledge`, `/skills`, `/connections`, `/bulk-upload`, `/queue`, `/dashboard`) and confirm no visual regressions.
 
 ---
 
@@ -360,7 +365,7 @@ interface FilterableListProps<T> {
 }
 ```
 
-The component renders: a tab bar with count badges, a search input using the shared `Input` component, and a list of items via the `renderItem` callback. It handles the empty state with a configurable message.
+The component renders: a tab bar with count badges, a search input using the shared `Input` component, and a list of items via the `renderItem` callback. It handles the empty state with a configurable message. The tab bar uses Headless UI `TabGroup` for accessible keyboard navigation (arrow-key switching, ARIA tab/tabpanel roles) while styling is applied via semantic tokens and `cn()`.
 
 This is an optional composition helper, not a requirement. Feature pages can still build custom list UIs when the pattern doesn't fit.
 
@@ -380,7 +385,7 @@ interface ConfirmDialogProps {
 }
 ```
 
-Uses the `Button` component for actions and the semantic overlay token (`bg-surface-overlay`) for the backdrop.
+Built on Headless UI `Dialog` and `Transition` components, which provide focus trapping, scroll locking, Escape-to-close, and correct ARIA `dialog`/`alertdialog` roles. Uses the `Button` component for actions and the semantic overlay token (`bg-surface-overlay`) for the backdrop. Styling is applied via semantic tokens and `cn()` — Headless UI handles only the interactive behavior.
 
 **S18 — Phase 4 Migration — Organisms**
 Migrate existing pages to use the new organisms where applicable:
@@ -876,6 +881,7 @@ WS5-003: Codify governance and enforcement rules
 | UX remediation scope grows beyond targeted high-impact components | S22 could expand into an open-ended refactor and delay roadmap delivery | Time-box S22 to critical/high findings first, apply feature-by-feature rollout, and require measurable acceptance checks before expanding scope. |
 | CSS architecture remediation introduces broad churn in frequently edited components | Large-scale class refactors can create regressions and merge friction | Sequence S23 after S21/S22 foundations, prioritize high-duplication components first, and enforce incremental migration with visual and lint verification per batch. |
 | Backlog translation scope sprawl across overlapping audits | S24-S26 can duplicate findings and dilute execution focus | Enforce deduplication in S26, keep a single prioritized backlog, and map every item to WS1-WS6 with explicit dependency chains. |
+| Headless UI major version changes break component APIs | Dialog/Tabs/Listbox implementations need updates | Pin to a specific major version. Headless UI has a stable API with infrequent breaking changes. The dependency is isolated to organism-level components (S16, S17), not atoms. |
 
 **Open Questions:**
 
@@ -884,11 +890,12 @@ WS5-003: Codify governance and enforcement rules
 | Should the token layer support a future light mode? | If yes, tokens should use CSS custom properties that can be swapped per media query rather than direct Tailwind color references. The current scope assumes dark-mode-only, but the token architecture should be extensible. Recommendation: use the `@theme inline` approach now; refactor to CSS custom properties if light mode is ever needed. |
 | Should `FilterableList` use URL-based state (query params) or React state? | URL state enables shareable filtered views and survives page refreshes. React state is simpler. Existing list pages use React state. Recommendation: keep React state for now; add URL state as a future enhancement if users request shareable links. |
 | Should shared components be published as a package? | For a single internal app, a package adds overhead. If the design system is ever shared across multiple apps, extract to a package then. Recommendation: no package for now. |
+| Should Select use Headless UI Listbox from the start? | Native `<select>` is simpler and accessible by default but cannot be fully styled. Headless UI Listbox allows custom dropdown styling but adds complexity. Recommendation: start with native `<select>` in Phase 2; upgrade to Listbox only if custom styling is needed. |
 
 ## Recommended Build Order
 
 1. **S1 → S2 → S3** (Phase 1: fixes, tokens, validation) — prerequisite for everything; < 1 day
-2. **S4 → S5 → S6 → S7 → S8 → S9** (Phase 2: atoms, migration, validation) — highest-impact visual consistency improvement; 1-2 days
+2. **S3.5 → S4 → S5 → S6 → S7 → S8 → S9** (Phase 2: Headless UI install, atoms, migration, validation) — highest-impact visual consistency improvement; 1-2 days
 3. **S10 → S11 → S12 → S13 → S14** (Phase 3: layout, loading, errors, migration, validation) — structural consistency; 1-2 days
 4. **S15 → S16 → S17 → S18 → S19** (Phase 4: centralization, organisms, migration, validation) — consolidation; 1-2 days
 5. **S20 → S21 → S22 → S23 → S24 → S25 → S26** (Phase 5: documentation + audit closure + UX remediation + CSS architecture hardening + drift/comprehensive/backlog synthesis) — after Phases 1-4; 5-7 days

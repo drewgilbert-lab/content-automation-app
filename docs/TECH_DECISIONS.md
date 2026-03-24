@@ -1,6 +1,6 @@
 # Content Engine — Technology Decisions
 
-> Last updated: March 23, 2026
+> Last updated: March 24, 2026
 > Format: Architecture Decision Records (ADR)
 
 Each decision is recorded with the context, the options considered, the choice made, and the rationale. This document is updated as new decisions are made or existing decisions are revisited.
@@ -647,6 +647,47 @@ ADMIN_EMAIL=            # Override first-user-is-admin bootstrap (optional)
 
 ---
 
+## ADR-020: Permission Set Architecture (Group W Phase 3)
+
+**Status:** Decided (implemented)
+
+**Context:**
+The application uses a fixed 4-role hierarchy (Admin, Editor, Contributor, Viewer) with a static permission matrix in `lib/permissions.ts`. While sufficient for basic access control, organizations need the ability to create custom permission configurations without modifying code — for example, a "Content Manager" role that can review submissions but not manage connected systems, or a "Data Steward" role with read access plus bulk upload permissions.
+
+**Options Considered:**
+
+| Option | Notes |
+|---|---|
+| More fixed roles | Simple to implement; requires code changes for each new role; does not scale |
+| Direct permission arrays on User | Maximum flexibility per user; no reusable sets; harder to audit who has what |
+| PermissionSet Weaviate collection | Reusable named sets; users reference a set via ID; cacheable; same CRUD patterns as existing collections |
+| External auth service (Auth0, Clerk) | Feature-rich; adds external SaaS dependency, cost, and complexity |
+
+**Decision:** `PermissionSet` Weaviate collection with granular permission arrays. Users reference a set via `permissionSetId`. Backward-compatible fallback to the static role matrix when no set is assigned.
+
+**Rationale:**
+- **Backward compatible**: Existing users with no `permissionSetId` continue using the static role matrix unchanged
+- **Cacheable**: Permission sets are cached with 5-minute TTL using the established `globalThis` pattern (ADR-012), same as User and API key caches
+- **Same patterns**: CRUD operations follow the existing Weaviate collection patterns (list, get, create, update, delete) used by ConnectedSystem, Skill, and other collections
+- **Built-in protection**: Four default sets matching the fixed roles are seeded on collection creation and marked `isBuiltIn: true` — they cannot be deleted, providing a safety net
+- **Granular**: Permission strings (e.g. `knowledge:read`, `submissions:review`, `admin:users`) allow fine-grained control without role escalation
+
+**Resolution Logic:**
+```
+resolvePermissions(user):
+  1. If user.permissionSetId is set → fetch PermissionSet → return its permissions array
+  2. Else → return ROLE_PERMISSIONS[user.role] (static matrix)
+```
+
+**Implications:**
+- `lib/permission-sets.ts` handles PermissionSet CRUD with Weaviate
+- `lib/permissions.ts` exports `resolvePermissions()` and `userHasPermission()` for runtime permission checks
+- `lib/auth-server.ts` provides `requirePermission()` for route-level enforcement
+- Admin UI at `/admin/roles` for managing permission sets
+- All permission set mutations are audit logged (W9)
+
+---
+
 ## Decision Log
 
 | ADR | Decision | Date | Status |
@@ -670,6 +711,7 @@ ADMIN_EMAIL=            # Override first-user-is-admin bootstrap (optional)
 | ADR-017 | Upload Session Store — Redis Migration | Mar 2026 | Decided (implemented) |
 | ADR-018 | Content Workflow Telemetry and Metrics (CW18) | Mar 2026 | Decided (implemented) |
 | ADR-019 | Auth.js v5 with Google OAuth (Group W) | Mar 2026 | Decided (implemented) |
+| ADR-020 | Permission Set Architecture (Group W Phase 3) | Mar 2026 | Decided (implemented) |
 
 ---
 

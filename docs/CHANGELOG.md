@@ -1,6 +1,18 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 23, 2026
+> Newest entries first. Last updated: March 24, 2026
+
+---
+
+## 2026-03-24
+
+### Group W Phase 3 — Advanced Access Control (W8–W9)
+
+- **W8 — Permission Sets (Custom Roles)**: Created `lib/permission-set-types.ts` with `PermissionSetRecord`, `PermissionSetCreateInput`, `PermissionSetUpdateInput`, and `DEFAULT_PERMISSION_SETS`. Created `lib/permission-sets.ts` with Weaviate `PermissionSet` collection CRUD, 5-minute `globalThis` cache, name uniqueness enforcement, built-in set deletion protection, and automatic seed of 4 default sets on collection creation. Updated `lib/user-types.ts` to add `permissionSetId` to `UserRecord` and `UserUpdateInput`. Updated `lib/users.ts` to include `permissionSetId` in User collection schema, `mapToUserRecord`, and `updateUser`. Updated `lib/permissions.ts` with `ALL_PERMISSIONS`, `resolvePermissions(user)` (checks `permissionSetId` first, falls back to role matrix), and `userHasPermission(user, permission)`. Updated `lib/auth-server.ts` with `requirePermission(permission)`. Created `app/api/admin/roles/route.ts` (GET list, POST create — admin only, audit logged) and `app/api/admin/roles/[id]/route.ts` (GET detail, PATCH update, DELETE with built-in deletion protection — admin only, audit logged). Created `/admin/roles` page with permission set list, `/admin/roles/new` with permission checkbox grid form, and `/admin/roles/[id]/edit` with edit form (built-in sets: name disabled). Updated `/admin/users` page with permission set assignment dropdown and admin nav links.
+- **W9 — Audit Log for Auth Events**: Created `lib/audit-types.ts` with `AuditEventType` union (9 event types), `AuditLogRecord`, `AuditLogCreateInput`, and `AUDIT_EVENT_LABELS`. Created `lib/audit.ts` with Weaviate `AuditLog` collection, fire-and-forget `logAuditEvent()`, and `listAuditEvents()` with filtering and pagination. Created `app/api/admin/audit/route.ts` (GET paginated list — admin only, type/actor filters). Created `/admin/audit` page with event timeline, type/actor filters, color-coded badges, and pagination. Updated `lib/auth.ts` to instrument signIn callback (logs `sign_in`/`sign_in_failed`) and added `events.signOut` handler (logs `sign_out`). Updated `app/api/admin/users/[id]/route.ts` with audit logging for `role_change`, `user_activated`, `user_deactivated`, and `permissionSetId` support.
+- **New Weaviate collections**: `PermissionSet` (name, description, permissions, isBuiltIn, timestamps; no vectorizer; 4 built-in sets seeded) and `AuditLog` (eventType, actorEmail, actorName, targetEmail, targetId, details, ipAddress, timestamp; no vectorizer). Added `permissionSetId` text property to User collection.
+
+**Documentation:** `docs/KNOWLEDGE_BASE.md` (PermissionSet + AuditLog collection schemas, User schema update), `docs/API.md` (permission set + audit admin routes), `docs/TECH_DECISIONS.md` (ADR-020 permission set architecture), `docs/SCOPE.md` (Auth module status), `docs/roadmap/group-w.md` (W8–W9 marked complete), `docs/roadmap/README.md` (Group W status updated), `docs/user-guides/authentication.md` (permission sets + audit log sections), `docs/CHANGELOG.md` (this entry).
 
 ---
 

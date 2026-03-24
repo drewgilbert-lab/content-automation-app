@@ -1,6 +1,6 @@
 # Content Engine — Knowledge Base
 
-> Last updated: March 23, 2026 (Group W — User collection; Phase 2 audit fields on knowledge objects, submissions, skills)
+> Last updated: March 24, 2026 (Group W Phase 3 — PermissionSet and AuditLog collections; permissionSetId on User)
 
 This document defines the Weaviate schema, the full content inventory to be seeded, the cross-reference design, and the seed plan. It is the technical reference for the knowledge store layer.
 
@@ -266,11 +266,48 @@ Stores authenticated user records for multi-user access control (Group W). Not v
 | `avatarUrl` | `text` | Google profile picture URL |
 | `role` | `text` | `"admin"`, `"editor"`, `"contributor"`, or `"viewer"` |
 | `active` | `boolean` | Active flag; inactive users are denied access on every request |
+| `permissionSetId` | `text` | UUID of the assigned PermissionSet; empty string = use role-based fallback |
 | `lastLoginAt` | `date` | Last successful sign-in timestamp |
 | `createdAt` | `date` | Record creation timestamp |
 | `updatedAt` | `date` | Last modification timestamp |
 
-No cross-references. First user to sign in is auto-assigned `admin` role (overridable via `ADMIN_EMAIL` env var). Subsequent users default to `contributor`. User records are cached in-memory with a 5-minute TTL (`globalThis` pattern per ADR-012).
+No cross-references. First user to sign in is auto-assigned `admin` role (overridable via `ADMIN_EMAIL` env var). Subsequent users default to `contributor`. User records are cached in-memory with a 5-minute TTL (`globalThis` pattern per ADR-012). When `permissionSetId` is set, permissions are resolved from the referenced PermissionSet instead of the static role matrix.
+
+---
+
+### Collection: `PermissionSet`
+
+Stores custom permission sets that extend the fixed 4-role hierarchy (Group W Phase 3). Not vectorized. Four built-in sets (Admin, Editor, Contributor, Viewer) are seeded on collection creation and cannot be deleted.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Permission set name (unique) |
+| `description` | `text` | Human-readable description of the set's purpose |
+| `permissions` | `text[]` | Array of granted permission strings (e.g. `["knowledge:read", "knowledge:write", "submissions:review"]`) |
+| `isBuiltIn` | `boolean` | Built-in sets cannot be deleted or renamed |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+
+No cross-references. Permission sets are cached in-memory with a 5-minute TTL (`globalThis` pattern per ADR-012). Users reference a set via `permissionSetId`; when set, `resolvePermissions(user)` reads permissions from the set instead of the static role matrix.
+
+---
+
+### Collection: `AuditLog`
+
+Stores authentication and authorization events for compliance and troubleshooting (Group W Phase 3). Not vectorized. Written via fire-and-forget `logAuditEvent()` to avoid blocking request handlers.
+
+| Property | Type | Description |
+|---|---|---|
+| `eventType` | `text` | Event type: `sign_in`, `sign_out`, `sign_in_failed`, `role_change`, `user_activated`, `user_deactivated`, `permission_set_created`, `permission_set_updated`, `permission_set_deleted` |
+| `actorEmail` | `text` | Email of the user who performed the action |
+| `actorName` | `text` | Display name of the actor |
+| `targetEmail` | `text` | Email of the affected user (for user management events) |
+| `targetId` | `text` | UUID of the affected entity |
+| `details` | `text` | JSON string with event-specific metadata |
+| `ipAddress` | `text` | Client IP address (when available) |
+| `timestamp` | `date` | When the event occurred |
+
+No cross-references. No vectorization.
 
 ---
 

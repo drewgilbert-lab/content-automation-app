@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 23, 2026 (Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 24, 2026 (Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -1919,9 +1919,9 @@ Get a single user by ID. Requires `admin` role.
 **Response:** `{ user: UserRecord }`
 
 #### `PATCH /api/admin/users/[id]`
-Update a user's role or active status. Requires `admin` role. Admins cannot modify their own role.
+Update a user's role, active status, or permission set. Requires `admin` role. Admins cannot modify their own role. All changes are audit logged.
 
-**Request body:** `{ role?: "admin" | "editor" | "contributor" | "viewer", active?: boolean }`
+**Request body:** `{ role?: "admin" | "editor" | "contributor" | "viewer", active?: boolean, permissionSetId?: string }`
 
 **Response:** `{ user: UserRecord }`
 
@@ -1929,6 +1929,141 @@ Update a user's role or active status. Requires `admin` role. Admins cannot modi
 Get the current authenticated user's info. No minimum role required (any authenticated user).
 
 **Response:** `{ id, email, name, role, active }`
+
+---
+
+## Admin Routes — Permission Sets (Group W Phase 3)
+
+### GET /api/admin/roles
+
+List all permission sets. Requires `admin` role.
+
+**Response (success):**
+- Status: `200`
+- Body: `{ permissionSets: PermissionSetRecord[] }`
+
+**Implementation:** `app/api/admin/roles/route.ts` → calls `listPermissionSets()` from `lib/permission-sets.ts`
+
+---
+
+### POST /api/admin/roles
+
+Create a new permission set. Requires `admin` role. Audit logged.
+
+**Request:**
+```json
+{
+  "name": "string (required)",
+  "description": "string (required)",
+  "permissions": "string[] (required)"
+}
+```
+
+**Response (success):**
+- Status: `201`
+- Body: `{ permissionSet: PermissionSetRecord }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "..." }` | Missing required fields |
+| 409 | `{ "error": "..." }` | Name conflict |
+
+**Implementation:** `app/api/admin/roles/route.ts` → calls `createPermissionSet()` from `lib/permission-sets.ts`
+
+---
+
+### GET /api/admin/roles/[id]
+
+Get permission set detail. Requires `admin` role.
+
+**Path Parameters:**
+- `id` (required): PermissionSet UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ permissionSet: PermissionSetRecord }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Permission set not found" }` | UUID not found |
+
+**Implementation:** `app/api/admin/roles/[id]/route.ts` → calls `getPermissionSet()` from `lib/permission-sets.ts`
+
+---
+
+### PATCH /api/admin/roles/[id]
+
+Update a permission set. Requires `admin` role. Audit logged.
+
+**Path Parameters:**
+- `id` (required): PermissionSet UUID
+
+**Request:**
+```json
+{
+  "name": "string (optional)",
+  "description": "string (optional)",
+  "permissions": "string[] (optional)"
+}
+```
+
+**Response (success):**
+- Status: `200`
+- Body: `{ permissionSet: PermissionSetRecord }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 404 | `{ "error": "Permission set not found" }` | UUID not found |
+
+**Implementation:** `app/api/admin/roles/[id]/route.ts` → calls `updatePermissionSet()` from `lib/permission-sets.ts`
+
+---
+
+### DELETE /api/admin/roles/[id]
+
+Delete a permission set. Requires `admin` role. Built-in sets cannot be deleted. Audit logged.
+
+**Path Parameters:**
+- `id` (required): PermissionSet UUID
+
+**Response (success):**
+- Status: `200`
+- Body: `{ success: true }`
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "Cannot delete built-in permission set" }` | Built-in set |
+| 404 | `{ "error": "Permission set not found" }` | UUID not found |
+
+**Implementation:** `app/api/admin/roles/[id]/route.ts` → calls `deletePermissionSet()` from `lib/permission-sets.ts`
+
+---
+
+## Admin Routes — Audit Log (Group W Phase 3)
+
+### GET /api/admin/audit
+
+List audit events with pagination. Requires `admin` role.
+
+**Query Parameters:**
+- `type` (optional): Filter by event type (e.g. `sign_in`, `role_change`)
+- `actor` (optional): Filter by actor email
+- `limit` (optional): Default 50
+- `offset` (optional): Pagination offset
+
+**Response (success):**
+- Status: `200`
+- Body: `{ events: AuditLogRecord[], total: number, limit: number, offset: number }`
+
+**Implementation:** `app/api/admin/audit/route.ts` → calls `listAuditEvents()` from `lib/audit.ts`
 
 ---
 

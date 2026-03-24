@@ -1,6 +1,6 @@
 # Content Engine — Project Overview
 
-> Last updated: March 23, 2026
+> Last updated: March 24, 2026
 
 ## What This Is
 
@@ -58,7 +58,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Weaviate collections created | Done | Schema defined in KNOWLEDGE_BASE.md |
 | Seed script | Done | Imports content-automation/ files into Weaviate |
 | Knowledge Base UI | Done | Groups A–I done (I1–I5); I6 (Skill Testing Interface) deferred |
-| Authentication & User Management | Done (Phase 1+2) | Group W W1–W7: Google OAuth, JWT sessions, domain restriction, User collection, requireRole() on all routes, permission matrix (lib/permissions.ts), admin user management UI, user attribution (createdBy/updatedBy); Phase 3 (W8–W9: custom permission sets, audit log) pending |
+| Authentication & User Management | Done (W1–W9) | Group W complete: Google OAuth, JWT sessions, domain restriction, User collection, requireRole() on all routes, permission matrix (lib/permissions.ts), admin user management UI, user attribution (createdBy/updatedBy), custom permission sets (PermissionSet collection, /admin/roles), audit log (AuditLog collection, /admin/audit) |
 | Generate UI | Pending | Content generation with context retrieval |
 | Content library UI | Pending | Browse and manage generated content |
 | Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |

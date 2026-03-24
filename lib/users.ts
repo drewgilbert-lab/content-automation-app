@@ -27,6 +27,7 @@ function mapToUserRecord(obj: {
     name: String(obj.properties.name ?? ""),
     avatarUrl: String(obj.properties.avatarUrl ?? ""),
     role: String(obj.properties.role ?? "contributor") as UserRole,
+    permissionSetId: String(obj.properties.permissionSetId ?? ""),
     active: obj.properties.active === true,
     lastLoginAt: dateToString(obj.properties.lastLoginAt),
     createdAt: dateToString(obj.properties.createdAt),
@@ -45,6 +46,7 @@ async function ensureUserCollection(client: WeaviateClient): Promise<void> {
         { name: "name", dataType: "text" as const },
         { name: "avatarUrl", dataType: "text" as const },
         { name: "role", dataType: "text" as const },
+        { name: "permissionSetId", dataType: "text" as const },
         { name: "active", dataType: "boolean" as const },
         { name: "lastLoginAt", dataType: "date" as const },
         { name: "createdAt", dataType: "date" as const },
@@ -103,6 +105,7 @@ export async function getOrCreateUser(
       name,
       avatarUrl: avatarUrl ?? "",
       role,
+      permissionSetId: "",
       active: true,
       lastLoginAt: now,
       createdAt: now,
@@ -117,6 +120,7 @@ export async function getOrCreateUser(
       name,
       avatarUrl: avatarUrl ?? "",
       role,
+      permissionSetId: "",
       active: true,
       lastLoginAt: now,
       createdAt: now,
@@ -182,6 +186,7 @@ export async function updateUser(
     if (input.name !== undefined) properties.name = input.name;
     if (input.avatarUrl !== undefined) properties.avatarUrl = input.avatarUrl;
     if (input.role !== undefined) properties.role = input.role;
+    if (input.permissionSetId !== undefined) properties.permissionSetId = input.permissionSetId;
     if (input.active !== undefined) properties.active = input.active;
 
     await collection.data.update({ id, properties });

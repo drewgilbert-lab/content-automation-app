@@ -28,7 +28,10 @@ app/
   api/auth/[...nextauth]/route.ts — Auth.js route handler (GET, POST)
   api/auth/me/route.ts — GET current user info
   api/admin/users/route.ts — GET list (admin only)
-  api/admin/users/[id]/route.ts — GET detail, PATCH update role/active (admin only)
+  api/admin/users/[id]/route.ts — GET detail, PATCH update role/active/permissionSetId (admin only)
+  api/admin/roles/route.ts — GET list, POST create permission sets (admin only)
+  api/admin/roles/[id]/route.ts — GET detail, PATCH update, DELETE permission set (admin only)
+  api/admin/audit/route.ts — GET paginated audit event list (admin only)
   api/chat/route.ts       — POST, streams Claude response
   api/knowledge/route.ts  — GET list, POST create
   api/knowledge/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore
@@ -83,6 +86,10 @@ app/
   auth/signin/page.tsx    — Sign-in page (server component, dark theme, error handling)
   auth/signin/signin-button.tsx — Google sign-in button (client component)
   admin/users/page.tsx — Admin user management page
+  admin/roles/page.tsx — Permission set management page
+  admin/roles/new/page.tsx — Create permission set form
+  admin/roles/[id]/edit/page.tsx — Edit permission set form
+  admin/audit/page.tsx — Audit log page
   connections/page.tsx    — Connected Systems list page
   connections/[id]/page.tsx — Connected System detail page
   connections/new/page.tsx — Create connection form page
@@ -102,7 +109,12 @@ lib/
   auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions, requireAuth(), requireRole(), getCurrentUser()
   user-types.ts           — UserRole, UserRecord, ROLE_HIERARCHY, VALID_ROLES, isValidRole(), hasMinimumRole()
   users.ts                — User CRUD: getOrCreateUser(), getUserByEmail(), listUsers(), updateUserRole(), deactivateUser(); 5-min cache
-  permissions.ts          — Permission matrix, hasPermission(), requiresReviewQueue(), getPermissions()
+  permissions.ts          — Permission matrix, hasPermission(), requiresReviewQueue(), getPermissions(), resolvePermissions(), userHasPermission()
+  auth-server.ts          — requirePermission() server-side permission check
+  permission-set-types.ts — PermissionSet types, input types, DEFAULT_PERMISSION_SETS
+  permission-sets.ts      — PermissionSet CRUD: list, get, create, update, delete, seed defaults; 5-min cache
+  audit-types.ts          — AuditEventType, AuditLogRecord, AuditLogCreateInput, AUDIT_EVENT_LABELS
+  audit.ts                — AuditLog CRUD: logAuditEvent (fire-and-forget), listAuditEvents, getAuditEventCount
   api-auth.ts             — generateApiKey(), hashApiKey(), validateApiKey(), refreshApiKeyCache(); globalThis cache with 5-min TTL
   api-middleware.ts       — withApiAuth() HOF for /api/v1/ routes; key validation, security headers, CORS, request logging
   weaviate.ts             — withWeaviate<T>(fn), checkWeaviateConnection()
@@ -132,7 +144,7 @@ docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
   BUSINESS_LOGIC.md       — Context assembly, content types, skills vs rules, runtime logic
-  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, User, ContentNarrative collections), content inventory, seed plan
+  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, User, PermissionSet, AuditLog, ContentNarrative collections), content inventory, seed plan
   SCOPE.md                — Project overview, goals, status
   roadmap/README.md       — Roadmap index: group status table, phase 1 remaining work, open questions
   roadmap/group-{a-z}.md  — Per-group detail: scope, numbered items, risks/gaps (one file per group, 26 groups A–Z, no L)
@@ -180,7 +192,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | MCP Server (Read + Write) | J1-J12 Done (Phase 1 Read + Phase 2 Write), J13+ Pending (Group J) |
 | External REST API (K1-K6) | Done (Phase 1) |
 | Knowledge-Linked Skills | Done (Group M) |
-| Authentication & User Management | W1–W7 Done (Phase 1+2), W8–W9 Pending |
+| Authentication & User Management | Done (W1–W9) |
 | Content Narratives | Planned (Group R) |
 | Design System Foundation | Planned (Group S) |
 | Generate (content creation) | Pending |

@@ -12,10 +12,17 @@ type AdminUserRow = {
   name: string;
   avatarUrl: string;
   role: UserRole;
+  permissionSetId: string;
   active: boolean;
   lastLoginAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type PermissionSetOption = {
+  id: string;
+  name: string;
+  isBuiltIn: boolean;
 };
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -81,6 +88,7 @@ function Spinner({ className = "h-8 w-8" }: { className?: string }) {
 export default function AdminUsersPage() {
   const { role, loading: roleLoading } = useRole();
   const [users, setUsers] = useState<AdminUserRow[]>([]);
+  const [permissionSets, setPermissionSets] = useState<PermissionSetOption[]>([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -93,14 +101,22 @@ export default function AdminUsersPage() {
     setListLoading(true);
     setListError(null);
     try {
-      const res = await fetch("/api/admin/users");
-      if (!res.ok) {
-        setListError(await parseErrorMessage(res));
+      const [usersRes, setsRes] = await Promise.all([
+        fetch("/api/admin/users"),
+        fetch("/api/admin/roles"),
+      ]);
+      if (!usersRes.ok) {
+        setListError(await parseErrorMessage(usersRes));
         setUsers([]);
         return;
       }
-      const data = (await res.json()) as { users?: AdminUserRow[] };
-      setUsers(Array.isArray(data.users) ? data.users : []);
+      const usersData = (await usersRes.json()) as { users?: AdminUserRow[] };
+      setUsers(Array.isArray(usersData.users) ? usersData.users : []);
+
+      if (setsRes.ok) {
+        const setsData = (await setsRes.json()) as { permissionSets?: PermissionSetOption[] };
+        setPermissionSets(Array.isArray(setsData.permissionSets) ? setsData.permissionSets : []);
+      }
     } catch {
       setListError("Could not load users.");
       setUsers([]);
@@ -125,7 +141,7 @@ export default function AdminUsersPage() {
 
   async function patchUser(
     id: string,
-    body: { role?: UserRole; active?: boolean }
+    body: { role?: UserRole; active?: boolean; permissionSetId?: string }
   ) {
     setRowErrors((prev) => {
       const next = { ...prev };
@@ -203,6 +219,14 @@ export default function AdminUsersPage() {
               ? "Loading users…"
               : `${users.length} user${users.length === 1 ? "" : "s"} total`}
           </p>
+          <div className="mt-3 flex gap-4 text-sm">
+            <Link href="/admin/roles" className="text-blue-400 hover:text-blue-300 transition-colors">
+              Roles &amp; Permissions
+            </Link>
+            <Link href="/admin/audit" className="text-blue-400 hover:text-blue-300 transition-colors">
+              Audit Log
+            </Link>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -239,6 +263,7 @@ export default function AdminUsersPage() {
                   <tr>
                     <th className="px-4 py-3 font-medium">User</th>
                     <th className="px-4 py-3 font-medium">Role</th>
+                    <th className="px-4 py-3 font-medium">Permission Set</th>
                     <th className="px-4 py-3 font-medium">Last login</th>
                     <th className="px-4 py-3 font-medium">Status</th>
                     <th className="px-4 py-3 font-medium">Actions</th>
@@ -262,6 +287,25 @@ export default function AdminUsersPage() {
                         >
                           {ROLE_LABELS[u.role]}
                         </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <select
+                          value={u.permissionSetId || ""}
+                          disabled={updatingId === u.id}
+                          onChange={(e) => {
+                            const next = e.target.value;
+                            if (next === (u.permissionSetId || "")) return;
+                            void patchUser(u.id, { permissionSetId: next } as { role?: UserRole; active?: boolean });
+                          }}
+                          className="rounded-lg border border-gray-700 bg-gray-950 px-2 py-1.5 text-xs text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                        >
+                          <option value="">Default (role-based)</option>
+                          {permissionSets.map((ps) => (
+                            <option key={ps.id} value={ps.id}>
+                              {ps.name}{ps.isBuiltIn ? " ★" : ""}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-4 py-4 text-gray-300">
                         {formatLastLogin(u.lastLoginAt)}
@@ -360,7 +404,7 @@ export default function AdminUsersPage() {
                   {rowErrors[u.id] && (
                     <p className="mt-2 text-xs text-red-400">{rowErrors[u.id]}</p>
                   )}
-                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
                     <select
                       value={u.role}
                       disabled={updatingId === u.id}
@@ -374,6 +418,23 @@ export default function AdminUsersPage() {
                       {VALID_ROLES.map((r) => (
                         <option key={r} value={r}>
                           {ROLE_LABELS[r]}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={u.permissionSetId || ""}
+                      disabled={updatingId === u.id}
+                      onChange={(e) => {
+                        const next = e.target.value;
+                        if (next === (u.permissionSetId || "")) return;
+                        void patchUser(u.id, { permissionSetId: next });
+                      }}
+                      className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 sm:w-auto"
+                    >
+                      <option value="">Default (role-based)</option>
+                      {permissionSets.map((ps) => (
+                        <option key={ps.id} value={ps.id}>
+                          {ps.name}{ps.isBuiltIn ? " ★" : ""}
                         </option>
                       ))}
                     </select>

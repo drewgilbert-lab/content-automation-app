@@ -1,6 +1,6 @@
 > Back to [Roadmap Index](./README.md)
 
-# Group W — Authentication & User Management
+# Group W — Authentication & User Management — **Done**
 
 > Scope: Add multi-user authentication via Google OAuth sign-in, role-based access control with four roles (Admin, Editor, Contributor, Viewer), and an admin section for provisioning users and permission sets. Transforms the application from a single-user internal tool to a multi-user platform with governed access.
 > Dependencies: None for Phase 1 (auth can be added incrementally). Group K (Connected Systems — API key auth patterns coexist with user auth). All internal API routes (`/api/knowledge`, `/api/skills`, `/api/submissions`, etc.) become protected after this group.
@@ -51,12 +51,12 @@ Build `/admin/users` page (accessible only to `admin` role). Features: list all 
 **W7 — User Attribution on Actions — ✅ Done (2026-03-23)**
 Add `createdBy` and `updatedBy` fields to submissions, knowledge objects, and skills. When a user creates or edits content, record their email or user ID. Display the author in the review queue ("Submitted by drew@company.com"), knowledge detail pages ("Last edited by..."), and the submission detail page. This provides accountability and enables per-user activity tracking. Update `createSubmission()`, `createKnowledgeObject()`, `updateKnowledgeObject()`, `createSkill()`, and `updateSkill()` to accept an optional `userId` parameter.
 
-## Phase 3 — Advanced Access Control (W8–W9)
+## Phase 3 — Advanced Access Control (W8–W9) — **Done**
 
-**W8 — Permission Sets (Custom Roles)**
+**W8 — Permission Sets (Custom Roles) — ✅ Done (2026-03-24)**
 Extend the role system to support custom permission sets beyond the four fixed roles. Build `/admin/roles` page where admins can create named permission sets with granular permissions. Store permission sets in a `PermissionSet` Weaviate collection. Each user references a permission set instead of a fixed role string. The four built-in roles (`admin`, `editor`, `contributor`, `viewer`) become default permission sets that cannot be deleted.
 
-**W9 — Audit Log for Auth Events**
+**W9 — Audit Log for Auth Events — ✅ Done (2026-03-24)**
 Log all authentication and authorization events: sign-in (success/failure), sign-out, role changes, user activation/deactivation, permission set changes. Store in a lightweight audit log (structured JSON logs via [Group V](./group-v.md), or a dedicated `AuditLog` Weaviate collection if queryable access is needed). Display a "Recent Activity" panel on the admin dashboard showing the last 50 auth events.
 
 **Risks and Gaps:**

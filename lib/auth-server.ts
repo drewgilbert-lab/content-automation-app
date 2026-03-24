@@ -2,6 +2,8 @@ import { auth } from "./auth";
 import { getUserCached, getOrCreateUser } from "./users";
 import type { UserRecord, UserRole } from "./user-types";
 import { hasMinimumRole } from "./user-types";
+import type { Permission } from "./permissions";
+import { userHasPermission } from "./permissions";
 
 /**
  * Ensure a Weaviate user record exists for the current session.
@@ -58,6 +60,28 @@ export async function requireRole(
   if (result instanceof Response) return result;
 
   if (!hasMinimumRole(result.role, minimumRole)) {
+    return Response.json(
+      { error: "Insufficient permissions" },
+      { status: 403 }
+    );
+  }
+
+  return result;
+}
+
+/**
+ * Verify the current user has a specific granular permission.
+ * Resolves permissions from the user's linked PermissionSet, falling
+ * back to the static ROLE_PERMISSIONS matrix.
+ */
+export async function requirePermission(
+  permission: Permission
+): Promise<UserRecord | Response> {
+  const result = await requireAuth();
+  if (result instanceof Response) return result;
+
+  const allowed = await userHasPermission(result, permission);
+  if (!allowed) {
     return Response.json(
       { error: "Insufficient permissions" },
       { status: 403 }

@@ -6,6 +6,7 @@ export interface UserRecord {
   name: string;
   avatarUrl: string;
   role: UserRole;
+  permissionSetId: string;
   active: boolean;
   lastLoginAt: string;
   createdAt: string;
@@ -22,6 +23,7 @@ export interface UserUpdateInput {
   name?: string;
   avatarUrl?: string;
   role?: UserRole;
+  permissionSetId?: string;
   active?: boolean;
 }
 

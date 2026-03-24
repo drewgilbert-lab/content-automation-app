@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: March 23, 2026
+> Last updated: March 24, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -38,7 +38,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | T | Content Generation Cost Tracking | Planned | [group-t.md](./group-t.md) |
 | U | Context Window Budget Management | Planned | [group-u.md](./group-u.md) |
 | V | Structured Logging | Planned | [group-v.md](./group-v.md) |
-| W | Authentication & User Management | W1–W7 Done (Phase 1+2), W8–W9 Pending | [group-w.md](./group-w.md) |
+| W | Authentication & User Management | Done | [group-w.md](./group-w.md) |
 | X | Context Assembly Test Coverage | Planned | [group-x.md](./group-x.md) |
 | Y | Production Redis Configuration | Planned | [group-y.md](./group-y.md) |
 | Z | CI/CD Pipeline | Planned | [group-z.md](./group-z.md) |
@@ -65,7 +65,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Content Generation Cost Tracking | Group T — not yet started. Token counting, cost metadata, generation cost dashboard, budget alerts | See [Group T](./group-t.md) |
 | Context Window Budget Management | Group U — not yet started. Content length limits, token budget allocation, smart truncation, context budget visibility | See [Group U](./group-u.md) |
 | Structured Logging | Group V — not yet started. Structured JSON logging (`pino`), request logging middleware, domain event logging, operational logging | See [Group V](./group-v.md) |
-| Authentication & User Management | Group W Phase 1 (W1–W4) and Phase 2 (W5–W7) done: Google OAuth, JWT sessions, User collection, middleware, `requireRole()` + `lib/permissions.ts`, admin user management at `/admin/users`, attribution on knowledge/skills/submissions. Phase 3 pending (W8–W9): custom permission sets, audit log | See [Group W](./group-w.md) |
+| Authentication & User Management | Group W complete (W1–W9): Google OAuth, JWT sessions, User collection, middleware, `requireRole()` + `lib/permissions.ts`, admin user management at `/admin/users`, attribution on knowledge/skills/submissions, custom permission sets at `/admin/roles`, audit log at `/admin/audit` | See [Group W](./group-w.md) |
 | Context Assembly and Skill Interop Test Coverage | Group X — not yet started. Unit tests for `assembleContext()`, Claude skill package schema/mapping tests, and env-gated acceptance smoke checks | See [Group X](./group-x.md) |
 | Production Redis Configuration | Group Y — not yet started. Upstash Redis env vars in Vercel, production validation, documentation | See [Group Y](./group-y.md) |
 | CI/CD Pipeline | Group Z — not yet started. GitHub Actions test workflow, MCP server build verification, branch protection | See [Group Z](./group-z.md) |

@@ -1,6 +1,6 @@
 # Authentication
 
-> Last updated: March 23, 2026
+> Last updated: March 24, 2026
 
 The Content Engine uses Google OAuth for sign-in. All pages and internal API routes require authentication. External API routes (`/api/v1/*`) are unaffected and continue using API key authentication.
 
@@ -67,6 +67,71 @@ Admins can manage users at **User Management** (accessible from the dashboard or
 - Activate or deactivate users
 
 Users self-register on first Google sign-in. An admin then assigns the appropriate role. Admins cannot demote their own role (self-protection).
+
+---
+
+## Custom Permission Sets (Admin Only)
+
+Admins can create custom permission sets at **Permission Sets** (accessible from the admin nav or at `/admin/roles`). Permission sets allow fine-grained access control beyond the four fixed roles.
+
+### How Permission Sets Work
+
+- Each permission set defines a list of specific permissions (e.g. "View knowledge", "Review submissions", "Manage users")
+- When a permission set is assigned to a user, it **overrides** the default permissions from their role
+- If no permission set is assigned, the user's role determines their permissions (the default behavior)
+
+### Built-In Permission Sets
+
+Four built-in permission sets are included by default, matching the permissions of the four standard roles:
+
+| Set | Matches Role | Can Delete? |
+|---|---|---|
+| Admin | Admin | No |
+| Editor | Editor | No |
+| Contributor | Contributor | No |
+| Viewer | Viewer | No |
+
+Built-in sets cannot be deleted and their names cannot be changed, but their permissions can be customized.
+
+### Creating a Custom Permission Set
+
+1. Navigate to `/admin/roles` and click **New Permission Set**
+2. Enter a name and description
+3. Select the desired permissions from the checkbox grid
+4. Click **Create**
+
+### Assigning a Permission Set to a User
+
+1. Navigate to `/admin/users`
+2. Find the user and use the **Permission Set** dropdown to select a set
+3. The change takes effect on the user's next request (within 5 minutes due to caching)
+
+---
+
+## Audit Log (Admin Only)
+
+The Content Engine maintains an audit trail of authentication and authorization events. Admins can view this log at **Audit Log** (accessible from the admin nav or at `/admin/audit`).
+
+### Tracked Events
+
+| Event | When It's Logged |
+|---|---|
+| Sign In | User successfully signs in via Google OAuth |
+| Sign Out | User signs out |
+| Sign In Failed | Sign-in attempt denied (wrong domain, deactivated account) |
+| Role Change | Admin changes a user's role |
+| User Activated | Admin activates a previously deactivated user |
+| User Deactivated | Admin deactivates a user |
+| Permission Set Created | Admin creates a new permission set |
+| Permission Set Updated | Admin modifies a permission set's permissions |
+| Permission Set Deleted | Admin deletes a custom permission set |
+
+### Using the Audit Log
+
+- **Filter by event type** using the type dropdown to focus on specific events (e.g. only sign-in failures)
+- **Filter by actor** to see all events performed by a specific user
+- Events are displayed in reverse chronological order with color-coded badges
+- Pagination controls at the bottom allow browsing through historical events
 
 ---
 

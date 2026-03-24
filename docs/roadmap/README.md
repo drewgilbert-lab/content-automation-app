@@ -34,13 +34,13 @@ Each step below is independently shippable. Steps within a group can be built in
 | P | Content Cleaning Rules | Planned | [group-p.md](./group-p.md) |
 | Q | Weaviate Query Agent | Planned | [group-q.md](./group-q.md) |
 | R | Content Narratives | Planned | [group-r.md](./group-r.md) |
-| S | Design System Foundation | Planned | [group-s.md](./group-s.md) |
+| S | Design System Foundation | Phase 1 Done | [group-s.md](./group-s.md) |
 | T | Content Generation Cost Tracking | Planned | [group-t.md](./group-t.md) |
 | U | Context Window Budget Management | Planned | [group-u.md](./group-u.md) |
 | V | Structured Logging | Planned | [group-v.md](./group-v.md) |
 | W | Authentication & User Management | Done | [group-w.md](./group-w.md) |
 | X | Context Assembly Test Coverage | Planned | [group-x.md](./group-x.md) |
-| Y | Production Redis Configuration | Planned | [group-y.md](./group-y.md) |
+| Y | Production Redis Configuration | Done | [group-y.md](./group-y.md) |
 | Z | CI/CD Pipeline | Planned | [group-z.md](./group-z.md) |
 | Content Workflow | Pillar Research Orchestration | CW1–CW10 Done, CW11–CW19 Pending, CW20–CW21 Done | [group-content-workflow.md](./group-content-workflow.md) |
 
@@ -60,14 +60,14 @@ Each step below is independently shippable. Steps within a group can be built in
 | Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See [Group P](./group-p.md) |
 | Weaviate Query Agent | Group Q — not yet started. Query Agent retrieval + Claude synthesis, Ask UI, collection registry | See [Group Q](./group-q.md) |
 | Content Narratives | Group R — not yet started. Strategic narrative layer between knowledge and content generation, AI-assisted creation, review workflow, context assembly integration, staleness detection | See [Group R](./group-r.md) |
-| Design System Foundation | Group S — not yet started. Semantic tokens, shared primitives (Button, Input, Badge, FormField), page layout, error boundaries, organism consolidation | See [Group S](./group-s.md) |
+| Design System Foundation | Group S Phase 1 done (S1–S3): font fix, semantic tokens, cn() utility, Prettier plugin, DESIGN_TOKENS.md. Phases 2–5 pending: shared primitives, page layout, error boundaries, organism consolidation, standards docs | See [Group S](./group-s.md) |
 | MCP Server Observability, Hardening, and Claude Skill Interop | J17–J25 Pending (Phase 4: Observability, Phase 5: Shared Library Hardening, Phase 6: Claude Skill Interoperability) | See [Group J](./group-j.md) |
 | Content Generation Cost Tracking | Group T — not yet started. Token counting, cost metadata, generation cost dashboard, budget alerts | See [Group T](./group-t.md) |
 | Context Window Budget Management | Group U — not yet started. Content length limits, token budget allocation, smart truncation, context budget visibility | See [Group U](./group-u.md) |
 | Structured Logging | Group V — not yet started. Structured JSON logging (`pino`), request logging middleware, domain event logging, operational logging | See [Group V](./group-v.md) |
 | Authentication & User Management | Group W complete (W1–W9): Google OAuth, JWT sessions, User collection, middleware, `requireRole()` + `lib/permissions.ts`, admin user management at `/admin/users`, attribution on knowledge/skills/submissions, custom permission sets at `/admin/roles`, audit log at `/admin/audit` | See [Group W](./group-w.md) |
 | Context Assembly and Skill Interop Test Coverage | Group X — not yet started. Unit tests for `assembleContext()`, Claude skill package schema/mapping tests, and env-gated acceptance smoke checks | See [Group X](./group-x.md) |
-| Production Redis Configuration | Group Y — not yet started. Upstash Redis env vars in Vercel, production validation, documentation | See [Group Y](./group-y.md) |
+| Production Redis Configuration | Group Y complete (Y1–Y4): Upstash Redis provisioned, Vercel env vars configured, integration tests (14 tests), .env.example updated | See [Group Y](./group-y.md) |
 | CI/CD Pipeline | Group Z — not yet started. GitHub Actions test workflow, MCP server build verification, branch protection | See [Group Z](./group-z.md) |
 | Generate UI | Content generation with Weaviate context retrieval + Claude streaming | See [PRD.md](../PRD.md) Module 2 |
 | Content Workflow: Pillar Research Orchestration | CW1–CW10 done (types/store/APIs/artifact contract, template layer, orchestration engine). CW11–CW19 pending: branch implementations, aggregation, reliability expansion. CW20–CW21 done: full test matrix and documentation updates | See [Group Content Workflow](./group-content-workflow.md) |

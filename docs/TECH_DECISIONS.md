@@ -165,7 +165,7 @@ We need a deployment platform that works seamlessly with Next.js, supports envir
 - `WEAVIATE_API_KEY` (production + preview)
 - `ANTHROPIC_API_KEY` (production + preview)
 - `NEXT_PUBLIC_MCP_SERVER_URL` (production + preview)
-- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` — not yet configured; rate limiting and Redis-backed upload sessions gracefully fall back
+- `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` — configured (Group Y, ADR-022); enables rate limiting and Redis-backed upload sessions
 
 **Deployment Notes:**
 - `vercel.json` created with security headers (`X-Content-Type-Options`, `X-Frame-Options`) for `/api/v1/` routes
@@ -719,6 +719,28 @@ resolvePermissions(user):
 | ADR-018 | Content Workflow Telemetry and Metrics (CW18) | Mar 2026 | Decided (implemented) |
 | ADR-019 | Auth.js v5 with Google OAuth (Group W) | Mar 2026 | Decided (implemented) |
 | ADR-020 | Permission Set Architecture (Group W Phase 3) | Mar 2026 | Decided (implemented) |
+| ADR-021 | Semantic Design Tokens via Tailwind v4 @theme inline (Group S) | Mar 2026 | Decided (implemented) |
+| ADR-022 | Production Redis Configuration (Group Y) | Mar 2026 | Decided (implemented) |
+
+---
+
+### ADR-021: Semantic Design Tokens via Tailwind v4 @theme inline
+
+**Status:** Decided (implemented)
+**Date:** March 2026
+**Context:** The app accumulated ~791 raw gray-* class references and 43+ repeated card/input shell patterns with hardcoded Tailwind primitives. This created visual drift and made systematic theming impossible.
+**Decision:** Define semantic design tokens (surfaces, borders, text, actions, status, spacing, sizing, radii) in `app/globals.css` via Tailwind v4's `@theme inline` directive. Tokens map primitives to semantic names (e.g., `gray-900` → `surface-card`). Components consume tokens via standard Tailwind utilities (e.g., `bg-surface-card`). Additionally, add `clsx` + `tailwind-merge` with a shared `cn()` helper in `lib/utils.ts` for class composition, and `prettier-plugin-tailwindcss` for deterministic class ordering.
+**Consequences:** New components must use semantic tokens, not raw palette classes. The token layer is additive — existing hardcoded classes continue to work during incremental migration. The `cn()` utility replaces template-literal class composition patterns (44 instances identified for migration).
+
+---
+
+### ADR-022: Production Redis Configuration (Group Y)
+
+**Status:** Decided (implemented)
+**Date:** March 2026
+**Context:** Two production features depend on Upstash Redis: bulk upload session persistence (`lib/upload-session.ts`, ADR-017) and external API rate limiting (`lib/rate-limit.ts`, ADR-007). Both modules already include graceful fallback — in-memory sessions and no rate limiting, respectively — when Redis credentials are absent. In production on Vercel, the in-memory fallback is unreliable because serverless functions cold-start frequently, losing upload session state.
+**Decision:** Provision an Upstash Redis database (free tier, us-east-1 region to match Vercel deployment) and configure `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` as Vercel environment variables for Production and Preview environments. Added integration test suite at `__tests__/integration/redis-validation.test.ts` (14 tests) validating Redis round-trips, rate limiting enforcement, and graceful fallback behavior.
+**Consequences:** Upload sessions now survive serverless cold starts. Rate limiting is enforced on the external API. The free tier provides 10,000 commands/day; if exceeded, features degrade gracefully rather than crashing. Credentials are stored only in Vercel environment variables (encrypted at rest), never committed to the repository.
 
 ---
 

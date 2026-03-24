@@ -16,6 +16,7 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.3",
     "ai": "^6.0.98",
+    "clsx": "^2.1.1",
     "diff": "^8.0.3",
     "diff-match-patch": "^1.0.5",
     "mammoth": "^1.11.0",
@@ -26,6 +27,7 @@
     "react-dom": "19.2.3",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1",
+    "tailwind-merge": "^3.5.0",
     "weaviate-client": "^3.11.0"
   },
   "devDependencies": {
@@ -39,6 +41,8 @@
     "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5",

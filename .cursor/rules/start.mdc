@@ -16,6 +16,7 @@ alwaysApply: true
 | Vector DB | Weaviate Cloud (`weaviate-client` v3) |
 | LLM | Anthropic Claude (`claude-haiku-4-5` in `lib/claude.ts` / `lib/classifier.ts`; ADR-013) |
 | Auth | Auth.js v5 (`next-auth@beta`) with Google OAuth, JWT sessions |
+| Redis | Upstash REST (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`) — rate limiting (`lib/rate-limit.ts`), upload sessions (`lib/upload-session.ts`); Group Y; graceful in-memory fallback if unset |
 | Deploy | Vercel (`content-automation-app-zeta.vercel.app`) |
 | MCP Deploy | Railway (`content-automation-app.up.railway.app`) |
 
@@ -25,6 +26,7 @@ alwaysApply: true
 app/
   page.tsx                — Dashboard with connection status badges
   layout.tsx              — Root layout, Geist font, SessionProvider
+  globals.css             — Tailwind v4 @theme inline; semantic design tokens (Group S)
   api/auth/[...nextauth]/route.ts — Auth.js route handler (GET, POST)
   api/auth/me/route.ts — GET current user info
   api/admin/users/route.ts — GET list (admin only)
@@ -35,6 +37,8 @@ app/
   api/chat/route.ts       — POST, streams Claude response
   api/knowledge/route.ts  — GET list, POST create
   api/knowledge/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore
+  api/knowledge/[id]/relationships/route.ts — relationship CRUD
+  api/knowledge/[id]/add-document/parse/route.ts — parse file for document-addition merge (H)
   api/dashboard/route.ts  — GET health metrics (counts, staleness, gaps)
   api/submissions/route.ts — GET list, POST create submissions
   api/submissions/[id]/route.ts — GET submission detail
@@ -42,10 +46,11 @@ app/
   api/submissions/[id]/merge/route.ts — POST stream AI merge
   api/submissions/[id]/merge/save/route.ts — POST save merged content
   api/bulk-upload/parse/route.ts — POST parse files, create upload session (G3)
-  api/bulk-upload/classify/route.ts — POST classify documents via AI, SSE stream (G2, updated for G3)
+  api/bulk-upload/classify/route.ts — POST classify documents via AI, SSE stream (G2/G3)
   api/bulk-upload/session/[sessionId]/route.ts — GET upload session state (G3)
   api/bulk-upload/reclassify/route.ts — POST reclassify single document (G3)
   api/bulk-upload/approve/route.ts — POST approve documents, create submissions (G5)
+  api/content-workflow/   — Pillar research orchestration: runs, metrics, start/cancel/retry/status/events/diagnostics/package (CW; see roadmap/group-content-workflow.md)
   bulk-upload/page.tsx — Bulk upload wizard page (G4)
   bulk-upload/components/ — FileDropZone, ClassificationProgress, DocumentReviewCard, TagEditor, ConfidenceBadge
   knowledge/page.tsx      — Knowledge Base list page (filter tabs, search)
@@ -68,6 +73,7 @@ app/
   api/v1/knowledge/types/route.ts — GET types with counts (auth required)
   api/v1/skills/route.ts — GET list (auth required)
   api/v1/skills/[id]/route.ts — GET detail (auth required)
+  api/v1/skills/types/route.ts — GET skill content types (auth required)
   api/v1/health/route.ts — GET health check (no auth)
   api/narratives/route.ts — GET list, POST create narratives (planned, Group R)
   api/narratives/[id]/route.ts — GET detail, PUT update, DELETE, PATCH deprecate/restore (planned, Group R)
@@ -101,17 +107,17 @@ app/
   skills/[id]/edit/page.tsx — Edit skill form page
   skills/components/      — SkillList, SkillForm, SkillDetailActions
   components/             — RoleProvider, RoleToggle, SessionProvider, UserMenu
-  components/ui/          — Button, Input, Select, Textarea, FormField, Badge, LoadingSpinner, PageSkeleton, ErrorState, TagEditor, MarkdownRenderer, VisualDiff, FilterableList, ConfirmDialog (planned, Group S)
-  components/layout/      — PageLayout (planned, Group S)
+  components/ui/          — Button, Input, Select, Textarea, FormField, Badge, LoadingSpinner, PageSkeleton, ErrorState, TagEditor, MarkdownRenderer, VisualDiff, FilterableList, ConfirmDialog; prefer semantic tokens + cn() (Group S Phase 1); further primitives/layout in S2+
+  components/layout/      — PageLayout (S2+ per roadmap)
   dashboard/page.tsx      — Health dashboard (stat cards, gap report, staleness, queue count)
   dashboard/components/   — StatCard, GapTable, StalenessList
 lib/
-  auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions (EDGE-SAFE — no Node.js/Weaviate imports allowed, used by middleware.ts)
-  auth-server.ts          — Server-side auth helpers: requireAuth(), requireRole(), requirePermission(), getCurrentUser(), ensureUser() (Node.js only, imports Weaviate/audit/users)
+  utils.ts                — cn() class composition (clsx + tailwind-merge); Group S
+  auth.ts                 — Auth.js v5 config: Google OAuth, JWT sessions (EDGE-SAFE — no Node.js/Weaviate imports; middleware.ts)
+  auth-server.ts          — requireAuth(), requireRole(), requirePermission(), getCurrentUser(), ensureUser() (Node.js; Weaviate/audit/users)
   user-types.ts           — UserRole, UserRecord, ROLE_HIERARCHY, VALID_ROLES, isValidRole(), hasMinimumRole()
   users.ts                — User CRUD: getOrCreateUser(), getUserByEmail(), listUsers(), updateUserRole(), deactivateUser(); 5-min cache
   permissions.ts          — Permission matrix, hasPermission(), requiresReviewQueue(), getPermissions(), resolvePermissions(), userHasPermission()
-  auth-server.ts          — requirePermission() server-side permission check
   permission-set-types.ts — PermissionSet types, input types, DEFAULT_PERMISSION_SETS
   permission-sets.ts      — PermissionSet CRUD: list, get, create, update, delete, seed defaults; 5-min cache
   audit-types.ts          — AuditEventType, AuditLogRecord, AuditLogCreateInput, AUDIT_EVENT_LABELS
@@ -134,47 +140,62 @@ lib/
   classification-types.ts — ClassificationResult, SuggestedRelationship types
   upload-session.ts       — Upload session store: Upstash Redis with in-memory fallback, 24h TTL (G3)
   upload-session-types.ts — UploadSession, UploadSessionState types (G3)
-  skills.ts               — Skill CRUD operations + evaluateSkillRefreshSignificance, triggerSkillRefreshCheck
+  skills.ts               — Skill CRUD + evaluateSkillRefreshSignificance, triggerSkillRefreshCheck
   skill-types.ts          — Skill types, content type constants, category constants, utilities
   rate-limit.ts           — checkRateLimit(), Upstash Redis sliding window, graceful degradation
-  context-assembly.ts     — assembleContext() for building generation system prompts with skills + knowledge + rules + optional narrative
-  narratives.ts           — Narrative CRUD: list, get, create, update, delete, submit, approve, reject, archive, deprecate/restore, version (planned, Group R)
+  context-assembly.ts     — assembleContext() for generation system prompts (skills + knowledge + rules + optional narrative)
+  narratives.ts           — Narrative CRUD (planned, Group R)
   narrative-types.ts      — Narrative types, status enums, input types, utilities (planned, Group R)
 middleware.ts             — Auth.js middleware: redirects unauthenticated pages to /auth/signin, 401 for unauthenticated API, public: /auth/*, /api/auth/*, /api/v1/*
+.prettierrc               — Prettier + prettier-plugin-tailwindcss (class order)
+__tests__/integration/redis-validation.test.ts — Redis + rate limit integration tests (Group Y)
 docs/
   PRD.md                  — Functional requirements and user stories
   TECH_DECISIONS.md       — Architecture decision records
   BUSINESS_LOGIC.md       — Context assembly, content types, skills vs rules, runtime logic
-  KNOWLEDGE_BASE.md       — Weaviate schema (incl. Skill, ConnectedSystem, User, PermissionSet, AuditLog, ContentNarrative collections), content inventory, seed plan
+  KNOWLEDGE_BASE.md       — Weaviate schema, content inventory, seed plan (incl. Skill, User, PermissionSet, AuditLog, ContentNarrative, ConnectedSystem)
   SCOPE.md                — Project overview, goals, status
-  roadmap/README.md       — Roadmap index: group status table, phase 1 remaining work, open questions
-  roadmap/group-{a-z}.md  — Per-group detail: scope, numbered items, risks/gaps (one file per group, 26 groups A–Z, no L)
+  roadmap/README.md       — Roadmap index: group status table, Phase 1 remaining work, open questions
+  roadmap/group-{a-z}.md  — Per-group detail (26 groups A–Z, no L)
+  roadmap/group-content-workflow.md — Pillar research orchestration (CW)
   roadmap/cross-cutting.md — Cross-cutting notes for Groups J and K
   roadmap/phase-2.md      — Module 2 Generate, Module 3 Content Library, Module 4 Workflows
-  roadmap/phase-3-backlog.md — Phase 3+ backlog, business rules to author, infrastructure & integrations
-  roadmap/deferred.md     — Deferred: event logging & audit trails
+  roadmap/phase-3-backlog.md — Phase 3+ backlog, business rules, infrastructure
+  roadmap/deferred.md     — Deferred scope
   CHANGELOG.md            — What was built and when
-  API.md                  — API route contracts (incl. planned bulk upload, skills routes)
-  EXTERNAL_API.md         — Developer guide for the versioned REST API at /api/v1/
-  DESIGN_TOKENS.md        — Design token reference (planned, Group S)
+  API.md                  — Internal API route contracts
+  EXTERNAL_API.md         — Developer guide for /api/v1/
+  DESIGN_TOKENS.md        — Semantic token reference (Tailwind utilities; Group S Phase 1)
   COMPONENTS.md           — Shared component catalog (planned, Group S)
   UI_STANDARDS.md         — UI coding standards (planned, Group S)
-  user-guides/            — End-user guides per feature (getting-started, knowledge-base, managing-knowledge, relationships, health-dashboard, review-queue, ai-merge, enhanced-review, external-api, authentication)
+  user-guides/            — End-user guides per feature
 mcp-server/
   src/index.ts              — MCP server entry point, dual transport (stdio + HTTP)
   src/weaviate.ts           — Persistent Weaviate client with reconnection
   src/auth.ts               — API key auth for HTTP transport
-  src/schema.ts             — Collection metadata for all 8 collections (J5)
+  src/schema.ts             — Collection metadata (J5)
   src/formatters.ts         — LLM-optimized response formatting (J5)
-  src/tools/                — 10 MCP tools: 7 read (list_collections, list_objects, get_object, search_objects, get_relationships, get_dashboard_health, get_collection_schema) + 3 write (create_knowledge_object, update_knowledge_object, check_submission_status) (J5, J9)
-  src/resources/            — 3 MCP resources: overview, relationships, collection-summaries (J6)
+  src/tools/                — 10 MCP tools: 7 read + 3 write (J5, J9)
+  src/resources/            — 3 MCP resources (J6)
   package.json              — Standalone Node.js project (ESM)
   tsconfig.json             — TypeScript config (ES2022/NodeNext)
   Dockerfile                — Multi-stage Docker build for Railway
-  README.md                 — Setup, client config, available tools/resources guide (J8)
+  README.md                 — Setup, client config, tools/resources (J8)
 vercel.json               — Vercel config: security headers for /api/v1/ routes
 .env.example              — Environment variable template (current + planned vars)
 ```
+
+## Group status (summary)
+
+| Group | Status |
+|---|---|
+| A–I, K, M, W, Y | Done |
+| J | J1–J12 Done; J13–J22+ pending |
+| Content Workflow | CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
+| S | Phase 1 done (S1–S3); S2+ pending |
+| N, O, P, Q, R, T, U, V, X, Z | Planned |
+
+Authoritative grid: `docs/roadmap/README.md`.
 
 ## Current Phase: 1
 
@@ -190,12 +211,14 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | Knowledge Base (Bulk Upload) | Done (Group G) |
 | Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Done (Group I) |
-| MCP Server (Read + Write) | J1-J12 Done (Phase 1 Read + Phase 2 Write), J13+ Pending (Group J) |
-| External REST API (K1-K6) | Done (Phase 1) |
+| MCP Server | J1–J12 Done, J13–J22 Pending (Group J) |
+| External REST API (K1–K6) | Done (Phase 1) |
 | Knowledge-Linked Skills | Done (Group M) |
 | Authentication & User Management | Done (W1–W9) |
+| Production Redis (Upstash) | Done (Group Y) |
+| Content Workflow (Pillar Research) | Partial — CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | Content Narratives | Planned (Group R) |
-| Design System Foundation | Planned (Group S) |
+| Design System Foundation | Phase 1 Done (Group S) |
 | Generate (content creation) | Pending |
 | Content Library | Future (Phase 2) |
 | Workflows | Future (Phase 2) |
@@ -204,9 +227,10 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 
 - Weaviate schema, seed inventory, connection pattern: `docs/KNOWLEDGE_BASE.md`
 - API contracts: `docs/API.md`
-- External REST API developer guide: `docs/EXTERNAL_API.md`
+- External REST API: `docs/EXTERNAL_API.md`
 - Content types, context assembly, skills vs rules: `docs/BUSINESS_LOGIC.md`
-- Tech decisions and rationale: `docs/TECH_DECISIONS.md`
-- Full requirements and user stories: `docs/PRD.md`
-- Future phases, backlog, open questions: `docs/roadmap/README.md`
-- End-user feature guides: `docs/user-guides/`
+- Tech decisions: `docs/TECH_DECISIONS.md`
+- Requirements and user stories: `docs/PRD.md`
+- Roadmap, groups, open questions: `docs/roadmap/README.md`
+- Semantic tokens and Tailwind usage: `docs/DESIGN_TOKENS.md`, `app/globals.css`, `lib/utils.ts`, `.prettierrc`
+- End-user guides: `docs/user-guides/`

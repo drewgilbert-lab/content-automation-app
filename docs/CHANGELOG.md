@@ -6,6 +6,37 @@
 
 ## 2026-03-24
 
+### Group Y — Production Redis Configuration (Y1–Y4)
+
+- **Y1 — Upstash Redis Account and Database Setup**: Provisioned Upstash Redis database (free tier, us-east-1 region) for production use.
+- **Y2 — Vercel Environment Variable Configuration**: Added `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to Vercel project for Production and Preview environments.
+- **Y3 — Production Validation**: Created integration test suite at `__tests__/integration/redis-validation.test.ts` with 14 tests covering Redis session round-trips, rate limit enforcement (standard/elevated/search tiers), graceful fallback behavior, and rate limit header contract.
+- **Y4 — Update .env.example and Documentation**: Updated `.env.example` to document Redis vars for both rate limiting and upload session persistence. Added ADR-022 to `docs/TECH_DECISIONS.md`. Updated roadmap files.
+
+**New files:** `__tests__/integration/redis-validation.test.ts`
+**Modified files:** `.env.example`, `docs/TECH_DECISIONS.md`, `docs/roadmap/group-y.md`, `docs/roadmap/README.md`, `docs/SCOPE.md`, `docs/CHANGELOG.md`
+**Documentation:** `docs/TECH_DECISIONS.md` (ADR-022), `docs/roadmap/group-y.md` (Y1–Y4 marked done), `docs/roadmap/README.md` (Group Y status), `docs/SCOPE.md` (status update), `docs/CHANGELOG.md` (this entry). User guides: N/A (Redis is infrastructure, no user-facing behavior change).
+
+---
+
+## 2026-03-24
+
+### Group S Phase 1 — Infrastructure Fixes and Semantic Tokens (S1–S3)
+
+- **S1 — Fix Font Stack and Remove Dead Code**: Removed `font-family: Arial, Helvetica, sans-serif` from `body` in `app/globals.css` so Geist Sans renders via `--font-sans`. Removed light-mode `:root` values (`#ffffff`, `#171717`) and `@media (prefers-color-scheme: dark)` block. Removed unused `--color-background` and `--color-foreground` theme tokens. App is now dark-mode-only with clean `:root`.
+- **S2 — Semantic Design Token Layer**: Added 30+ semantic design tokens to `app/globals.css` via `@theme inline`: surfaces (`surface-page`, `surface-card`, `surface-input`, `surface-overlay`), borders (`border-default`, `border-hover`, `border-focus`), text (`text-primary`, `text-secondary`, `text-tertiary`, `text-muted`, `text-link`), actions (`action-primary`, `action-primary-hover`, `action-danger`, `action-danger-hover`), status (`status-success`, `status-warning`, `status-danger`, `status-info` with `-bg` tint variants), spacing (`page-x`, `page-y`), sizing (`content-max`, `sidebar`), and radii (`sm`, `card`, `pill`). All tokens available as Tailwind utility classes.
+- **WS5-001 — cn() Utility**: Installed `clsx` + `tailwind-merge`. Created `lib/utils.ts` with shared `cn()` class composition helper.
+- **WS5-002 — Prettier Tailwind Plugin**: Installed `prettier` + `prettier-plugin-tailwindcss`. Created `.prettierrc` config for deterministic Tailwind class ordering.
+- **S3 — Validation**: Build passes, no linter errors, all tokens resolve, font stack correct, dead code removed.
+
+**New files:** `lib/utils.ts`, `docs/DESIGN_TOKENS.md`, `.prettierrc`
+**Modified files:** `app/globals.css`, `package.json`
+**Documentation:** `docs/DESIGN_TOKENS.md` (new — full token reference), `docs/TECH_DECISIONS.md` (ADR-021), `docs/SCOPE.md` (status update), `docs/roadmap/group-s.md` (S1–S3 marked done), `docs/roadmap/README.md` (Group S status), `docs/CHANGELOG.md` (this entry).
+
+---
+
+## 2026-03-24
+
 ### Group W Phase 3 — Advanced Access Control (W8–W9)
 
 - **W8 — Permission Sets (Custom Roles)**: Created `lib/permission-set-types.ts` with `PermissionSetRecord`, `PermissionSetCreateInput`, `PermissionSetUpdateInput`, and `DEFAULT_PERMISSION_SETS`. Created `lib/permission-sets.ts` with Weaviate `PermissionSet` collection CRUD, 5-minute `globalThis` cache, name uniqueness enforcement, built-in set deletion protection, and automatic seed of 4 default sets on collection creation. Updated `lib/user-types.ts` to add `permissionSetId` to `UserRecord` and `UserUpdateInput`. Updated `lib/users.ts` to include `permissionSetId` in User collection schema, `mapToUserRecord`, and `updateUser`. Updated `lib/permissions.ts` with `ALL_PERMISSIONS`, `resolvePermissions(user)` (checks `permissionSetId` first, falls back to role matrix), and `userHasPermission(user, permission)`. Updated `lib/auth-server.ts` with `requirePermission(permission)`. Created `app/api/admin/roles/route.ts` (GET list, POST create — admin only, audit logged) and `app/api/admin/roles/[id]/route.ts` (GET detail, PATCH update, DELETE with built-in deletion protection — admin only, audit logged). Created `/admin/roles` page with permission set list, `/admin/roles/new` with permission checkbox grid form, and `/admin/roles/[id]/edit` with edit form (built-in sets: name disabled). Updated `/admin/users` page with permission set assignment dropdown and admin nav links.

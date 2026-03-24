@@ -68,7 +68,7 @@ Styling currently follows a **Tailwind v4 CSS-first** approach with a single glo
 
 ## Phase 1 — Infrastructure Fixes and Semantic Tokens
 
-**S1 — Fix Font Stack and Remove Dead Code**
+**S1 — Fix Font Stack and Remove Dead Code** — ✅ Done (2026-03-24)
 Fix the font stack mismatch in `app/globals.css`. Remove the `body { font-family: Arial, Helvetica, sans-serif; }` rule so that the Geist Sans font loaded in `layout.tsx` is actually applied via the `--font-sans` CSS variable. Remove the `@media (prefers-color-scheme: dark)` block and the light-mode `:root` values (`--background: #ffffff; --foreground: #171717`) since the app is dark-mode-only. Clean up the remaining `:root` to only declare dark-mode values. Remove the unused `--color-background` and `--color-foreground` theme tokens if no component references them after the token layer is in place.
 
 Updated `globals.css` baseline after S1:
@@ -92,7 +92,7 @@ body {
 }
 ```
 
-**S2 — Semantic Design Token Layer**
+**S2 — Semantic Design Token Layer** — ✅ Done (2026-03-24)
 Define semantic design tokens in `globals.css` via `@theme inline`. Tokens are organized into five categories: surfaces, borders, text, actions, and status. All tokens reference Tailwind v4 primitive values. After defining tokens, update `body` styles to use the new token names.
 
 Token definitions:
@@ -154,7 +154,7 @@ Token definitions:
 
 After defining tokens, verify they're available as Tailwind utility classes (e.g., `bg-surface-card`, `text-text-primary`, `border-border-default`). Create a `docs/DESIGN_TOKENS.md` reference file listing all tokens, their semantic purpose, and their resolved values.
 
-**S3 — Phase 1 Testing and Validation**
+**S3 — Phase 1 Testing and Validation** — ✅ Done (2026-03-24)
 Verify: Geist Sans renders as the body font (not Arial). Verify: `prefers-color-scheme` media query is gone. Verify: all semantic token classes resolve correctly in Tailwind (test by temporarily applying `bg-surface-card` to a div and confirming the correct color renders). Verify: `npm run build` passes. Verify: no visual regressions on existing pages (the token layer is additive; existing hardcoded classes still work).
 
 ---
@@ -661,7 +661,7 @@ Translate audit findings into a deduplicated, dependency-aware backlog.
 ### Prioritized Backlog
 
 ---
-**WS1-001: Fix font/theme baseline in globals**
+**WS1-001: Fix font/theme baseline in globals** — ✅ Done (2026-03-24)
 - **Workstream**: WS1
 - **Impact**: 5 ; resolves active typography mismatch and baseline drift
 - **Effort**: 1 ; focused `globals.css`/`layout.tsx` update
@@ -676,7 +676,7 @@ Translate audit findings into a deduplicated, dependency-aware backlog.
 ---
 
 ---
-**WS5-001: Add shared `cn()` class composition utility**
+**WS5-001: Add shared `cn()` class composition utility** — ✅ Done (2026-03-24)
 - **Workstream**: WS5
 - **Impact**: 5 ; reduces divergence in conditional styling patterns
 - **Effort**: 1 ; add deps + helper and migrate first wave
@@ -691,7 +691,7 @@ Translate audit findings into a deduplicated, dependency-aware backlog.
 ---
 
 ---
-**WS5-002: Enforce Tailwind class ordering in formatter**
+**WS5-002: Enforce Tailwind class ordering in formatter** — ✅ Done (2026-03-24)
 - **Workstream**: WS5
 - **Impact**: 4 ; stabilizes code review and style consistency
 - **Effort**: 1 ; minimal config + tooling rollout
@@ -706,7 +706,7 @@ Translate audit findings into a deduplicated, dependency-aware backlog.
 ---
 
 ---
-**WS1-002: Define semantic token taxonomy and token docs**
+**WS1-002: Define semantic token taxonomy and token docs** — ✅ Done (2026-03-24)
 - **Workstream**: WS1
 - **Impact**: 5 ; unlocks consistent component standardization
 - **Effort**: 2 ; token model + documentation

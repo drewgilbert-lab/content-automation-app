@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Surfaces */
+  --color-surface-page: var(--color-gray-950);
+  --color-surface-card: var(--color-gray-900);
+  --color-surface-input: var(--color-gray-800);
+  --color-surface-overlay: oklch(0 0 0 / 0.6);
+
+  /* Borders */
+  --color-border-default: var(--color-gray-800);
+  --color-border-hover: var(--color-gray-700);
+  --color-border-focus: var(--color-gray-600);
+
+  /* Text */
+  --color-text-primary: var(--color-white);
+  --color-text-secondary: var(--color-gray-300);
+  --color-text-tertiary: var(--color-gray-400);
+  --color-text-muted: var(--color-gray-500);
+  --color-text-link: var(--color-blue-400);
+
+  /* Actions */
+  --color-action-primary: var(--color-blue-600);
+  --color-action-primary-hover: var(--color-blue-500);
+  --color-action-danger: var(--color-red-600);
+  --color-action-danger-hover: var(--color-red-500);
+
+  /* Status */
+  --color-status-success: var(--color-green-400);
+  --color-status-success-bg: oklch(from var(--color-green-500) l c h / 0.15);
+  --color-status-warning: var(--color-amber-400);
+  --color-status-warning-bg: oklch(from var(--color-amber-500) l c h / 0.15);
+  --color-status-danger: var(--color-red-400);
+  --color-status-danger-bg: oklch(from var(--color-red-500) l c h / 0.15);
+  --color-status-info: var(--color-blue-400);
+  --color-status-info-bg: oklch(from var(--color-blue-500) l c h / 0.15);
+
+  /* Spacing (layout-level) */
+  --spacing-page-x: var(--spacing-6);
+  --spacing-page-y: var(--spacing-16);
+
+  /* Sizing */
+  --size-content-max: 64rem;
+  --size-sidebar: 20rem;
+
+  /* Radii */
+  --radius-sm: var(--radius-md);
+  --radius-card: var(--radius-xl);
+  --radius-pill: 9999px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

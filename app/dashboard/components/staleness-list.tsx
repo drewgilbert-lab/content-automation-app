@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Badge } from "@/app/components/ui/badge";
 import type { KnowledgeType } from "@/lib/knowledge-types";
 import { TypeBadge } from "@/app/knowledge/components/type-badge";
 
@@ -27,17 +28,10 @@ function formatDate(iso: string): string {
 }
 
 function StaleBadge({ label }: { label: "Never Reviewed" | "Stale" }) {
-  const styles =
-    label === "Never Reviewed"
-      ? "bg-status-warning-bg text-status-warning"
-      : "bg-status-danger-bg text-status-danger";
-
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${styles}`}
-    >
+    <Badge variant={label === "Never Reviewed" ? "warning" : "danger"}>
       {label}
-    </span>
+    </Badge>
   );
 }
 

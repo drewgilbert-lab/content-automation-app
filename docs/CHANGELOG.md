@@ -6,6 +6,23 @@
 
 ## 2026-03-24
 
+### Group AA Phase 5 — Data Visualization and Status Styling (AA20–AA22)
+
+Established chart color conventions, validated all status badge variants against navy-tinted surfaces, added purple status tokens, and consolidated ad-hoc badge implementations to use the shared Badge component.
+
+- **AA20 — Chart Color Conventions**: Added chart/data visualization convention comments to `app/globals.css` documenting series color order (hg-blue, hg-blue-bright, hg-blue-muted, status-success), container backgrounds, grid line styling, and axis label tokens. Verified dashboard components follow brand token patterns.
+- **AA21 — Status Badge Palette Validation**: Added `--color-status-purple` (`#A78BFA`, 6.00:1 vs card) and `--color-status-purple-bg` (`oklch(from #7C3AED l c h / 0.12)`) tokens to `globals.css`. Migrated Badge component purple variant from raw `violet-*` classes to semantic tokens. Migrated `StaleBadge` (staleness-list.tsx) and `StatusBadge` (page.tsx) from ad-hoc `<span>` elements to shared Badge component. Validated all 6 badge variants pass WCAG AA contrast on both `surface-page` and `surface-card` backgrounds.
+- **AA22 — Phase 5 Validation**: `npm run build` clean. Zero raw `violet-*` references remaining in component files. Programmatic WCAG contrast audit passed for all status text colors against their respective backgrounds on navy surfaces.
+
+**Modified files**: `app/globals.css`, `app/components/ui/badge.tsx`, `app/dashboard/components/staleness-list.tsx`, `app/page.tsx`
+**Tokens added**: `status-purple` (`#A78BFA`), `status-purple-bg` (`oklch(from #7C3AED l c h / 0.12)`)
+**Documentation**: `docs/DESIGN_TOKENS.md` (chart section, purple status tokens), `docs/UI_STANDARDS.md` (status badges section), `docs/roadmap/group-aa.md` (AA20–AA22 marked done, Phase 5 done), `docs/roadmap/README.md` (AA status updated), `docs/CHANGELOG.md` (this entry).
+**User guide update**: N/A — design token additions and badge consolidation are internal infrastructure with no user-facing behavior change.
+
+---
+
+## 2026-03-24
+
 ### Group AA Phase 4 — Page-Level Styling Migration (AA13–AA19)
 
 Migrated all page surfaces and shared components across knowledge, skills, queue, connections, admin, and dashboard modules from raw Tailwind classes to the HG-branded semantic token system. Applied typography scale, rounded-card radii, Lucide icons, and consistent surface/border/text patterns. Zero raw gray/blue/status color classes remain in migrated files.

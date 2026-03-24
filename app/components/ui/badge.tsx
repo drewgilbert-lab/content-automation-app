@@ -6,7 +6,7 @@ const variantStyles = {
   warning: "border-amber-800 bg-status-warning-bg text-status-warning",
   danger: "border-red-800 bg-status-danger-bg text-status-danger",
   info: "border-blue-800 bg-status-info-bg text-status-info",
-  purple: "border-violet-800 bg-violet-900/30 text-violet-400",
+  purple: "border-status-purple/30 bg-status-purple-bg text-status-purple",
 } as const;
 
 const sizeStyles = {

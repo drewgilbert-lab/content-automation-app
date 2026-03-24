@@ -42,11 +42,24 @@
   --color-status-danger-bg: oklch(from #DC2626 l c h / 0.12);
   --color-status-info: #60A5FA;
   --color-status-info-bg: oklch(from #2563EB l c h / 0.12);
+  --color-status-purple: #A78BFA;
+  --color-status-purple-bg: oklch(from #7C3AED l c h / 0.12);
 
   /* Brand / Accent */
   --color-hg-blue: #2563EB;
   --color-hg-blue-bright: #60A5FA;
   --color-hg-blue-muted: #93C5FD;
+
+  /*
+   * Charts / Data Visualization
+   *
+   * Series colors (in order): hg-blue, hg-blue-bright, hg-blue-muted, status-success.
+   * For 5+ series, use hg-blue at 50% opacity as the 5th value.
+   *
+   * Container: bg-surface-card + border-border-default
+   * Grid lines: border-border-default at 50% opacity
+   * Axis labels: text-text-tertiary text-caption
+   */
 
   /* Spacing (layout-level) */
   --spacing-page-x: var(--spacing-6);

@@ -335,17 +335,17 @@ Full smoke test of all pages. Verify: consistent surface/border/text token usage
 
 ---
 
-## Phase 5 — Data Visualization and Status Styling
+## Phase 5 — Data Visualization and Status Styling — **Done**
 
-**AA20 — Chart Color Conventions**
+**AA20 — Chart Color Conventions** — ✅ Done (2026-03-24)
 Charts use the three accent blues directly (`hg-blue`, `hg-blue-bright`, `hg-blue-muted`) plus `status-success` for positive/green data. No separate chart token namespace; this keeps the palette tight. If more than 4 series are needed in a single chart, add opacity variants of the existing blues (e.g., `hg-blue` at 50%).
 
 Recommended chart backgrounds: `bg-surface-card` container with subtle `border-border-default`. Chart grid lines: `border-border-default` at 50% opacity. Axis labels: `text-text-tertiary text-caption`.
 
-**AA21 — Status Badge Palette Validation**
+**AA21 — Status Badge Palette Validation** — ✅ Done (2026-03-24)
 Verify that all status badge combinations (success, warning, danger, info, default, purple) render correctly against the new navy-tinted surfaces. The `oklch` opacity-based backgrounds may need fine-tuning once they're rendered against `#111B2E` (card) and `#0C1220` (page). Adjust opacity values if any badge variant lacks sufficient contrast.
 
-**AA22 — Phase 5 Validation**
+**AA22 — Phase 5 Validation** — ✅ Done (2026-03-24)
 Verify: dashboard page charts/metrics use chart tokens. Verify: all badge variants are legible on both page and card surfaces. Verify: contrast ratios pass WCAG AA for all status text colors against their respective background tints.
 
 ---

@@ -83,6 +83,7 @@ Button text is always `#FFFFFF`, not `#F1F5F9`. The extra 0.3 contrast points ma
 | Warning | `text-status-warning` / `bg-status-warning-bg` | `#FBBF24` | `oklch(from #D97706 l c h / 0.12)` | 10.31 (AAA) |
 | Danger | `text-status-danger` / `bg-status-danger-bg` | `#F87171` | `oklch(from #DC2626 l c h / 0.12)` | 5.90 (AA) |
 | Info | `text-status-info` / `bg-status-info-bg` | `#60A5FA` | `oklch(from #2563EB l c h / 0.12)` | 7.09 (AAA) |
+| Purple | `text-status-purple` / `bg-status-purple-bg` | `#A78BFA` | `oklch(from #7C3AED l c h / 0.12)` | 6.00 (AA) |
 
 Status background tints use 12% opacity (reduced from 15%) for better balance on navy-tinted surfaces.
 
@@ -97,6 +98,20 @@ Status background tints use 12% opacity (reduced from 15%) for better balance on
 Charts use these three values in order; no separate chart token namespace needed.
 
 ---
+
+## Charts / Data Visualization
+
+Charts use the three accent blues plus success green as series colors. No separate chart token namespace.
+
+| Series | Token | Hex | Usage |
+|---|---|---|---|
+| 1 (primary) | `hg-blue` | `#2563EB` | Primary data series |
+| 2 | `hg-blue-bright` | `#60A5FA` | Secondary data series |
+| 3 | `hg-blue-muted` | `#93C5FD` | Tertiary data series |
+| 4 | `status-success` | `#34D399` | Positive/green data |
+| 5+ | `hg-blue` at 50% opacity | — | Additional series via opacity variants |
+
+Chart container: `bg-surface-card` with `border-border-default`. Grid lines: `border-border-default` at 50% opacity. Axis labels: `text-text-tertiary text-caption`.
 
 ## Spacing
 

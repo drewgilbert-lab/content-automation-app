@@ -61,3 +61,29 @@ Existing pages used ad-hoc typography (e.g., `text-3xl font-semibold tracking-ti
 | `text-xs font-medium uppercase tracking-wider` | `text-label uppercase tracking-widest` |
 | `text-[11px] font-semibold uppercase tracking-widest` | `text-label uppercase tracking-widest` |
 | `text-[10px] font-medium` | `text-micro` |
+
+## Status Badges
+
+The shared `Badge` component (`app/components/ui/badge.tsx`) provides 6 variants for status and category indicators. All text colors pass WCAG AA contrast on both `surface-page` and `surface-card` backgrounds.
+
+| Variant | Text Token | Background | Border | Contrast vs Card |
+|---|---|---|---|---|
+| `default` | `text-tertiary` | `surface-input` | `border-default` | 4.82 (AA) |
+| `success` | `status-success` | `status-success-bg` | `green-800` | 8.49 (AAA) |
+| `warning` | `status-warning` | `status-warning-bg` | `amber-800` | 9.78 (AAA) |
+| `danger` | `status-danger` | `status-danger-bg` | `red-800` | 5.90 (AA) |
+| `info` | `status-info` | `status-info-bg` | `blue-800` | 6.42 (AA) |
+| `purple` | `status-purple` | `status-purple-bg` | `status-purple/30` | 6.00 (AA) |
+
+### Usage conventions
+
+- Use `success` for active/connected/healthy states.
+- Use `warning` for items requiring attention (never reviewed, pending review).
+- Use `danger` for stale, failed, or error states.
+- Use `info` for informational or new items.
+- Use `purple` for special categories (e.g., MCP source channel).
+- Use `default` for neutral metadata where no status is implied.
+
+### Ad-hoc badge patterns
+
+Previously, `StaleBadge` (staleness-list.tsx) and `StatusBadge` (page.tsx) were hand-rolled `<span>` elements. As of AA Phase 5, both now use the shared `Badge` component for consistent styling.

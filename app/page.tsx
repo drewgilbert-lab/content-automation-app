@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { checkWeaviateConnection } from "@/lib/weaviate";
 import { checkClaudeConnection } from "@/lib/claude";
+import { Badge } from "@/app/components/ui/badge";
 
 async function getConnectionStatuses() {
   const [db, claude] = await Promise.allSettled([
@@ -26,12 +27,9 @@ async function getConnectionStatuses() {
 
 function StatusBadge({ connected }: { connected: boolean }) {
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-caption font-medium ${
-        connected
-          ? "bg-status-success-bg text-status-success"
-          : "bg-status-danger-bg text-status-danger"
-      }`}
+    <Badge
+      variant={connected ? "success" : "danger"}
+      className="gap-1.5 px-3 py-1 text-caption"
     >
       <span
         className={`h-1.5 w-1.5 rounded-full ${
@@ -39,7 +37,7 @@ function StatusBadge({ connected }: { connected: boolean }) {
         }`}
       />
       {connected ? "Connected" : "Not connected"}
-    </span>
+    </Badge>
   );
 }
 

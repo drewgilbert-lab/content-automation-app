@@ -44,7 +44,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Z | CI/CD Pipeline | Planned | [group-z.md](./group-z.md) |
 | Content Workflow | Pillar Research Orchestration | CW1–CW10 Done, CW11–CW19 Pending, CW20–CW21 Done | [group-content-workflow.md](./group-content-workflow.md) |
 | AA | HG Brand Theming (Dark) | Done | [group-aa.md](./group-aa.md) |
-| CL | Content Library | Phase 1-4 Done (CL1–CL15); Phases 5-6 Pending | [group-cl.md](./group-cl.md) |
+| CL | Content Library | Phase 1-5 Done (CL1–CL16); Phase 6 Pending | [group-cl.md](./group-cl.md) |
 
 [Cross-Cutting Notes: Groups J and K](./cross-cutting.md)
 
@@ -71,7 +71,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Context Assembly and Skill Interop Test Coverage | Group X — not yet started. Unit tests for `assembleContext()`, Claude skill package schema/mapping tests, and env-gated acceptance smoke checks | See [Group X](./group-x.md) |
 | Production Redis Configuration | Group Y complete (Y1–Y4): Upstash Redis provisioned, Vercel env vars configured, integration tests (14 tests), .env.example updated | See [Group Y](./group-y.md) |
 | CI/CD Pipeline | Group Z — not yet started. GitHub Actions test workflow, MCP server build verification, branch protection | See [Group Z](./group-z.md) |
-| Content Library | Group CL — Phase 1-4 done (CL1–CL15): schema migration, types, CRUD lib, internal API routes (CRUD + workflow), tests, Content Library UI (list, detail, create/edit pages, navigation), editorial workflow UI (toast notifications, session-based creator/reviewer distinction, status guards). Phases 5–6 pending: dashboard integration, comprehensive testing, documentation. Unblocks Group K Phase 3 (K13–K16) and Group J Phase 7 (J26–J28) | See [Group CL](./group-cl.md) |
+| Content Library | Group CL — Phase 1-5 done (CL1–CL16): schema migration, types, CRUD lib, internal API routes (CRUD + workflow), tests, Content Library UI (list, detail, create/edit pages, navigation), editorial workflow UI (toast notifications, session-based creator/reviewer distinction, status guards), dashboard integration (content metrics on health dashboard). Phase 6 pending: comprehensive testing, documentation. Unblocks Group K Phase 3 (K13–K16) and Group J Phase 7 (J26–J28) | See [Group CL](./group-cl.md) |
 | Generate UI | Module 2 — not yet started. Content type selection, generation prompt, context assembly integration, Claude streaming, save to Content Library. Depends on Group CL (Content Library backend) | See [phase-2.md](./phase-2.md) Module 2 |
 | External Content Ingestion | Module 5 — not yet started. Multi-channel content submission via UI, MCP, REST API, bulk import. Depends on Group CL and Module 2 | See [phase-2.md](./phase-2.md) Module 5 |
 | Content Workflow: Pillar Research Orchestration | CW1–CW10 done (types/store/APIs/artifact contract, template layer, orchestration engine). CW11–CW19 pending: branch implementations, aggregation, reliability expansion. CW20–CW21 done: full test matrix and documentation updates | See [Group Content Workflow](./group-content-workflow.md) |

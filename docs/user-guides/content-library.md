@@ -95,6 +95,19 @@ Toasts appear briefly at the top of the page and dismiss automatically.
 
 ---
 
+## Dashboard Metrics
+
+The Health Dashboard (`/dashboard`) includes a **Content Library** section showing:
+
+- **Total Content** — count of all content pieces in the library
+- **By Status** — individual counts for Draft, Submitted, In Review, Approved, Rejected, and Published content
+- **By Content Type** — counts for each content type that has at least one piece (e.g., Email, Blog Post, Social Post)
+- **Quick link** — a card linking directly to the Content Library for browsing and management
+
+These metrics update on each page load and reflect the current state of all content in the system.
+
+---
+
 ## Exporting Content
 
 On the content detail page, you can copy the body text or download it as a markdown file using the export options.

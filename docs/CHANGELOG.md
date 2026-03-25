@@ -6,6 +6,19 @@
 
 ## 2026-03-25
 
+### Group CL Phase 5 — Dashboard Integration (CL16)
+
+Added content metrics to the Health Dashboard page.
+
+- **CL16 — Content Metrics on Health Dashboard**: Extended `app/dashboard/page.tsx` to fetch `getContentCounts()` alongside existing dashboard data. Added a "Content Library" section with stat cards for total content count, per-status breakdown (draft, submitted, in review, approved, rejected, published), per-content-type counts, and a link card to `/content`. Uses appropriate stat card variants (warning for submitted/in_review, danger for rejected).
+
+**Modified files**: `app/dashboard/page.tsx`
+**Documentation**: `docs/roadmap/group-cl.md` (CL16 marked done, Phase 5 done), `docs/roadmap/README.md` (CL status updated), `docs/SCOPE.md` (module status), `docs/CHANGELOG.md` (this entry), `docs/user-guides/content-library.md` (dashboard section added).
+
+---
+
+## 2026-03-25
+
 ### Group CL Phase 4 — Editorial Workflow UI (CL13–CL15)
 
 Wired up editorial workflow actions with toast-based feedback, session-based creator/reviewer distinction, and build verification.

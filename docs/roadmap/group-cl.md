@@ -354,9 +354,9 @@ Test full workflow end-to-end via the UI: create draft → submit for review →
 
 Sub-agent directive: execute workflow tests, verify UX, fix any issues.
 
-## Phase 5 — Dashboard Integration
+## Phase 5 — Dashboard Integration — ✅ Done (2026-03-25)
 
-**CL16 — Content Metrics on Health Dashboard**
+**CL16 — Content Metrics on Health Dashboard** — ✅ Done (2026-03-25)
 Extend `getDashboardData()` in `lib/dashboard.ts` with content metrics: total content count, count by status (draft, submitted, in_review, approved, rejected, published), count by content type. Add content stat cards to `/dashboard` using the existing `StatCard` component. Add a "Content by Status" breakdown section.
 
 Data source: new `getContentCounts()` function in `lib/content.ts` that runs aggregate queries against the `GeneratedContent` collection.

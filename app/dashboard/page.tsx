@@ -3,6 +3,13 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { getDashboardData } from "@/lib/dashboard";
 import { countPendingSubmissions } from "@/lib/submissions";
+import { getContentCounts } from "@/lib/content";
+import {
+  VALID_CONTENT_STATUSES,
+  getContentStatusLabel,
+} from "@/lib/content-types";
+import type { ContentStatus } from "@/lib/content-types";
+import { getContentTypeLabel } from "@/lib/skill-types";
 import type { KnowledgeType } from "@/lib/knowledge-types";
 import { StatCard } from "./components/stat-card";
 import { GapTable } from "./components/gap-table";
@@ -18,10 +25,20 @@ const typeOrder: KnowledgeType[] = [
   "customer_evidence",
 ];
 
+const statusVariant: Record<ContentStatus, "default" | "warning" | "danger"> = {
+  draft: "default",
+  submitted: "warning",
+  in_review: "warning",
+  approved: "default",
+  rejected: "danger",
+  published: "default",
+};
+
 export default async function DashboardPage() {
-  const [data, pendingCount] = await Promise.all([
+  const [data, pendingCount, contentCounts] = await Promise.all([
     getDashboardData(),
     countPendingSubmissions(),
+    getContentCounts(),
   ]);
 
   const totalGaps =
@@ -31,6 +48,10 @@ export default async function DashboardPage() {
     data.gaps.icpMissingRefs.length +
     data.gaps.businessRulesNoSubType.length +
     data.gaps.customerEvidenceNoSubType.length;
+
+  const contentTypeEntries = Object.entries(contentCounts.byContentType)
+    .filter(([, count]) => count > 0)
+    .sort(([, a], [, b]) => b - a);
 
   return (
     <div>
@@ -76,6 +97,62 @@ export default async function DashboardPage() {
               value={totalGaps}
               variant="warning"
             />
+          </div>
+        </section>
+
+        {/* Content Library */}
+        <section className="mb-10">
+          <h2 className="mb-4 text-label uppercase tracking-widest text-text-muted">
+            Content Library
+          </h2>
+          <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+            <StatCard label="Total Content" value={contentCounts.total} />
+            {VALID_CONTENT_STATUSES.map((status) => (
+              <StatCard
+                key={status}
+                label={getContentStatusLabel(status)}
+                value={contentCounts.byStatus[status]}
+                variant={statusVariant[status]}
+              />
+            ))}
+          </div>
+
+          {contentTypeEntries.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-medium uppercase tracking-widest text-text-muted">
+                By Content Type
+              </p>
+              <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
+                {contentTypeEntries.map(([type, count]) => (
+                  <StatCard
+                    key={type}
+                    label={getContentTypeLabel(type)}
+                    value={count}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-4">
+            <Link
+              href="/content"
+              className="block rounded-card border border-border-default bg-surface-card p-6 hover:border-border-focus transition-colors"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-text-secondary">
+                    Content Library
+                  </p>
+                  <p className="text-xs text-text-muted">
+                    Browse, search, and manage all content
+                  </p>
+                </div>
+                <span className="rounded-full bg-surface-input px-2.5 py-0.5 text-xs font-medium text-text-muted">
+                  {contentCounts.total}
+                </span>
+              </div>
+            </Link>
           </div>
         </section>
 

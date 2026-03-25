@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/app/components/ui/button";
 import { useRole } from "@/app/components/role-provider";
+import { useToast } from "@/app/components/ui/toast";
 import { cn } from "@/lib/utils";
 import type { ContentStatus } from "@/lib/content-types";
 
@@ -20,18 +22,24 @@ interface ContentDetailActionsProps {
   createdBy?: string;
 }
 
-export function ContentDetailActions({ id, status }: ContentDetailActionsProps) {
+export function ContentDetailActions({
+  id,
+  status,
+  createdBy,
+}: ContentDetailActionsProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const { hasRole } = useRole();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectComment, setRejectComment] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   const isEditor = hasRole("editor");
   const canSubmit = hasRole("contributor");
+  const isCreator = session?.user?.email === createdBy;
 
   async function parseErrorMessage(res: Response): Promise<string> {
     try {
@@ -43,14 +51,14 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   }
 
   async function handleSubmitForReview() {
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}/submit`, { method: "POST" });
       if (!res.ok) {
-        setError(await parseErrorMessage(res));
+        showToast(await parseErrorMessage(res), "error");
         return;
       }
+      showToast("Content submitted for review", "success");
       router.refresh();
     } finally {
       setLoading(false);
@@ -58,7 +66,6 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   }
 
   async function handleApprove() {
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}/review`, {
@@ -67,9 +74,10 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
         body: JSON.stringify({ action: "approve" }),
       });
       if (!res.ok) {
-        setError(await parseErrorMessage(res));
+        showToast(await parseErrorMessage(res), "error");
         return;
       }
+      showToast("Content approved", "success");
       router.refresh();
     } finally {
       setLoading(false);
@@ -79,10 +87,9 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   async function handleRejectSubmit() {
     const trimmed = rejectComment.trim();
     if (!trimmed) {
-      setError("A comment is required to reject content.");
+      showToast("A comment is required to reject content.", "error");
       return;
     }
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}/review`, {
@@ -91,11 +98,12 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
         body: JSON.stringify({ action: "reject", comment: trimmed }),
       });
       if (!res.ok) {
-        setError(await parseErrorMessage(res));
+        showToast(await parseErrorMessage(res), "error");
         return;
       }
       setShowRejectModal(false);
       setRejectComment("");
+      showToast("Content returned with feedback", "success");
       router.refresh();
     } finally {
       setLoading(false);
@@ -103,16 +111,16 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   }
 
   async function handlePublish() {
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}/publish`, {
         method: "POST",
       });
       if (!res.ok) {
-        setError(await parseErrorMessage(res));
+        showToast(await parseErrorMessage(res), "error");
         return;
       }
+      showToast("Content published", "success");
       router.refresh();
     } finally {
       setLoading(false);
@@ -120,15 +128,15 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   }
 
   async function handleDeleteConfirm() {
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}`, { method: "DELETE" });
       if (!res.ok) {
-        setError(await parseErrorMessage(res));
+        showToast(await parseErrorMessage(res), "error");
         return;
       }
       setShowDeleteConfirm(false);
+      showToast("Content deleted", "success");
       router.push("/content");
       router.refresh();
     } finally {
@@ -137,17 +145,17 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   }
 
   async function handleResetAndEdit() {
-    setError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/content/${id}/reset`, {
         method: "POST",
       });
       if (!res.ok) {
-        setError(await parseErrorMessage(res));
+        showToast(await parseErrorMessage(res), "error");
         return;
       }
       setShowResetConfirm(false);
+      showToast("Content reset to draft", "info");
       router.push(`/content/${id}/edit`);
       router.refresh();
     } finally {
@@ -156,19 +164,23 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
   }
 
   function openRejectModal() {
-    setError(null);
     setRejectComment("");
     setShowRejectModal(true);
   }
 
+  const showAwaitingReview =
+    (status === "submitted" || status === "in_review") &&
+    isCreator &&
+    !isEditor;
+
   return (
     <>
       <div className="flex flex-col items-end gap-2">
-        {error ? (
-          <p className="max-w-xs text-right text-body text-status-danger">
-            {error}
+        {showAwaitingReview && (
+          <p className="max-w-xs rounded-lg bg-status-info-bg px-3 py-2 text-right text-body text-status-info">
+            This content is awaiting review
           </p>
-        ) : null}
+        )}
         <div className="flex flex-wrap items-center justify-end gap-2">
           {status === "draft" ? (
             <>
@@ -187,10 +199,7 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
               {isEditor ? (
                 <Button
                   variant="danger"
-                  onClick={() => {
-                    setError(null);
-                    setShowDeleteConfirm(true);
-                  }}
+                  onClick={() => setShowDeleteConfirm(true)}
                 >
                   Delete
                 </Button>
@@ -234,10 +243,7 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
               <Button
                 variant="secondary"
                 className={editLinkClass}
-                onClick={() => {
-                  setError(null);
-                  setShowResetConfirm(true);
-                }}
+                onClick={() => setShowResetConfirm(true)}
               >
                 Edit
               </Button>
@@ -248,10 +254,7 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
             <Button
               variant="secondary"
               className={editLinkClass}
-              onClick={() => {
-                setError(null);
-                setShowResetConfirm(true);
-              }}
+              onClick={() => setShowResetConfirm(true)}
             >
               Edit
             </Button>
@@ -336,7 +339,6 @@ export function ContentDetailActions({ id, status }: ContentDetailActionsProps) 
                 onClick={() => {
                   setShowRejectModal(false);
                   setRejectComment("");
-                  setError(null);
                 }}
               >
                 Cancel

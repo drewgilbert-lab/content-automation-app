@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SessionProvider } from "@/app/components/session-provider";
 import { RoleProvider } from "@/app/components/role-provider";
+import { ToastProvider } from "@/app/components/ui/toast";
 import { AppShell } from "@/app/components/layout/app-shell";
 import "./globals.css";
 
@@ -34,7 +35,9 @@ export default function RootLayout({
         <div className="pt-1">
           <SessionProvider>
             <RoleProvider>
-              <AppShell>{children}</AppShell>
+              <ToastProvider>
+                <AppShell>{children}</AppShell>
+              </ToastProvider>
             </RoleProvider>
           </SessionProvider>
         </div>

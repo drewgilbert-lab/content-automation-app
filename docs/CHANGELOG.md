@@ -6,6 +6,22 @@
 
 ## 2026-03-25
 
+### Group CL Phase 4 — Editorial Workflow UI (CL13–CL15)
+
+Wired up editorial workflow actions with toast-based feedback, session-based creator/reviewer distinction, and build verification.
+
+- **CL13 — Workflow Action Buttons**: Created `app/components/ui/toast.tsx` with `ToastProvider` and `useToast()` hook. Mounted `ToastProvider` in `app/layout.tsx`. All Content Library workflow actions (submit, approve, reject, publish, delete, reset-to-draft) now show success or error toast notifications. Added `slideIn` keyframe animation to `app/globals.css`.
+- **CL14 — Reviewer Feedback Display and Status Guards**: Added `useSession` from `next-auth/react` to compare current user email against `createdBy`. Content creators viewing their `submitted` or `in_review` content see an "Awaiting review" info message instead of review actions. Editors see Approve/Reject buttons. All error responses (including 409 invalid transitions) display as error toasts.
+- **CL15 — Phase 4 Testing and Validation**: `npm run build` passes with zero TypeScript errors. 434 unit tests pass. Browser testing requires Google OAuth (manual verification needed post-deployment).
+
+**New files**: `app/components/ui/toast.tsx`
+**Modified files**: `app/layout.tsx`, `app/globals.css`, `app/content/components/content-detail-actions.tsx`
+**Documentation**: `docs/roadmap/group-cl.md` (CL13–CL15 marked done, Phase 4 done), `docs/roadmap/README.md` (CL status updated), `docs/SCOPE.md` (module status), `docs/BUSINESS_LOGIC.md` (editorial workflow UI notes), `docs/CHANGELOG.md` (this entry), `docs/user-guides/content-library.md` (updated with workflow UI details).
+
+---
+
+## 2026-03-25
+
 ### Group CL Phase 3 — Content Library UI (CL8–CL12)
 
 Built the Content Library UI pages: list, detail, create/edit, navigation integration, with full build verification.

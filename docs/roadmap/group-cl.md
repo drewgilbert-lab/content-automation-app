@@ -325,9 +325,9 @@ Browser-based smoke testing: navigate all content pages (`/content`, `/content/n
 
 Sub-agent directive: execute browser tests, verify UX, fix any issues.
 
-## Phase 4 — Editorial Workflow UI
+## Phase 4 — Editorial Workflow UI — ✅ Done (2026-03-25)
 
-**CL13 — Workflow Action Buttons**
+**CL13 — Workflow Action Buttons** — ✅ Done (2026-03-25)
 Wire up the action buttons in `content-detail-actions.tsx` to call the workflow API routes:
 
 - "Submit for Review" calls `POST /api/content/[id]/submit`, transitions to `submitted`, shows success toast
@@ -340,7 +340,7 @@ Use the shared `Button` component from `app/components/ui/button.tsx` for all ac
 
 Sub-agent directive: execute workflow action wiring.
 
-**CL14 — Reviewer Feedback Display and Status Guards**
+**CL14 — Reviewer Feedback Display and Status Guards** — ✅ Done (2026-03-25)
 On the content detail page:
 
 - When `reviewComment` is present and status is `draft` (indicating a rejection-and-return), display a prominent feedback banner: "Reviewer Feedback from [reviewedBy] on [reviewedAt]: [reviewComment]". Use `bg-status-warning-bg` / `text-status-warning` styling.
@@ -349,7 +349,7 @@ On the content detail page:
 
 Sub-agent directive: execute feedback display and guards.
 
-**CL15 — Phase 4 Testing and Validation**
+**CL15 — Phase 4 Testing and Validation** — ✅ Done (2026-03-25)
 Test full workflow end-to-end via the UI: create draft → submit for review → approve → publish. Test reject flow: create → submit → reject with comment → verify comment displays → edit → re-submit → approve. Test edit-approved flow: create → submit → approve → edit (confirm dialog) → verify status resets to draft. Test role-based visibility: contributor sees only creator actions, editor sees review actions, admin sees publish action. Verify: `npm run build` passes.
 
 Sub-agent directive: execute workflow tests, verify UX, fix any issues.

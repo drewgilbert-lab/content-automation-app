@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: March 23, 2026 (Group M Knowledge-Linked Skills; CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
+> Last updated: March 25, 2026 (CL Phase 4 editorial workflow UI; Group M Knowledge-Linked Skills; CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -439,6 +439,14 @@ Published content
 **Why no review queue for content?** Knowledge objects are shared, long-lived source-of-truth records — a bad knowledge update affects every future generation. Content pieces are individual drafts owned by their creator. The editorial workflow already provides review and approval gates. Adding a separate submission queue would create friction without proportional benefit.
 
 **Source provenance** is tracked on every content piece using the same field pattern as knowledge submissions: `sourceChannel`, `sourceAppId`, `sourceDescription`. The Content Library UI displays source badges and supports filtering by source channel.
+
+### Editorial Workflow UI (CL Phase 4)
+
+The Content Library detail page provides toast-based feedback and session-aware visibility for all editorial workflow transitions:
+
+- **Toast notifications**: Every workflow action (submit for review, approve, reject, publish, delete, reset-to-draft) shows a success or error toast via the `ToastProvider` / `useToast()` hook (`app/components/ui/toast.tsx`). Invalid status transitions (409 responses) display as error toasts with descriptive messages.
+- **Creator/reviewer visibility**: The detail actions component uses `useSession()` to compare the current user's email against `createdBy`. Content creators viewing their own `submitted` or `in_review` content see an "Awaiting review" info message. Editors see Approve/Reject buttons. Admins see the Publish action on approved content.
+- **Status guards**: The API enforces valid transitions (e.g., only `draft` → `submitted`, only `in_review` → `approved`). Invalid transitions return 409 with a `ContentStatusError`. The UI displays these as error toasts, preventing silent failures.
 
 ### Read Path: Protocol-Specific but Shared Implementation
 

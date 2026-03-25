@@ -58,21 +58,40 @@ From the content detail page, click **Edit** to modify the title, body, or tags.
 Content follows a lifecycle from creation to publication:
 
 1. **Draft** — Content is created and can be freely edited
-2. **Submitted** — Creator clicks "Submit for Review" to send content for editorial review
-3. **Approved** — A reviewer approves the content
-4. **Published** — An admin publishes the approved content
+2. **Submit for Review** — Creator clicks "Submit for Review"; the content is sent for editorial review
+3. **Approve or Reject** — A reviewer (editor role) approves or rejects the content
+4. **Publish** — An admin publishes the approved content
 
-If a reviewer rejects the content, it returns to draft status with feedback comments. The creator can revise and re-submit.
+### What Happens on Rejection
 
-### Available Actions by Status
+If a reviewer rejects content, a comment is required explaining what needs to change. The content returns to draft status and the rejection feedback is displayed as a prominent banner on the detail page. The creator can revise the content and re-submit for review.
 
-| Status | Creator Actions | Reviewer Actions | Admin Actions |
-|--------|----------------|------------------|---------------|
-| Draft | Edit, Submit for Review | Delete | Delete |
-| Submitted | (read-only) | Approve, Reject | Approve, Reject |
-| In Review | (read-only) | Approve, Reject | Approve, Reject |
-| Approved | Edit (resets to draft) | — | Publish, Edit |
-| Published | Edit (resets to draft) | — | Edit |
+### Editing Approved or Published Content
+
+Clicking **Edit** on approved or published content shows a confirmation dialog warning that editing will reset the piece to draft status. After confirming, the content returns to draft and must go through the full review cycle again before it can be re-published.
+
+### Available Actions by Role
+
+| Status | Contributor (Creator) | Editor (Reviewer) | Admin |
+|--------|----------------------|-------------------|-------|
+| Draft | Edit, Submit for Review | Edit, Submit for Review, Delete | Edit, Submit for Review, Delete |
+| Submitted | (read-only — "Awaiting review" message) | Approve, Reject | Approve, Reject |
+| In Review | (read-only — "Awaiting review" message) | Approve, Reject | Approve, Reject |
+| Approved | Edit (resets to draft) | Edit (resets to draft) | Publish, Edit (resets to draft) |
+| Published | Edit (resets to draft) | Edit (resets to draft) | Edit (resets to draft) |
+
+Content creators viewing their own submitted or in-review content see an "Awaiting review" message instead of review actions. Editors and admins see the Approve/Reject buttons.
+
+---
+
+## Toast Notifications
+
+Every workflow action provides immediate feedback via toast notifications:
+
+- **Success toasts** confirm completed actions (e.g., "Content submitted for review", "Content approved", "Content published")
+- **Error toasts** explain failures (e.g., invalid status transitions, network errors)
+
+Toasts appear briefly at the top of the page and dismiss automatically.
 
 ---
 

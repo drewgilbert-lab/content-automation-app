@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 25, 2026 (CL5–CL7 Content Library internal API routes; I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 25, 2026 (CL5–CL7 Content Library internal API routes; CL8–CL12 Content Library UI + reset route; I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -859,6 +859,24 @@ Publish approved content. Transitions `approved` → `published`.
 - 409 — Content is not in `approved` status
 
 **Implementation:** `app/api/content/[id]/publish/route.ts`
+
+---
+
+### POST /api/content/[id]/reset
+
+Reset approved or published content to draft status for editing.
+
+**Returns:** `{ reset: true }`
+
+**Auth:** `requireRole("contributor")`
+
+**Errors:**
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 404 — Content not found
+- 409 — Content status does not allow reset (must be `approved` or `published`)
+
+**Implementation:** `app/api/content/[id]/reset/route.ts`
 
 ---
 

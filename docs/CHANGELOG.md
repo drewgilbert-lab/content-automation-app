@@ -6,6 +6,25 @@
 
 ## 2026-03-25
 
+### Group CL Phase 3 — Content Library UI (CL8–CL12)
+
+Built the Content Library UI pages: list, detail, create/edit, navigation integration, with full build verification.
+
+- **CL8 — Content List Page**: Created `app/content/page.tsx` (server page with `listContent()`), `app/content/components/content-list.tsx` (client component with status filter tabs, search input, content type dropdown, card rows with StatusBadge), and `app/content/components/status-badge.tsx` (maps ContentStatus to Badge variants).
+- **CL9 — Content Detail Page**: Created `app/content/[id]/page.tsx` (two-column layout with MarkdownRenderer body, metadata sidebar, Context Used panel, reviewer feedback banner) and `app/content/components/content-detail-actions.tsx` (role-based action bar: submit, approve, reject with comment modal, publish, delete with confirmation, reset-to-draft with confirmation for approved/published content).
+- **CL10 — Content Create and Edit Pages**: Created `app/content/components/content-form.tsx` (shared form with title, content type select, body with markdown preview toggle, tags, source description), `app/content/new/page.tsx` (create page with sourceChannel: "direct_upload"), and `app/content/[id]/edit/page.tsx` (edit page with status warning for approved/published content).
+- **CL11 — Navigation Integration**: Enabled Content link in sidebar nav (`app/components/layout/sidebar-nav.tsx`), added Content Library quick action card to home page (`app/page.tsx`).
+- **CL12 — Phase 3 Testing**: `npm run build` passes with zero type errors. All content routes registered. Auth middleware correctly redirects unauthenticated users.
+- **Reset API Route**: Added `POST /api/content/[id]/reset` (`app/api/content/[id]/reset/route.ts`) — resets approved/published content to draft for editing. Auth: contributor+.
+
+**New files**: `app/content/page.tsx`, `app/content/components/content-list.tsx`, `app/content/components/status-badge.tsx`, `app/content/[id]/page.tsx`, `app/content/components/content-detail-actions.tsx`, `app/content/components/content-form.tsx`, `app/content/new/page.tsx`, `app/content/[id]/edit/page.tsx`, `app/api/content/[id]/reset/route.ts`
+**Modified files**: `app/components/layout/sidebar-nav.tsx`, `app/page.tsx`
+**Documentation**: `docs/roadmap/group-cl.md` (CL8–CL12 marked done), `docs/roadmap/README.md` (CL status updated), `docs/SCOPE.md` (module status), `docs/API.md` (reset route), `docs/CHANGELOG.md` (this entry), `docs/user-guides/content-library.md` (new user guide).
+
+---
+
+## 2026-03-25
+
 ### Group CL Phase 2 — Content Library Internal API Routes (CL5–CL7)
 
 Built the Content Library internal API routes: CRUD endpoints and editorial workflow endpoints with full test coverage.

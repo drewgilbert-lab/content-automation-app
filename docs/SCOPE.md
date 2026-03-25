@@ -60,7 +60,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Knowledge Base UI | Done | Groups A–I done (I1–I5); I6 (Skill Testing Interface) deferred |
 | Authentication & User Management | Done (W1–W9) | Group W complete: Google OAuth, JWT sessions, domain restriction, User collection, requireRole() on all routes, permission matrix (lib/permissions.ts), admin user management UI, user attribution (createdBy/updatedBy), custom permission sets (PermissionSet collection, /admin/roles), audit log (AuditLog collection, /admin/audit) |
 | Generate UI | Pending | Content generation with context retrieval |
-| Content Library | Phase 1-2 Done (CL1–CL7) | Backend foundation + internal API routes: schema migration, types, CRUD lib, API routes (CRUD + workflow), tests. UI pending (Phase 3). |
+| Content Library | Phase 1-3 Done (CL1–CL12) | Backend foundation + internal API routes + UI: schema migration, types, CRUD lib, API routes (CRUD + workflow), Content Library UI (list, detail, create/edit pages, sidebar nav, home page card). Editorial workflow UI refinements pending (Phase 4). |
 | Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |
 | Production Redis (Upstash) | Done (Group Y) | Upstash Redis configured for rate limiting + upload session persistence; graceful fallback when unavailable |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |

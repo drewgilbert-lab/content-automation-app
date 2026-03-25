@@ -7,6 +7,7 @@ import {
   Brain,
   ClipboardList,
   Database,
+  FileText,
   Lightbulb,
 } from "lucide-react";
 import { checkWeaviateConnection } from "@/lib/weaviate";
@@ -51,6 +52,11 @@ const quickActions = [
     href: "/skills",
     label: "Skills Library",
     icon: Lightbulb,
+  },
+  {
+    href: "/content",
+    label: "Content Library",
+    icon: FileText,
   },
   {
     href: "/queue",
@@ -131,7 +137,7 @@ export default async function HomePage() {
         <h2 className="mb-4 text-label uppercase tracking-widest text-text-muted">
           Quick Actions
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {quickActions.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}

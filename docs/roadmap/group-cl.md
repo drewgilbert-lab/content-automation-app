@@ -259,9 +259,9 @@ Integration tests for all `/api/content/` endpoints: correct status codes (200, 
 
 Sub-agent directive: execute tests, verify build, fix any failures.
 
-## Phase 3 — Content Library UI
+## Phase 3 — Content Library UI — ✅ Done (2026-03-25)
 
-**CL8 — Content List Page**
+**CL8 — Content List Page** — ✅ Done (2026-03-25)
 Build `app/content/page.tsx` with:
 
 - Filter tabs: All / Draft / Submitted / In Review / Approved / Published
@@ -277,7 +277,7 @@ Build `app/content/components/status-badge.tsx` — status-specific badge compon
 
 Sub-agent directive: execute list page and components.
 
-**CL9 — Content Detail Page**
+**CL9 — Content Detail Page** — ✅ Done (2026-03-25)
 Build `app/content/[id]/page.tsx` with:
 
 - Full content body rendered as markdown (using `MarkdownRenderer` from `app/knowledge/components/`)
@@ -300,7 +300,7 @@ Build `app/content/components/content-detail-actions.tsx` — context-dependent 
 
 Sub-agent directive: execute detail page and actions component.
 
-**CL10 — Content Create and Edit Pages**
+**CL10 — Content Create and Edit Pages** — ✅ Done (2026-03-25)
 Build `app/content/components/content-form.tsx` — shared form component with fields:
 
 - Title (text input)
@@ -315,12 +315,12 @@ Build `app/content/[id]/edit/page.tsx` — edit form. Loads existing content, al
 
 Sub-agent directive: execute form component and both pages.
 
-**CL11 — Navigation Integration**
+**CL11 — Navigation Integration** — ✅ Done (2026-03-25)
 Activate the "Content" nav item in `app/components/layout/sidebar-nav.tsx`: change `href: "#"` to `href: "/content"` and remove `disabled: true`. Add a "Content Library" navigation card to `app/page.tsx` home page, following the existing card pattern for Knowledge Base and Skills Library. Card shows: brief description, content count (total), and link to `/content`.
 
 Sub-agent directive: execute navigation changes.
 
-**CL12 — Phase 3 Testing and Validation**
+**CL12 — Phase 3 Testing and Validation** — ✅ Done (2026-03-25)
 Browser-based smoke testing: navigate all content pages (`/content`, `/content/new`, `/content/[id]`, `/content/[id]/edit`), verify rendering, form submission, status badge display, markdown rendering, responsive layout. Verify navigation card on home page. Verify filter tabs and search work correctly. Verify sidebar "Content" link is active and navigates correctly. Verify: `npm run build` passes.
 
 Sub-agent directive: execute browser tests, verify UX, fix any issues.

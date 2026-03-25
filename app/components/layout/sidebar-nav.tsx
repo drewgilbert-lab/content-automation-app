@@ -39,7 +39,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { label: "Knowledge Base", href: "/knowledge", icon: BookOpen },
       { label: "Skills Library", href: "/skills", icon: Sparkles },
-      { label: "Content", href: "#", icon: FileText, disabled: true },
+      { label: "Content", href: "/content", icon: FileText },
       { label: "Generate", href: "#", icon: PenTool, disabled: true },
     ],
   },

@@ -6,6 +6,21 @@
 
 ## 2026-03-25
 
+### Group CL Phase 6 — Testing and Documentation (CL17–CL18)
+
+Completed comprehensive testing and documentation for the Content Library module. Group CL is now fully complete.
+
+- **CL17 — Comprehensive Testing**: Created `__tests__/api/content-reset-route.test.ts` (4 tests for the reset route: 401, 200, 409, 404). Expanded `__tests__/lib/content.test.ts` with `getContentCounts()` tests (correct aggregation, empty collection) and `beginReview()` tests (valid transition, invalid status, not found). Total content test coverage: 81 tests across 6 files, all passing. `npm run build` passes with zero type errors.
+- **CL18 — Documentation Updates**: Updated `docs/roadmap/group-cl.md` (CL17/CL18 marked done, group complete), `docs/roadmap/README.md` (CL status → Done), `docs/SCOPE.md` (module status, fixed stale out-of-scope text), `docs/BUSINESS_LOGIC.md` (fixed Content Write Path diagram and Phase 2 references), `docs/CHANGELOG.md` (this entry), `docs/user-guides/content-library.md` (refreshed).
+
+**New files**: `__tests__/api/content-reset-route.test.ts`
+**Modified files**: `__tests__/lib/content.test.ts`
+**Documentation**: All Content Library docs verified and updated. Group CL (CL1–CL18) complete.
+
+---
+
+## 2026-03-25
+
 ### Group CL Phase 5 — Dashboard Integration (CL16)
 
 Added content metrics to the Health Dashboard page.

@@ -22,7 +22,7 @@ It is not a general-purpose CMS. It is a **context engine**: a structured, query
 ### Out of Scope (Current Phase)
 
 - Role-based access control enforcement (Phase 2 — W5–W7; authentication foundation is done, RBAC permission checks are planned)
-- Content approval and publishing workflows (defined in [roadmap/README.md](./roadmap/README.md), not yet implemented)
+- Content approval and publishing workflows — editorial workflow implemented (Group CL); advanced workflows like reviewer assignment and content versioning are deferred
 - Integration with external systems (CRM, MAP, social platforms)
 - Multi-tenant or customer-facing use
 
@@ -60,7 +60,7 @@ See [README.md](../README.md) for repo structure and full documentation index.
 | Knowledge Base UI | Done | Groups A–I done (I1–I5); I6 (Skill Testing Interface) deferred |
 | Authentication & User Management | Done (W1–W9) | Group W complete: Google OAuth, JWT sessions, domain restriction, User collection, requireRole() on all routes, permission matrix (lib/permissions.ts), admin user management UI, user attribution (createdBy/updatedBy), custom permission sets (PermissionSet collection, /admin/roles), audit log (AuditLog collection, /admin/audit) |
 | Generate UI | Pending | Content generation with context retrieval |
-| Content Library | Phase 1-5 Done (CL1–CL16) | Backend foundation + internal API routes + UI + editorial workflow UI + dashboard integration: schema migration, types, CRUD lib, API routes (CRUD + workflow), Content Library UI (list, detail, create/edit pages, sidebar nav, home page card), toast notifications for all workflow actions, session-based creator/reviewer distinction, status guards, content metrics on health dashboard (total, by-status, by-content-type counts). |
+| Content Library | Done (CL1–CL18) | Complete content operations module: schema migration, types, CRUD lib, API routes (CRUD + workflow), Content Library UI (list, detail, create/edit pages, sidebar nav, home page card), toast notifications for all workflow actions, session-based creator/reviewer distinction, status guards, content metrics on health dashboard, comprehensive test coverage (81 tests across 6 files). |
 | Vercel deployment | Done | Production: `https://content-automation-app-zeta.vercel.app` — auto-deploys from `drewgilbert-lab/content-automation-app` on push to main |
 | Production Redis (Upstash) | Done (Group Y) | Upstash Redis configured for rate limiting + upload session persistence; graceful fallback when unavailable |
 | Skills module | Done (Group I) | Skill CRUD, library UI, context assembly, migration; I6 (testing) deferred |

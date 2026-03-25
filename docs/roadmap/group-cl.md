@@ -1,6 +1,6 @@
 > Back to [Roadmap Index](./README.md)
 
-# Group CL — Content Library
+# Group CL — Content Library — **Done**
 
 > Scope: Build the Content Library module — the application layer for storing, browsing, editing, and managing all content produced by or submitted to the Content Engine. This includes the `GeneratedContent` Weaviate collection schema migration, type definitions, CRUD operations, internal API routes, UI pages, and the editorial workflow that moves content from draft through review to publication. The Content Library is the counterpart to the Knowledge Base: the Knowledge Base stores what the company knows; the Content Library stores what the company produces.
 > Dependencies: Groups A–F (knowledge CRUD — establishes CRUD patterns, `withWeaviate`, cross-reference resolution), Group I (Skills Module — `assembleContext()`, content type constants, skill cross-references on `GeneratedContent`), [Group K](./group-k.md) Phase 1 (Connected Systems — source provenance patterns), Group W (Authentication — `requireRole()`, `requirePermission()`, user attribution).
@@ -363,9 +363,9 @@ Data source: new `getContentCounts()` function in `lib/content.ts` that runs agg
 
 Sub-agent directive: execute dashboard extension.
 
-## Phase 6 — Testing and Documentation
+## Phase 6 — Testing and Documentation — ✅ Done (2026-03-25)
 
-**CL17 — Comprehensive Testing**
+**CL17 — Comprehensive Testing** — ✅ Done (2026-03-25)
 Complete test coverage across all phases:
 
 - Unit tests for `lib/content-types.ts`: all utility functions
@@ -377,7 +377,7 @@ Complete test coverage across all phases:
 
 Sub-agent directive: execute full test suite, fix any failures.
 
-**CL18 — Documentation Updates**
+**CL18 — Documentation Updates** — ✅ Done (2026-03-25)
 Update all project documentation to reflect the Content Library module:
 
 - `docs/KNOWLEDGE_BASE.md` — Verify `GeneratedContent` collection schema matches implementation (properties, cross-references, descriptions). The schema is already documented; verify accuracy after CL1 migration.

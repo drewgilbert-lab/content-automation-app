@@ -1,6 +1,6 @@
 # Content Engine — Business Logic
 
-> Last updated: March 25, 2026 (CL Phase 4 editorial workflow UI; Group M Knowledge-Linked Skills; CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
+> Last updated: March 25, 2026 (Group CL Content Library complete; Group M Knowledge-Linked Skills; CW17 budget policy; CW20/CW21 test matrix and validation policy complete)
 
 This document defines the rules that govern how knowledge is stored, how context is assembled, and how content is generated. It is the reference for all AI generation behavior at runtime.
 
@@ -369,7 +369,7 @@ The `POST /api/skills/:id/suggest-links` endpoint uses Weaviate `nearText` seman
 
 ## External Access Patterns
 
-The system is accessible through three channels. Each channel supports both the **Knowledge Base** (personas, segments, use cases, skills, etc.) and — in Phase 2 — the **Content Library** (generated and submitted content). See [roadmap/README.md](./roadmap/README.md) Groups J, K and [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-006, ADR-007 for full scope and architecture decisions.
+The system is accessible through three channels. Each channel supports both the **Knowledge Base** (personas, segments, use cases, skills, etc.) and the **Content Library** (generated and submitted content). See [roadmap/README.md](./roadmap/README.md) Groups J, K and [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-006, ADR-007 for full scope and architecture decisions.
 
 ### Access Channels
 
@@ -411,7 +411,7 @@ The review queue is the **universal authorization layer** for knowledge writes. 
 
 Each access channel connects to Weaviate with a dedicated user whose permissions match only what that channel needs (defense-in-depth). Even if application-level auth is bypassed, the Weaviate user limits the blast radius. See [TECH_DECISIONS.md](./TECH_DECISIONS.md) ADR-014 and [roadmap/README.md](./roadmap/README.md) Group K Architecture Decisions.
 
-### Content Write Path: Channels Converge on Draft (Phase 2)
+### Content Write Path: Channels Converge on Draft
 
 Content entering the Content Library follows a different path from knowledge. External content enters the `GeneratedContent` collection directly as `draft` — the Module 4 editorial workflow is the quality gate, not a separate review queue. See [phase-2.md](./roadmap/phase-2.md) Module 5 for the full spec.
 
@@ -427,10 +427,9 @@ createContent()
 GeneratedContent (status: "draft") → stored in Weaviate
   │
   ▼
-Editorial workflow (Module 4)
-  │ Submit for review → in_review
-  │ Approve → approved
-  │ Reject → draft (with reviewer comments)
+Editorial workflow
+  │ Submit for review → submitted
+  │ Reviewer acts → approved (or → draft with comments on rejection)
   │ Publish → published
   ▼
 Published content
@@ -461,7 +460,7 @@ All read operations use the same `lib/knowledge.ts` and `lib/content.ts` functio
 | Semantic search | (planned, Module 2) | `GET /api/v1/knowledge/search` | `search_objects` tool |
 | Health metrics | `getDashboardData()` | `GET /api/v1/health` | `get_dashboard_health` tool |
 
-**Content reads (Phase 2):**
+**Content reads:**
 
 | Operation | Web UI | REST API (K13) | MCP Server (J26) |
 |---|---|---|---|

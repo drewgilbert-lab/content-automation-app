@@ -202,7 +202,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | Content Workflow | CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | S | Phase 1-2 done (S1–S9); Phase 3+ pending |
 | AA | Done |
-| CL | Phase 1-5 Done (CL1–CL16); Phase 6 Pending |
+| CL | Done (CL1–CL18) |
 | N, O, P, Q, R, T, U, V, X, Z | Planned |
 
 Authoritative grid: `docs/roadmap/README.md`.
@@ -231,7 +231,7 @@ Authoritative grid: `docs/roadmap/README.md`.
 | Design System Foundation | Phase 1-2 Done (Group S) |
 | HG Brand Theming | Done (Group AA) |
 | Generate (content creation) | Pending |
-| Content Library | Phase 1-5 Done (CL1–CL16); Phase 6 Pending (Group CL) |
+| Content Library | Done (CL1–CL18, Group CL) |
 | Workflows | Future (Phase 2) |
 
 ## Detail Pointers

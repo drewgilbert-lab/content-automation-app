@@ -30,11 +30,13 @@ import {
   deleteContent,
   semanticSearchContent,
   submitForReview,
+  beginReview,
   approveContent,
   rejectContent,
   publishContent,
   resetToDraft,
   countContentByKnowledgeObject,
+  getContentCounts,
   ContentStatusError,
 } from "@/lib/content";
 import { withWeaviate } from "@/lib/weaviate";
@@ -613,5 +615,110 @@ describe("countContentByKnowledgeObject", () => {
     const count = await countContentByKnowledgeObject("ko-123");
     expect(count).toBe(4);
     expect(fetchObjects).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe("beginReview", () => {
+  it("succeeds from submitted status", async () => {
+    const submitted = makeContentObj("br1", { status: "submitted" });
+    const updateMock = vi.fn().mockResolvedValue(undefined);
+    setupClient({
+      query: { fetchObjectById: vi.fn().mockResolvedValue(submitted) },
+      data: { update: updateMock },
+    });
+
+    await beginReview("br1", "reviewer@example.com");
+
+    expect(updateMock).toHaveBeenCalledWith({
+      id: "br1",
+      properties: expect.objectContaining({
+        status: "in_review",
+        reviewedBy: "reviewer@example.com",
+        updatedBy: "reviewer@example.com",
+      }),
+    });
+  });
+
+  it("throws ContentStatusError from non-submitted status", async () => {
+    setupClient({
+      query: {
+        fetchObjectById: vi
+          .fn()
+          .mockResolvedValue(makeContentObj("br2", { status: "draft" })),
+      },
+    });
+
+    await expect(
+      beginReview("br2", "reviewer@example.com"),
+    ).rejects.toThrow(ContentStatusError);
+  });
+
+  it("throws when content not found", async () => {
+    setupClient({
+      query: { fetchObjectById: vi.fn().mockResolvedValue(null) },
+    });
+
+    await expect(beginReview("missing", "reviewer@example.com")).rejects.toThrow(
+      "Content not found",
+    );
+  });
+});
+
+describe("getContentCounts", () => {
+  it("returns correct counts with mixed statuses and types", async () => {
+    const objects = [
+      makeContentObj("g1", { status: "draft", contentType: "email" }),
+      makeContentObj("g2", { status: "submitted", contentType: "blog" }),
+      makeContentObj("g3", { status: "in_review", contentType: "email" }),
+      makeContentObj("g4", {
+        status: "approved",
+        contentType: "thought_leadership",
+      }),
+      makeContentObj("g5", { status: "rejected", contentType: "blog" }),
+      makeContentObj("g6", { status: "published", contentType: "email" }),
+    ];
+    setupClient({
+      query: {
+        fetchObjects: vi.fn().mockResolvedValue({ objects }),
+      },
+    });
+
+    const counts = await getContentCounts();
+
+    expect(counts.total).toBe(6);
+    expect(counts.byStatus).toEqual({
+      draft: 1,
+      submitted: 1,
+      in_review: 1,
+      approved: 1,
+      rejected: 1,
+      published: 1,
+    });
+    expect(counts.byContentType).toEqual({
+      email: 3,
+      blog: 2,
+      thought_leadership: 1,
+    });
+  });
+
+  it("returns all zeros for empty collection", async () => {
+    setupClient({
+      query: {
+        fetchObjects: vi.fn().mockResolvedValue({ objects: [] }),
+      },
+    });
+
+    const counts = await getContentCounts();
+
+    expect(counts.total).toBe(0);
+    expect(counts.byStatus).toEqual({
+      draft: 0,
+      submitted: 0,
+      in_review: 0,
+      approved: 0,
+      rejected: 0,
+      published: 0,
+    });
+    expect(counts.byContentType).toEqual({});
   });
 });

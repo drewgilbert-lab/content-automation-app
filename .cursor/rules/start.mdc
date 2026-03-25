@@ -151,6 +151,8 @@ lib/
   skill-package-types.ts  — SkillFrontmatter, SkillPackageMetadata, SkillPackage, PackageValidationResult types (I7)
   rate-limit.ts           — checkRateLimit(), Upstash Redis sliding window, graceful degradation
   context-assembly.ts     — assembleContext() for generation system prompts (skills + knowledge + rules + optional narrative)
+  content-types.ts        — ContentStatus, ContentSourceChannel, ContentListItem, ContentDetail, ContentCreateInput, ContentUpdateInput, ContentListParams, ContentSearchResult, utility functions (CL2)
+  content.ts              — Content Library CRUD: listContent, getContent, createContent, updateContent, deleteContent, semanticSearchContent; workflow: submitForReview, beginReview, approveContent, rejectContent, publishContent, resetToDraft; countContentByKnowledgeObject, getContentCounts, ContentStatusError (CL3)
   narratives.ts           — Narrative CRUD (planned, Group R)
   narrative-types.ts      — Narrative types, status enums, input types, utilities (planned, Group R)
 middleware.ts             — Auth.js middleware: redirects unauthenticated pages to /auth/signin, 401 for unauthenticated API, public: /auth/*, /api/auth/*, /api/v1/*
@@ -201,6 +203,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | Content Workflow | CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | S | Phase 1-2 done (S1–S9); Phase 3+ pending |
 | AA | Phase 1-2 Done (AA1–AA9); Phase 3–5 pending |
+| CL | Phase 1 Done (CL1–CL4); Phases 2–6 Pending |
 | N, O, P, Q, R, T, U, V, X, Z | Planned |
 
 Authoritative grid: `docs/roadmap/README.md`.
@@ -229,7 +232,7 @@ Authoritative grid: `docs/roadmap/README.md`.
 | Design System Foundation | Phase 1-2 Done (Group S) |
 | HG Brand Theming | Phase 1-2 Done (Group AA) |
 | Generate (content creation) | Pending |
-| Content Library | Future (Phase 2) |
+| Content Library | Phase 1 Done (CL1–CL4); Phases 2–6 Pending (Group CL) |
 | Workflows | Future (Phase 2) |
 
 ## Detail Pointers

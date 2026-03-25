@@ -6,6 +6,25 @@
 
 ## 2026-03-24
 
+### Group CL Phase 1 — Content Library Backend Foundation (CL1–CL4)
+
+Built the Content Library backend foundation: schema migration, type definitions, CRUD operations with editorial workflow transitions, and comprehensive tests.
+
+- **CL1 — GeneratedContent Schema Migration**: Created `scripts/migrate-generated-content-schema.ts`. Idempotent Weaviate migration adding 9 properties (`tags`, `sourceChannel`, `sourceAppId`, `sourceDescription`, `reviewComment`, `reviewedBy`, `reviewedAt`, `createdBy`, `updatedBy`) and 1 cross-reference (`usedSkills` → `Skill`) to the existing `GeneratedContent` collection. Added `migrate:content-schema` npm script to `package.json`.
+- **CL2 — Content Type Definitions**: Created `lib/content-types.ts` with `ContentStatus` (6 statuses), `ContentSourceChannel` (5 channels), `ContentListItem`, `ContentDetail`, `ContentCreateInput`, `ContentUpdateInput`, `ContentListParams`, `ContentSearchResult`, `ContentReference` interfaces, and utility functions (`getContentStatusLabel`, `getContentSourceChannelLabel`, `isEditableStatus`).
+- **CL3 — Content CRUD Operations**: Created `lib/content.ts` with CRUD operations (`listContent`, `getContent`, `createContent`, `updateContent`, `deleteContent`, `semanticSearchContent`), editorial workflow transitions (`submitForReview`, `beginReview`, `approveContent`, `rejectContent`, `publishContent`, `resetToDraft`), reference guard (`countContentByKnowledgeObject`), dashboard support (`getContentCounts`), and `ContentStatusError` class. Re-exports types from `lib/content-types.ts`.
+- **CL4 — Phase 1 Testing**: Created `__tests__/lib/content-types.test.ts` (8 tests) and `__tests__/lib/content.test.ts` (30 tests) — 38 tests total, all passing. `npm run build` passes with zero type errors.
+
+**New files**: `scripts/migrate-generated-content-schema.ts`, `lib/content-types.ts`, `lib/content.ts`, `__tests__/lib/content-types.test.ts`, `__tests__/lib/content.test.ts`
+**Modified files**: `package.json` (added `migrate:content-schema` script)
+**Tests**: 38 new tests (8 type utility tests + 30 CRUD/workflow tests)
+**Documentation**: `docs/roadmap/group-cl.md` (CL1–CL4 marked done), `docs/roadmap/README.md` (CL status updated), `docs/KNOWLEDGE_BASE.md` (GeneratedContent schema updated), `docs/SCOPE.md` (module status), `docs/CHANGELOG.md` (this entry).
+**User guide update**: N/A — backend foundation only; no user-facing UI changes. User guide will be created in CL18 (Phase 6).
+
+---
+
+## 2026-03-24
+
 ### Group I — Skill Testing Interface (I6) and Claude Skill Package Compatibility (I7)
 
 Built the skill testing interface and Claude-compatible skill packaging system.

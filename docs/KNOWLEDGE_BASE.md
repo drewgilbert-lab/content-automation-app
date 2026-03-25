@@ -225,6 +225,10 @@ Stores all content produced by or submitted to the system with full generation a
 | `sourceChannel` | `text` | How the content entered the system: `"generate_ui"`, `"direct_upload"`, `"mcp"`, `"api"`, `"bulk_import"` |
 | `sourceAppId` | `text` | Identifier for the external application (from API key record; empty for UI-originated content) |
 | `sourceDescription` | `text` | Free-text describing where the content came from (provided by submitter) |
+| `tags` | `text[]` | Categorization labels |
+| `reviewComment` | `text` | Reviewer feedback on rejection or approval notes |
+| `reviewedBy` | `text` | Email of the reviewer who last acted on this content |
+| `reviewedAt` | `date` | When the last review action occurred |
 | `createdBy` | `text` | Email of the user who created this content |
 | `updatedBy` | `text` | Email of the user who last modified this content |
 | `createdAt` | `date` | Creation timestamp |

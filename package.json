@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx --env-file=.env.local scripts/seed.ts",
+    "migrate:content-schema": "tsx --env-file=.env.local scripts/migrate-generated-content-schema.ts",
     "test": "vitest run",
     "test:watch": "vitest"
   },

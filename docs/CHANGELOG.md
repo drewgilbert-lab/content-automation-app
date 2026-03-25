@@ -1,6 +1,23 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 24, 2026
+> Newest entries first. Last updated: March 25, 2026
+
+---
+
+## 2026-03-25
+
+### Group CL Phase 2 — Content Library Internal API Routes (CL5–CL7)
+
+Built the Content Library internal API routes: CRUD endpoints and editorial workflow endpoints with full test coverage.
+
+- **CL5 — Content CRUD API Routes**: Created `app/api/content/route.ts` (GET list with filtering/pagination, POST create with contentType validation) and `app/api/content/[id]/route.ts` (GET detail with resolved cross-references, PUT update with ContentStatusError guard, DELETE with editor role). All routes use `requireRole()` authentication.
+- **CL6 — Content Workflow API Routes**: Created `app/api/content/[id]/submit/route.ts` (draft → submitted, contributor), `app/api/content/[id]/review/route.ts` (submitted → approved/draft, editor, collapses beginReview + approve/reject in single call), `app/api/content/[id]/publish/route.ts` (approved → published, admin). Invalid transitions return 409 with ContentStatusError.
+- **CL7 — Phase 2 Testing**: Created `__tests__/api/content-route.test.ts` (11 tests), `__tests__/api/content-id-route.test.ts` (11 tests), `__tests__/api/content-workflow-routes.test.ts` (12 tests) — 34 tests total, all passing. `npm run build` passes with zero type errors.
+
+**New files**: `app/api/content/route.ts`, `app/api/content/[id]/route.ts`, `app/api/content/[id]/submit/route.ts`, `app/api/content/[id]/review/route.ts`, `app/api/content/[id]/publish/route.ts`, `__tests__/api/content-route.test.ts`, `__tests__/api/content-id-route.test.ts`, `__tests__/api/content-workflow-routes.test.ts`
+**Tests**: 34 new tests (11 CRUD list/create + 11 CRUD detail/update/delete + 12 workflow submit/review/publish)
+**Documentation**: `docs/roadmap/group-cl.md` (CL5–CL7 marked done), `docs/roadmap/README.md` (CL status updated), `docs/API.md` (content route contracts), `docs/SCOPE.md` (module status), `docs/CHANGELOG.md` (this entry).
+**User guide update**: N/A — API routes only; no user-facing UI changes. User guide will be created in CL18 (Phase 6).
 
 ---
 

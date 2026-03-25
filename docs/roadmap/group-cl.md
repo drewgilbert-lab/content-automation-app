@@ -224,7 +224,7 @@ Sub-agent directive: execute tests, verify build, fix any failures.
 
 ## Phase 2 — Internal API Routes
 
-**CL5 — Content CRUD API Routes**
+**CL5 — Content CRUD API Routes** — ✅ Done (2026-03-25)
 Build API routes at `app/api/content/` following established patterns from `app/api/skills/`.
 
 | Method | Route | Description | Auth |
@@ -239,7 +239,7 @@ Implementation files: `app/api/content/route.ts` (GET list, POST create), `app/a
 
 Sub-agent directive: execute CRUD routes as a single task.
 
-**CL6 — Content Workflow API Routes**
+**CL6 — Content Workflow API Routes** — ✅ Done (2026-03-25)
 Build workflow action routes at `app/api/content/[id]/`.
 
 | Method | Route | Description | Auth |
@@ -254,7 +254,7 @@ The review route handles the `submitted` → `in_review` transition automaticall
 
 Sub-agent directive: execute workflow routes as a single task.
 
-**CL7 — Phase 2 Testing and Validation**
+**CL7 — Phase 2 Testing and Validation** — ✅ Done (2026-03-25)
 Integration tests for all `/api/content/` endpoints: correct status codes (200, 201, 400, 404, 409), error cases (update non-draft returns 409, delete non-draft returns 409, approve non-submitted returns 409, reject without comment returns 400), workflow transition sequences (create → submit → approve → publish; create → submit → reject → edit → re-submit). Auth tests: unauthenticated requests return 401, insufficient role returns 403. Verify: `npm run build` passes.
 
 Sub-agent directive: execute tests, verify build, fix any failures.

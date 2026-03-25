@@ -50,6 +50,11 @@ app/
   api/bulk-upload/session/[sessionId]/route.ts — GET upload session state (G3)
   api/bulk-upload/reclassify/route.ts — POST reclassify single document (G3)
   api/bulk-upload/approve/route.ts — POST approve documents, create submissions (G5)
+  api/content/route.ts — GET list, POST create content (CL5)
+  api/content/[id]/route.ts — GET detail, PUT update, DELETE content (CL5)
+  api/content/[id]/submit/route.ts — POST submit for review (CL6)
+  api/content/[id]/review/route.ts — POST approve/reject (CL6)
+  api/content/[id]/publish/route.ts — POST publish (CL6)
   api/content-workflow/   — Pillar research orchestration: runs, metrics, start/cancel/retry/status/events/diagnostics/package (CW; see roadmap/group-content-workflow.md)
   bulk-upload/page.tsx — Bulk upload wizard page (G4)
   bulk-upload/components/ — FileDropZone, ClassificationProgress, DocumentReviewCard, TagEditor, ConfidenceBadge
@@ -203,7 +208,7 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 | Content Workflow | CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | S | Phase 1-2 done (S1–S9); Phase 3+ pending |
 | AA | Phase 1-2 Done (AA1–AA9); Phase 3–5 pending |
-| CL | Phase 1 Done (CL1–CL4); Phases 2–6 Pending |
+| CL | Phase 1-2 Done (CL1–CL7); Phases 3–6 Pending |
 | N, O, P, Q, R, T, U, V, X, Z | Planned |
 
 Authoritative grid: `docs/roadmap/README.md`.
@@ -232,7 +237,7 @@ Authoritative grid: `docs/roadmap/README.md`.
 | Design System Foundation | Phase 1-2 Done (Group S) |
 | HG Brand Theming | Phase 1-2 Done (Group AA) |
 | Generate (content creation) | Pending |
-| Content Library | Phase 1 Done (CL1–CL4); Phases 2–6 Pending (Group CL) |
+| Content Library | Phase 1-2 Done (CL1–CL7); Phases 3–6 Pending (Group CL) |
 | Workflows | Future (Phase 2) |
 
 ## Detail Pointers

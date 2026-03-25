@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 24, 2026 (I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: March 25, 2026 (CL5–CL7 Content Library internal API routes; I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -674,6 +674,191 @@ Note: `overrides` is optional — allows applying user edits to classifications 
 | 500 | `{ "error": "Failed to create submissions" }` | Server error |
 
 **Implementation:** `app/api/bulk-upload/approve/route.ts` → calls `createSubmission()` from `lib/submissions.ts`
+
+---
+
+## Content Library CRUD Routes (Group CL Phase 2)
+
+### GET /api/content
+
+List content with optional filters.
+
+**Query Parameters:**
+| Param | Type | Required | Description |
+|-------|------|----------|-------------|
+| `contentType` | string | No | Filter by content type (validated against `CONTENT_TYPES`) |
+| `status` | string | No | Filter by status: `draft`, `submitted`, `in_review`, `approved`, `rejected`, `published` |
+| `sourceChannel` | string | No | Filter by source: `generate_ui`, `direct_upload`, `mcp`, `api`, `bulk_import` |
+| `tags` | string | No | Comma-separated tag filter |
+| `search` | string | No | Full-text search on title and body |
+| `limit` | number | No | Max results (default 100, max 500) |
+| `offset` | number | No | Pagination offset |
+| `createdBy` | string | No | Filter by creator email |
+
+**Returns:** `{ content: ContentListItem[] }`
+
+**Auth:** `requireRole("contributor")`
+
+**Errors:**
+- 400 — Invalid `contentType`, `status`, or `sourceChannel`
+- 401 — Not authenticated
+- 403 — Insufficient role
+
+**Implementation:** `app/api/content/route.ts`
+
+---
+
+### POST /api/content
+
+Create a new content piece (status defaults to `draft`).
+
+**Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | Yes | Content title |
+| `contentType` | string | Yes | Must be a valid content type |
+| `body` | string | Yes | Content body text |
+| `prompt` | string | No | Original generation prompt |
+| `tags` | string[] | No | Tags |
+| `sourceChannel` | string | No | Source channel |
+| `sourceAppId` | string | No | External app identifier |
+| `sourceDescription` | string | No | Free-text provenance |
+| `personaId` | string | No | Persona cross-reference |
+| `segmentId` | string | No | Segment cross-reference |
+| `useCaseIds` | string[] | No | Use case cross-references |
+| `businessRuleIds` | string[] | No | Business rule cross-references |
+| `skillIds` | string[] | No | Skill cross-references |
+
+**Returns:** `{ id }` with status 201
+
+**Auth:** `requireRole("contributor")`
+
+**Errors:**
+- 400 — Missing required fields or invalid `contentType`
+- 401 — Not authenticated
+- 403 — Insufficient role
+
+**Implementation:** `app/api/content/route.ts`
+
+---
+
+### GET /api/content/[id]
+
+Get content detail with resolved cross-references.
+
+**Returns:** Full `ContentDetail` object including resolved `usedPersona`, `usedSegment`, `usedUseCases`, `usedBusinessRules`, `usedSkills`.
+
+**Auth:** `requireRole("contributor")`
+
+**Errors:**
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 404 — Content not found
+
+**Implementation:** `app/api/content/[id]/route.ts`
+
+---
+
+### PUT /api/content/[id]
+
+Update a content piece. Only allowed when status is `draft` (or `rejected`, which is also `draft`).
+
+**Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | string | No | Updated title |
+| `body` | string | No | Updated body |
+| `tags` | string[] | No | Updated tags |
+
+**Returns:** Updated `ContentDetail` object
+
+**Auth:** `requireRole("contributor")`
+
+**Errors:**
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 404 — Content not found
+- 409 — Content status does not allow editing (`ContentStatusError`)
+
+**Implementation:** `app/api/content/[id]/route.ts`
+
+---
+
+### DELETE /api/content/[id]
+
+Delete a content piece. Only allowed when status is `draft`.
+
+**Returns:** `{ deleted: true }`
+
+**Auth:** `requireRole("editor")`
+
+**Errors:**
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 404 — Content not found
+- 409 — Content status does not allow deletion (`ContentStatusError`)
+
+**Implementation:** `app/api/content/[id]/route.ts`
+
+---
+
+## Content Library Workflow Routes (Group CL Phase 2)
+
+### POST /api/content/[id]/submit
+
+Submit draft content for review. Transitions `draft` → `submitted`.
+
+**Returns:** `{ id, status: "submitted" }`
+
+**Auth:** `requireRole("contributor")`
+
+**Errors:**
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 409 — Content is not in `draft` status
+
+**Implementation:** `app/api/content/[id]/submit/route.ts`
+
+---
+
+### POST /api/content/[id]/review
+
+Review submitted content. Collapses `submitted` → `in_review` → `approved`/`draft` in a single call.
+
+**Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `action` | string | Yes | `"approve"` or `"reject"` |
+| `comment` | string | Conditional | Required when `action` is `"reject"` |
+
+**Returns:** `{ id, status }` where status is `"approved"` or `"draft"` (on rejection)
+
+**Auth:** `requireRole("editor")`
+
+**Errors:**
+- 400 — Invalid action or missing comment on reject
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 409 — Content is not in `submitted` status
+
+**Implementation:** `app/api/content/[id]/review/route.ts`
+
+---
+
+### POST /api/content/[id]/publish
+
+Publish approved content. Transitions `approved` → `published`.
+
+**Returns:** `{ id, status: "published" }`
+
+**Auth:** `requireRole("admin")`
+
+**Errors:**
+- 401 — Not authenticated
+- 403 — Insufficient role
+- 409 — Content is not in `approved` status
+
+**Implementation:** `app/api/content/[id]/publish/route.ts`
 
 ---
 

@@ -128,7 +128,7 @@ Weaviate is used **purely as a retrieval layer**. The LLM API key is never passe
 ANTHROPIC_API_KEY=    # From console.anthropic.com
 ```
 
-**Current Model:** `claude-haiku-4-5` (update in `lib/claude.ts` and `lib/classifier.ts` to change; see ADR-013)
+**Current Model:** `claude-opus-4-5` (update in `lib/claude.ts`, `lib/classifier.ts`, and `lib/skills.ts` to change; see ADR-013)
 
 ---
 
@@ -323,7 +323,7 @@ The bulk classification endpoint (G2) processes documents sequentially — each 
 - The existing codebase already uses `ReadableStream` for Claude token streaming (`lib/claude.ts`), so the pattern is established
 - No additional dependencies required — SSE works with native `fetch` and `EventSource` in the browser
 - Four event types provide granular feedback: `progress` (starting), `result` (classified), `error` (per-document failure), `done` (summary)
-- Classification originally used `claude-sonnet-4-20250514`; now uses `claude-haiku-4-5` per ADR-013
+- Classification originally used `claude-sonnet-4-20250514`; now uses `claude-opus-4-5` per ADR-013
 
 ---
 
@@ -401,12 +401,12 @@ if (!g.__uploadCleanupTimer) g.__uploadCleanupTimer = setInterval(cleanup, 60_00
 
 ---
 
-## ADR-013: Claude Haiku 4.5 as Default Model (Dev)
+## ADR-013: Claude Model Selection
 
-**Status:** Decided (revisit for production)
+**Status:** Superseded (March 2026 — switched to Opus)
 
 **Context:**
-The project originally used `claude-opus-4-5` for streaming content generation (`lib/claude.ts`) and `claude-sonnet-4-20250514` for document classification (`lib/classifier.ts`). During active development with frequent iteration, the cost and latency of these models was disproportionate to the need.
+The project originally used `claude-opus-4-5` for streaming content generation (`lib/claude.ts`) and `claude-sonnet-4-20250514` for document classification (`lib/classifier.ts`). During active development with frequent iteration, the cost and latency of these models was disproportionate to the need, so all call sites were temporarily switched to `claude-haiku-4-5`.
 
 **Options Considered:**
 
@@ -416,17 +416,22 @@ The project originally used `claude-opus-4-5` for streaming content generation (
 | claude-sonnet-4-20250514 | Medium | Medium | Strong |
 | claude-haiku-4-5 | Lowest | Fastest | Good for structured tasks |
 
-**Decision:** Switch both call sites to `claude-haiku-4-5` for development.
+**Decision:** Switch all call sites to `claude-opus-4-5`.
 
-**Rationale:**
-- Haiku 4.5 is sufficient for development-cycle tasks: testing classification prompts, validating streaming, and exercising the full pipeline
-- Significantly lower cost and faster response times during iterative development
-- Classification (structured JSON output) and connection checks do not require frontier model quality
-- The model identifier is centralized in `lib/claude.ts` and `lib/classifier.ts` — switching back for production is a one-line change per file
+**History:**
+- Initially used Opus/Sonnet for production-quality output
+- Temporarily switched to Haiku 4.5 during development to reduce cost and latency
+- Switched back to Opus for production-quality content generation, classification, and skill evaluation
+
+**Call sites (all using `claude-opus-4-5`):**
+- `lib/claude.ts` — streaming content generation and connection health check
+- `lib/classifier.ts` — document classification
+- `lib/skills.ts` — skill refresh significance evaluation
 
 **Implications:**
-- Before production deployment, evaluate whether Haiku quality is sufficient for end-user content generation and classification accuracy
-- Consider using environment-variable-based model selection (`CLAUDE_MODEL`) to avoid code changes between environments
+- Higher cost per API call — monitor usage if volume increases
+- Better output quality for content generation, classification accuracy, and skill evaluation
+- Consider using environment-variable-based model selection (`CLAUDE_MODEL`) in the future to avoid code changes between environments
 
 ---
 
@@ -711,7 +716,7 @@ resolvePermissions(user):
 | ADR-010 | Test Framework (Vitest) | Feb 2026 | Decided |
 | ADR-011 | pdf-parse v1.x Downgrade | Feb 2026 | Decided |
 | ADR-012 | `globalThis` for In-Memory Session Store (Dev) | Feb 2026 | Decided |
-| ADR-013 | Claude Haiku 4.5 as Default Model (Dev) | Feb 2026 | Decided |
+| ADR-013 | Claude Model Selection | Feb 2026 | Superseded (Opus) |
 | ADR-014 | Weaviate Multi-User Access Control | Feb 2026 | Pending implementation |
 | ADR-015 | MCP Server Architecture (J1-J4) | Mar 2026 | Decided (implemented) |
 | ADR-016 | `force-dynamic` on Data-Fetching Pages | Mar 2026 | Decided (implemented) |

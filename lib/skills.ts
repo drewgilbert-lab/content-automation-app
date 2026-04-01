@@ -420,7 +420,7 @@ export async function evaluateSkillRefreshSignificance(
     ].join("\n");
 
     const response = await client.messages.create({
-      model: "claude-haiku-4-5",
+      model: "claude-opus-4-5",
       max_tokens: 256,
       system: SIGNIFICANCE_SYSTEM_PROMPT,
       messages: [{ role: "user", content: userMessage }],

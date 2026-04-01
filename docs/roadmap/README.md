@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: March 25, 2026
+> Last updated: March 31, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -45,6 +45,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Content Workflow | Pillar Research Orchestration | CW1–CW10 Done, CW11–CW19 Pending, CW20–CW21 Done | [group-content-workflow.md](./group-content-workflow.md) |
 | AA | HG Brand Theming (Dark) | Done | [group-aa.md](./group-aa.md) |
 | CL | Content Library | Done (CL1–CL18) | [group-cl.md](./group-cl.md) |
+| SK | Skills Resource Parity | Planned (SK1–SK15) | [group-skills.md](./group-skills.md) |
 
 [Cross-Cutting Notes: Groups J and K](./cross-cutting.md)
 
@@ -74,6 +75,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | Content Library | Group CL complete (CL1–CL18): schema migration, types, CRUD lib, internal API routes (CRUD + workflow), Content Library UI (list, detail, create/edit pages, navigation), editorial workflow UI (toast notifications, session-based creator/reviewer distinction, status guards), dashboard integration, comprehensive tests (81 tests across 6 files), documentation. Unblocks Group K Phase 3 (K13–K16) and Group J Phase 7 (J26–J28) | See [Group CL](./group-cl.md) |
 | Generate UI | Module 2 — not yet started. Content type selection, generation prompt, context assembly integration, Claude streaming, save to Content Library. Depends on Group CL (Content Library backend) | See [phase-2.md](./phase-2.md) Module 2 |
 | External Content Ingestion | Module 5 — not yet started. Multi-channel content submission via UI, MCP, REST API, bulk import. Depends on Group CL and Module 2 | See [phase-2.md](./phase-2.md) Module 5 |
+| Skills Resource Parity | Group SK — not yet started. SkillResource collection, resource CRUD, resource API routes, resource tree UI, resource editor in skill form, full folder tree import/export, progressive context assembly, structured eval framework, external API + MCP resource tools | See [Group SK](./group-skills.md) |
 | Content Workflow: Pillar Research Orchestration | CW1–CW10 done (types/store/APIs/artifact contract, template layer, orchestration engine). CW11–CW19 pending: branch implementations, aggregation, reliability expansion. CW20–CW21 done: full test matrix and documentation updates | See [Group Content Workflow](./group-content-workflow.md) |
 
 ### Acceptance Criteria

@@ -146,6 +146,30 @@ No cross-references in this phase.
 
 ---
 
+### Collection: `Product`
+
+Stores information about the company's products. All product-specific detail lives in the markdown `content` body; no type-specific fields beyond the standard set. Injected as context when generating product-related content such as positioning, feature comparisons, and solution briefs.
+
+| Property | Type | Description |
+|---|---|---|
+| `name` | `text` | Product name (e.g. "HG Insights Platform") |
+| `content` | `text` | Full markdown content — vectorized for semantic search |
+| `tags` | `text[]` | Optional labels (e.g. ["core", "analytics"]) |
+| `sourceFile` | `text` | Original filename from seed import |
+| `deprecated` | `boolean` | Soft-delete flag; deprecated objects are excluded from generation context |
+| `createdAt` | `date` | Record creation timestamp |
+| `updatedAt` | `date` | Last modification timestamp |
+| `createdBy` | `text` | Email of the user who created this object |
+| `updatedBy` | `text` | Email of the user who last modified this object |
+
+Cross-references:
+- `hasPersonas` → `Persona[]` (personas relevant to this product)
+- `hasSegments` → `Segment[]` (segments this product targets)
+- `hasUseCases` → `UseCase[]` (use cases this product addresses)
+- `hasCompetitors` → `Competitor[]` (competitive alternatives)
+
+---
+
 ### Collection: `Skill`
 
 Stores procedural task instructions that tell the AI how to perform specific types of work. Separated from `BusinessRule` (which stores passive constraints). See [roadmap/README.md](./roadmap/README.md) Group I for full scope and migration plan.

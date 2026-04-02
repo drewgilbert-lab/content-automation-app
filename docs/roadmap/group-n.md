@@ -2,7 +2,7 @@
 
 # Group N — Unified Object Type Support
 
-> Scope: Extend the submission pipeline, MCP tools, bulk upload classifier, and UI to treat `skill` as a first-class object type alongside the 7 knowledge types. Fix missing object type coverage in the Knowledge Base UI. Add MCP duplicate detection so resubmitting an existing document routes through review/merge. Establish a schema-change process so type additions propagate automatically.
+> Scope: Extend the submission pipeline, MCP tools, bulk upload classifier, and UI to treat `skill` as a first-class object type alongside the existing knowledge types. Fix missing object type coverage in the Knowledge Base UI. Add MCP duplicate detection so resubmitting an existing document routes through review/merge. Establish a schema-change process so type additions propagate automatically. Add `product` as a new knowledge object type for storing company product information (N11).
 > Dependencies: Group I (Skills Module), Groups E–F (Review Queue, AI Merge), [Group J](./group-j.md) (MCP Server).
 
 ## Context
@@ -59,3 +59,17 @@ Define and implement a stable mapping contract between internal `Skill` objects 
 When Group Content Workflow introduces or promotes new `contentType` values beyond local orchestration scope (for example: `pillar_research`, `competitor_functionality_brief`, `competitor_persona_messaging_brief`, `market_content_brief`), this group governs propagation across shared touchpoints. Source taxonomy and artifact definitions live in [Group Content Workflow](./group-content-workflow.md); Group N ensures those additions are reflected in global type surfaces (`lib/skill-types.ts`, API filters, MCP schemas, classifier prompts, and UI labels) via the schema-change process from N2. This prevents workflow-local types from drifting from platform-wide enums.
 
 Implementation update (March 2026): N10 Option B was executed for immediate promotion. Canonical values were propagated to `lib/skill-types.ts`, context assembly labels, internal/external skills API validation, MCP write-tool schemas for skill submissions, `/api/v1/skills/types`, and skills UI label/filter surfaces. Regression tests were added for type validation and metadata contracts.
+
+**N11 — Add "Product" Knowledge Object Type**
+Add `product` as the 8th knowledge object type. The `Product` collection stores information about the company's products; all product-specific detail lives in the markdown `content` body with no type-specific fields beyond the standard set. The collection has cross-references to `Persona[]`, `Segment[]`, `UseCase[]`, and `Competitor[]`. Schema defined in `docs/KNOWLEDGE_BASE.md`. Per the N2 schema-change checklist, the following locations must be updated:
+
+- `lib/knowledge-types.ts` — add `"product"` to `KnowledgeType` union and `VALID_TYPES`; add label `"Product"` in `getTypeLabel()`
+- `lib/knowledge.ts` — add `Product` to `COLLECTIONS`, `TYPE_TO_COLLECTION`, `COLLECTION_TO_TYPE`; add cross-reference config to `CROSS_REF_CONFIG` for `hasPersonas`, `hasSegments`, `hasUseCases`, `hasCompetitors`
+- `lib/weaviate.ts` — add `"product"` to the `KnowledgeObject.type` union
+- `lib/classifier.ts` — add `product` type description to the classification prompt: *"Product — information about the company's products, including features, capabilities, positioning, and value propositions."*
+- `mcp-server/src/tools/create-object.ts` — add `"product"` to `VALID_TYPES`
+- `mcp-server/src/schema.ts` — add `Product` collection metadata
+- `app/api/bulk-upload/approve/route.ts` — handle `product` type in field mapping (standard fields only, no type-specific overrides needed)
+- `app/knowledge/components/type-badge.tsx` — add color for `product` (or confirm fallback from N1 covers it)
+- `app/queue/components/submission-review.tsx` — confirm no type-specific rendering needed (standard fields only)
+- Weaviate schema migration — create the `Product` collection with cross-references in the Weaviate instance

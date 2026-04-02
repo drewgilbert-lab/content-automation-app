@@ -1,6 +1,34 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: March 25, 2026
+> Newest entries first. Last updated: April 2, 2026
+
+---
+
+## 2026-04-02
+
+### Group N — Roadmap Addition (N11: Product Object Type)
+
+Added **N11 — Add "Product" Knowledge Object Type** to the Unified Object Type Support roadmap. Products are a new knowledge base type for storing information about the company's products.
+
+- **N11 spec**: Adds `product` as the 8th knowledge object type. Standard fields only (name, content, tags); all product detail lives in the markdown body. Cross-references to `Persona[]`, `Segment[]`, `UseCase[]`, and `Competitor[]`. The N2 schema-change checklist enumerates all code locations requiring updates.
+- **Weaviate schema**: `Product` collection defined in `docs/KNOWLEDGE_BASE.md` between `CustomerEvidence` and `Skill`.
+- **Group N scope**: Updated to include the Product type addition.
+
+**Documentation**: `docs/KNOWLEDGE_BASE.md` (Product collection schema added), `docs/roadmap/group-n.md` (N11 added, scope updated), `docs/roadmap/README.md` (Remaining Work summary updated), `docs/CHANGELOG.md` (this entry).
+
+---
+
+## 2026-04-02
+
+### Group O — Roadmap Addition (O4)
+
+Added **O4 — Inline Content Editing in Review** to the Review Queue Enhancements roadmap. Reviewers will be able to edit all proposed content fields (name, subType, ranges, content body, tags) directly on the review screen before accepting a submission, rather than being limited to approve/reject/defer.
+
+- **O4 spec**: Converts the read-only "Proposed Content" card in `submission-review.tsx` into an editable form for pending/deferred submissions. Uses the `proposedContentOverrides` API pattern from O2, extended to all fields. Includes dirty-flag tracking and modified-field indicators.
+- **O2 updated**: Cross-reference added noting O4 generalizes the `proposedContentOverrides` mechanism.
+- **Group O scope**: Updated to include inline content editing. Dependencies expanded to include Group F.
+
+**Documentation**: `docs/roadmap/group-o.md` (O4 added, O2 cross-ref, scope updated), `docs/roadmap/README.md` (Remaining Work summary updated), `docs/CHANGELOG.md` (this entry).
 
 ---
 

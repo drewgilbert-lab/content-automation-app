@@ -1,6 +1,6 @@
 # Content Engine — Roadmap
 
-> Last updated: March 31, 2026
+> Last updated: April 2, 2026
 
 This is the single source of truth for future plans, phased delivery, deferred scope, and open questions.
 
@@ -58,8 +58,8 @@ Each step below is independently shippable. Steps within a group can be built in
 | Module | What's Left | Requirements |
 |---|---|---|
 | Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) done; I7 (Claude Skill Package Compatibility) done | See [Group I](./group-i.md) |
-| Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process, skill-type metadata exposure, and internal skill ⇄ Claude bundle mapping | See [Group N](./group-n.md) |
-| Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, shared TagEditor | See [Group O](./group-o.md) |
+| Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process, skill-type metadata exposure, internal skill ⇄ Claude bundle mapping, and new `product` knowledge object type (N11) | See [Group N](./group-n.md) |
+| Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, inline content editing in review, shared TagEditor | See [Group O](./group-o.md) |
 | Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See [Group P](./group-p.md) |
 | Weaviate Query Agent | Group Q — not yet started. Query Agent retrieval + Claude synthesis, Ask UI, collection registry | See [Group Q](./group-q.md) |
 | Content Narratives | Group R — not yet started. Strategic narrative layer between knowledge and content generation, AI-assisted creation, review workflow, context assembly integration, staleness detection | See [Group R](./group-r.md) |

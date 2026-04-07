@@ -2,7 +2,7 @@
 
 # Group G — Bulk Upload with AI Classification
 
-> Scope: Upload multiple documents at once, classify each into the correct knowledge object type using AI, review classifications, then route to the admin review queue.
+> Scope: Upload multiple documents at once, classify each into the correct knowledge object type using AI, review classifications, then route to the admin review queue. Phase 2 adds per-file upload resilience and comprehensive error reporting with actionable guidance.
 > Dependencies: Groups A–F (existing submission/review queue infrastructure). Shares document parser with [Group H](./group-h.md).
 
 **G1 — Document Parser** — **Done**
@@ -21,6 +21,28 @@ Build `/bulk-upload` page. Step 1: drag-and-drop file upload zone with file list
 Build `POST /api/bulk-upload/approve` route. For each approved document, creates a `Submission` via the existing `createSubmission()` function with `submissionType: "new"`. The `proposedContent` JSON includes `name`, `content`, `tags`, and `relationships` (with resolved target IDs). Approved documents enter the existing admin review queue at `/queue`. Returns an array of created submission IDs with per-document error reporting for partial failures.
 
 **Bug fixes applied (February 26, 2026):** Critical fixes to make the pipeline functional end-to-end: `pdf-parse` downgraded from v2.x to v1.x (v2 crashed Node.js via `DOMMatrix`), lazy PDF import to isolate parser failures, error surfacing in upload wizard, step-back to Step 1 on classification failure, try/catch in reclassify route, missing type labels added, `sourceFile` provenance added to approve route, and `globalThis` session store for Turbopack dev mode stability. See CHANGELOG.md for full details.
+
+## Phase 2 — Upload Resilience and Error Reporting
+
+> Phase 1 (G1–G5) is complete. Phase 2 addresses per-file upload isolation and comprehensive error reporting gaps identified in production use.
+
+**G6 — Per-File Upload Isolation**
+Refactor the parse flow in `app/bulk-upload/components/bulk-upload-wizard.tsx` to upload files individually (or in small chunks of 3–5) rather than sending all files in a single `FormData` request. A single file failure does not prevent other files from being parsed. Add a `POST /api/bulk-upload/parse-single` endpoint accepting one file and returning one `ParsedDocument` plus errors; the existing batch endpoint remains for backward compatibility. As each file successfully parses, add it to the upload session via a new `addDocumentToSession()` function in `lib/upload-session.ts` so the session builds incrementally. If a file fails to parse (network error, timeout, server error), the UI shows a per-file retry button without re-uploading the entire batch. Show a per-file upload progress indicator in Step 1 with individual status (uploading, parsed, failed) so the user sees files completing independently. Enforce the existing 50-file and 100 MB batch limits client-side before starting uploads; the server-side 10 MB per-file limit still applies per request.
+
+**G7 — Comprehensive Error Reporting and Recovery**
+Surface all per-file errors at every stage of the bulk upload pipeline with actionable remediation guidance. Specific improvements:
+
+- **Parse error display**: Render per-document `parseErrors` from the parse API response in the wizard UI. Show a warning banner per file with the specific error message (e.g., "PDF has no extractable text", "File exceeds 10 MB limit", "Unsupported file type"). Currently `parseErrors` is stored in component state (`parsedDocs`) but no JSX renders it.
+- **Failed file visibility in review**: Documents that failed classification should remain visible in the Step 3 review list as error cards instead of vanishing. Show the file name, error reason, and actions: "Retry Classification", "Edit Content Manually", or "Remove from Batch". Currently `reviewDocs` in `bulk-upload-wizard.tsx` filters to only `classifications.has(i)`, hiding failures.
+- **Actionable error guidance**: Map each error type to a user-facing remediation hint:
+  - "PDF has no extractable text" → "This PDF may be scanned/image-based. Convert to text or use OCR before uploading."
+  - "File exceeds 10 MB limit" → "Reduce file size or split into smaller documents."
+  - "Unsupported file type" → "Supported formats: .md, .pdf, .docx, .txt"
+  - "Classification failed" → "The AI could not determine the document type. Edit the type manually or retry."
+  - Submission creation failure → surface the specific Weaviate/validation error.
+- **Approve error detail**: Replace the current "N errors" count shown after approval with a per-document error list showing file name, error message, and remediation. Currently `bulk-upload-wizard.tsx` only displays `errors.length`.
+- **Reclassify error feedback**: Surface reclassify failures as an inline error or toast on the affected document review card. Currently the reclassify handler returns silently on `!res.ok`.
+- **Error summary panel**: Add a collapsible "Issues" panel at the top of Step 3 (review) that aggregates all errors across parsing and classification, grouped by error type, with counts and links to the affected documents.
 
 **Risks and Gaps:**
 

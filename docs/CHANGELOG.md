@@ -6,6 +6,20 @@
 
 ## 2026-04-02
 
+### Group G Phase 2 — Roadmap Addition (G6–G7)
+
+Added **G6 — Per-File Upload Isolation** and **G7 — Comprehensive Error Reporting and Recovery** to the Bulk Upload roadmap as a Phase 2 section. These address upload resilience and error visibility gaps in the existing bulk upload pipeline.
+
+- **G6 spec**: Refactors the parse flow to upload files individually rather than as a single batch request. Adds `POST /api/bulk-upload/parse-single` endpoint, incremental session building via `addDocumentToSession()`, per-file retry on failure, and individual upload progress indicators.
+- **G7 spec**: Surfaces per-file errors at every pipeline stage with actionable remediation hints. Renders parse errors in the wizard UI, keeps failed files visible as error cards in the review step, replaces the approve error count with per-document detail, adds reclassify error feedback, and includes a collapsible error summary panel.
+- **Group G status**: Updated from "Done" to "G1–G5 Done; G6–G7 Planned". Scope expanded to include per-file resilience and error reporting.
+
+**Documentation**: `docs/roadmap/group-g.md` (Phase 2 section with G6/G7 added, scope updated), `docs/roadmap/README.md` (Group Status and Remaining Work updated), `docs/CHANGELOG.md` (this entry).
+
+---
+
+## 2026-04-02
+
 ### Group N — Roadmap Addition (N11: Product Object Type)
 
 Added **N11 — Add "Product" Knowledge Object Type** to the Unified Object Type Support roadmap. Products are a new knowledge base type for storing information about the company's products.

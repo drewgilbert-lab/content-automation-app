@@ -23,7 +23,7 @@ Each step below is independently shippable. Steps within a group can be built in
 | D | Health Dashboard | Done | [group-d.md](./group-d.md) |
 | E | Review Queue | Done | [group-e.md](./group-e.md) |
 | F | AI Merge Workflow | Done | [group-f.md](./group-f.md) |
-| G | Bulk Upload with AI Classification | Done | [group-g.md](./group-g.md) |
+| G | Bulk Upload with AI Classification | G1–G5 Done; G6–G7 Planned | [group-g.md](./group-g.md) |
 | H | Enhanced Change Review Workflows | Done | [group-h.md](./group-h.md) |
 | I | Skills Module | Done | [group-i.md](./group-i.md) |
 | J | MCP Server | J1–J12 Done, J13–J28 Pending | [group-j.md](./group-j.md) |
@@ -59,6 +59,7 @@ Each step below is independently shippable. Steps within a group can be built in
 |---|---|---|
 | Knowledge Base UI | Done — all groups (A–I) complete; I6 (Skill Testing Interface) done; I7 (Claude Skill Package Compatibility) done | See [Group I](./group-i.md) |
 | Unified Object Type Support | Group N — not yet started. Skill type in submissions/MCP, missing UI types, MCP duplicate detection, schema-change process, skill-type metadata exposure, internal skill ⇄ Claude bundle mapping, and new `product` knowledge object type (N11) | See [Group N](./group-n.md) |
+| Bulk Upload Resilience | Group G Phase 2 — not yet started. Per-file upload isolation with retry (G6), comprehensive error reporting with actionable guidance (G7) | See [Group G](./group-g.md) |
 | Review Queue Enhancements | Group O — not yet started. Bulk approve, editable tags, inline content editing in review, shared TagEditor | See [Group O](./group-o.md) |
 | Content Cleaning Rules | Group P — not yet started. New admin module for ingestion-time content cleaning | See [Group P](./group-p.md) |
 | Weaviate Query Agent | Group Q — not yet started. Query Agent retrieval + Claude synthesis, Ask UI, collection registry | See [Group Q](./group-q.md) |

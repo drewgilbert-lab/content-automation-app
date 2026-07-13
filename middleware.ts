@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 
 const PUBLIC_PREFIXES = ["/auth", "/api/auth", "/api/v1"];
 
+/**
+ * Multipart parse routes are excluded from the matcher so Edge middleware
+ * does not buffer upload bodies (avoids Failed to fetch / truncated FormData).
+ * Auth is enforced in each route via requireRole().
+ */
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
@@ -24,5 +29,7 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api/bulk-upload/parse$|api/bulk-upload/parse-single$|api/knowledge/.+/add-document/parse$).*)",
+  ],
 };

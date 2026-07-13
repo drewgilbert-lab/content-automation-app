@@ -111,13 +111,13 @@ describe("parseDocument", () => {
   });
 
   it("enforces per-file size limit", async () => {
-    const bigContent = "x".repeat(11 * 1024 * 1024);
+    const bigContent = "x".repeat(5 * 1024 * 1024);
     const file = makeFile("big.txt", bigContent, "text/plain");
     const result = await parseDocument(file);
 
     expect(result.content).toBe("");
     expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.errors[0]).toContain("exceeds the 10 MB size limit");
+    expect(result.errors[0]).toContain("exceeds the 4 MB size limit");
   });
 
   it("handles empty files", async () => {

@@ -94,7 +94,7 @@ async function writeToRedis(
 // --- Public API (signatures match the old module, but return Promises) ---
 
 export async function createSession(
-  documents: ParsedDocument[]
+  documents: ParsedDocument[] = []
 ): Promise<UploadSession> {
   const now = new Date();
   const session: UploadSession = {
@@ -117,6 +117,35 @@ export async function createSession(
   }
 
   return session;
+}
+
+/**
+ * Appends a parsed document to an existing session.
+ * Returns the new document index, or null if the session is missing/expired.
+ */
+export async function addDocumentToSession(
+  sessionId: string,
+  document: ParsedDocument
+): Promise<{ index: number } | null> {
+  const r = getRedis();
+  if (r) {
+    const session = await getSession(sessionId);
+    if (!session) return null;
+    const index = session.documents.length;
+    session.documents.push(document);
+    await writeToRedis(r, session, true);
+    return { index };
+  }
+
+  const session = fallbackStore.get(sessionId);
+  if (!session) return null;
+  if (session.expiresAt.getTime() <= Date.now()) {
+    fallbackStore.delete(sessionId);
+    return null;
+  }
+  const index = session.documents.length;
+  session.documents.push(document);
+  return { index };
 }
 
 export async function getSession(

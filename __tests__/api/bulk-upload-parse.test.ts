@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
+vi.mock("@/lib/auth-server", () => ({
+  requireRole: vi.fn(),
+}));
+
 vi.mock("@/lib/document-parser", () => ({
   parseDocuments: vi.fn(),
 }));
@@ -12,11 +16,13 @@ vi.mock("@/lib/upload-session", () => ({
 import { POST } from "@/app/api/bulk-upload/parse/route";
 import { parseDocuments } from "@/lib/document-parser";
 import { createSession, updateSessionStatus } from "@/lib/upload-session";
+import { requireRole } from "@/lib/auth-server";
 import { NextRequest } from "next/server";
 
 const mockedParseDocuments = vi.mocked(parseDocuments);
 const mockedCreateSession = vi.mocked(createSession);
 const mockedUpdateSessionStatus = vi.mocked(updateSessionStatus);
+const mockedRequireRole = vi.mocked(requireRole);
 
 function makeFormDataRequest(files: File[]): NextRequest {
   const formData = new FormData();
@@ -29,6 +35,18 @@ function makeFormDataRequest(files: File[]): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockedRequireRole.mockResolvedValue({
+    id: "user-1",
+    email: "test@example.com",
+    name: "Test",
+    avatarUrl: "",
+    role: "contributor",
+    permissionSetId: "",
+    active: true,
+    lastLoginAt: "",
+    createdAt: "",
+    updatedAt: "",
+  });
 });
 
 describe("POST /api/bulk-upload/parse", () => {

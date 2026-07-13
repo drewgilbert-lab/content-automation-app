@@ -1,6 +1,23 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: April 2, 2026
+> Newest entries first. Last updated: July 13, 2026
+
+---
+
+## 2026-07-13
+
+### Group G Phase 2 — Per-File Upload Isolation (G6)
+
+Implemented per-file bulk upload isolation so a single file failure no longer blocks the entire batch.
+
+- **New flow**: `POST /api/bulk-upload/session` creates an empty session → each file uploads via `POST /api/bulk-upload/parse-single` (concurrency 3) → session builds incrementally via `addDocumentToSession()`.
+- **Wizard UX**: Per-file status (pending, uploading, parsed, failed) in Step 1; retry on failed files; continue with successfully parsed files on partial failure.
+- **Size limit**: `DEFAULT_LIMITS.maxFileSizeMB` lowered from 10 to 4 MB to stay under Vercel's 4.5 MB function body limit.
+- **Middleware**: Multipart parse routes (`api/bulk-upload/parse`, `api/bulk-upload/parse-single`, `api/knowledge/.+/add-document/parse`) excluded from Edge body buffering; auth still via `requireRole` on routes.
+- **Next.js config**: `experimental.proxyClientMaxBodySize: "5mb"`.
+- **Backward compatibility**: Legacy batch `POST /api/bulk-upload/parse` retained.
+
+**Documentation**: `docs/roadmap/group-g.md` (G6 marked done), `docs/roadmap/README.md` (Group G status updated), `docs/API.md` (session + parse-single routes, 4 MB limit), `docs/user-guides/bulk-upload.md` (per-file upload flow), `.cursor/rules/start.mdc` (Group G status sync).
 
 ---
 

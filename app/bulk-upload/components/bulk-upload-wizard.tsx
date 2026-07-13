@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import type { ClassificationResult } from "@/lib/classification-types";
 import type { SerializedSessionDocument } from "@/lib/upload-session-types";
+import { DEFAULT_LIMITS } from "@/lib/document-parser-types";
 import { FileDropZone } from "./file-drop-zone";
 import { ClassificationProgress } from "./classification-progress";
 import { DocumentReviewCard } from "./document-review-card";
@@ -15,6 +16,18 @@ interface ParsedDocMeta {
   wordCount: number;
   parseErrors: string[];
 }
+
+type FileUploadStatus = "pending" | "uploading" | "parsed" | "failed";
+
+interface FileUploadState {
+  status: FileUploadStatus;
+  error?: string;
+  sessionIndex?: number;
+}
+
+const UPLOAD_CONCURRENCY = 3;
+const MAX_FILE_BYTES = DEFAULT_LIMITS.maxFileSizeMB * 1024 * 1024;
+const MAX_BATCH_BYTES = DEFAULT_LIMITS.maxBatchSizeMB * 1024 * 1024;
 
 function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -28,10 +41,44 @@ function getFormat(filename: string): string {
   return map[ext] ?? ext;
 }
 
+function statusLabel(status: FileUploadStatus): string {
+  switch (status) {
+    case "pending":
+      return "Pending";
+    case "uploading":
+      return "Uploading…";
+    case "parsed":
+      return "Parsed";
+    case "failed":
+      return "Failed";
+  }
+}
+
+async function runWithConcurrency<T>(
+  items: T[],
+  concurrency: number,
+  worker: (item: T) => Promise<void>
+): Promise<void> {
+  let next = 0;
+  async function runNext(): Promise<void> {
+    while (next < items.length) {
+      const current = next++;
+      await worker(items[current]);
+    }
+  }
+  const runners = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    () => runNext()
+  );
+  await Promise.all(runners);
+}
+
 export function BulkUploadWizard() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [files, setFiles] = useState<File[]>([]);
+  const [fileStates, setFileStates] = useState<Map<number, FileUploadState>>(new Map());
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const [parsedDocs, setParsedDocs] = useState<ParsedDocMeta[]>([]);
   const [parseErrors, setParseErrors] = useState<{ filename: string; error: string }[]>([]);
   const [sessionDocuments, setSessionDocuments] = useState<SerializedSessionDocument[]>([]);
@@ -53,66 +100,90 @@ export function BulkUploadWizard() {
     errors: { documentIndex: number; error: string }[];
   } | null>(null);
 
+  const updateFileState = useCallback((index: number, patch: Partial<FileUploadState>) => {
+    setFileStates((prev) => {
+      const next = new Map(prev);
+      const current = next.get(index) ?? { status: "pending" as const };
+      next.set(index, { ...current, ...patch });
+      return next;
+    });
+  }, []);
+
   const handleFilesSelected = useCallback((newFiles: File[]) => {
-    setFiles((prev) => [...prev, ...newFiles]);
+    setFiles((prev) => {
+      const combined = [...prev, ...newFiles];
+      return combined.slice(0, DEFAULT_LIMITS.maxBatchCount);
+    });
+    setFileStates((prev) => {
+      const next = new Map(prev);
+      // New files appended after current length will start as pending once state updates;
+      // clear states for a fresh selection pass by extending pending for new indexes in effect below.
+      return next;
+    });
+    setUploadError(null);
   }, []);
 
   const removeFile = useCallback((index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFileStates((prev) => {
+      const entries = Array.from(prev.entries())
+        .filter(([i]) => i !== index)
+        .map(([i, state]) => [i > index ? i - 1 : i, state] as const);
+      return new Map(entries);
+    });
   }, []);
 
-  const handleUpload = useCallback(async () => {
-    if (files.length === 0 || uploading) return;
-    setUploading(true);
-    setUploadError(null);
-    try {
-      const formData = new FormData();
-      files.forEach((f) => formData.append("files", f));
-      const res = await fetch("/api/bulk-upload/parse", {
-        method: "POST",
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setUploadError(data.error ?? "Upload failed");
-        return;
+  const uploadOneFile = useCallback(
+    async (fileIndex: number, file: File, sid: string) => {
+      updateFileState(fileIndex, { status: "uploading", error: undefined });
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("sessionId", sid);
+        const res = await fetch("/api/bulk-upload/parse-single", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          updateFileState(fileIndex, {
+            status: "failed",
+            error: data.error ?? "Upload failed",
+          });
+          return;
+        }
+        updateFileState(fileIndex, {
+          status: "parsed",
+          sessionIndex: data.index as number,
+          error: undefined,
+        });
+        setParsedDocs((prev) => {
+          const entry: ParsedDocMeta = {
+            index: data.index as number,
+            filename: data.filename as string,
+            format: data.format as string,
+            wordCount: data.wordCount as number,
+            parseErrors: (data.parseErrors as string[]) ?? [],
+          };
+          const without = prev.filter((d) => d.index !== entry.index);
+          return [...without, entry].sort((a, b) => a.index - b.index);
+        });
+        const errs = (data.parseErrors as string[]) ?? [];
+        if (errs.length > 0) {
+          setParseErrors((prev) => [
+            ...prev.filter((e) => e.filename !== data.filename),
+            ...errs.map((error) => ({ filename: data.filename as string, error })),
+          ]);
+        }
+      } catch (err) {
+        updateFileState(fileIndex, {
+          status: "failed",
+          error: err instanceof Error ? err.message : "Upload failed",
+        });
       }
-      setSessionId(data.sessionId);
-      setParsedDocs(
-        data.documents.map((d: ParsedDocMeta) => ({
-          index: d.index,
-          filename: d.filename,
-          format: d.format,
-          wordCount: d.wordCount,
-          parseErrors: d.parseErrors ?? [],
-        }))
-      );
-      setParseErrors(data.errors ?? []);
-      const sessionRes = await fetch(`/api/bulk-upload/session/${data.sessionId}`);
-      if (!sessionRes.ok) {
-        setUploadError("Failed to load session");
-        return;
-      }
-      const sessionData = await sessionRes.json();
-      setSessionDocuments(sessionData.documents ?? []);
-      setStep(2);
-      setClassifications(new Map());
-      setUserEdits(new Map());
-      setRemovedIndexes(new Set());
-      setApproveResult(null);
-      const docs = sessionData.documents as SerializedSessionDocument[];
-      if (docs.length > 0) {
-        runClassification(data.sessionId, docs);
-      } else {
-        setClassifyProgress({ current: 0, total: 0, results: new Map() });
-        setStep(3);
-      }
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-    }
-  }, [files, uploading]);
+    },
+    [updateFileState]
+  );
 
   const runClassification = useCallback(
     async (sid: string, docs: SerializedSessionDocument[]) => {
@@ -190,17 +261,163 @@ export function BulkUploadWizard() {
               }));
               break;
             }
-            case "done":
+            case "done": {
               const allIndexes = Array.from(newClassifications.keys());
               setSelectedIndexes(new Set(allIndexes));
               setStep(3);
               break;
+            }
           }
         }
       }
     },
     []
   );
+
+  const advanceToClassification = useCallback(
+    async (sid: string) => {
+      const sessionRes = await fetch(`/api/bulk-upload/session/${sid}`);
+      if (!sessionRes.ok) {
+        setUploadError("Failed to load session");
+        return;
+      }
+      const sessionData = await sessionRes.json();
+      setSessionDocuments(sessionData.documents ?? []);
+      setStep(2);
+      setClassifications(new Map());
+      setUserEdits(new Map());
+      setRemovedIndexes(new Set());
+      setApproveResult(null);
+      const docs = sessionData.documents as SerializedSessionDocument[];
+      setParsedDocs(
+        docs.map((d) => ({
+          index: d.index,
+          filename: d.filename,
+          format: d.format,
+          wordCount: d.wordCount,
+          parseErrors: d.parseErrors ?? [],
+        }))
+      );
+      if (docs.length > 0) {
+        await runClassification(sid, docs);
+      } else {
+        setClassifyProgress({ current: 0, total: 0, results: new Map() });
+        setStep(3);
+      }
+    },
+    [runClassification]
+  );
+
+  const handleUpload = useCallback(async () => {
+    if (files.length === 0 || uploading) return;
+
+    if (files.length > DEFAULT_LIMITS.maxBatchCount) {
+      setUploadError(
+        `Batch contains ${files.length} files, exceeding the limit of ${DEFAULT_LIMITS.maxBatchCount}`
+      );
+      return;
+    }
+    const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+    if (totalBytes > MAX_BATCH_BYTES) {
+      setUploadError(
+        `Batch total size ${(totalBytes / 1024 / 1024).toFixed(1)} MB exceeds the limit of ${DEFAULT_LIMITS.maxBatchSizeMB} MB`
+      );
+      return;
+    }
+
+    const initialStates = new Map<number, FileUploadState>();
+    const oversizeIndexes: number[] = [];
+    files.forEach((file, i) => {
+      if (file.size > MAX_FILE_BYTES) {
+        oversizeIndexes.push(i);
+        initialStates.set(i, {
+          status: "failed",
+          error: `File exceeds the ${DEFAULT_LIMITS.maxFileSizeMB} MB size limit (${(file.size / 1024 / 1024).toFixed(1)} MB)`,
+        });
+      } else {
+        initialStates.set(i, { status: "pending" });
+      }
+    });
+    setFileStates(initialStates);
+    setParsedDocs([]);
+    setParseErrors([]);
+    setUploadError(null);
+
+    const toUpload = files
+      .map((file, i) => ({ file, i }))
+      .filter(({ i }) => !oversizeIndexes.includes(i));
+
+    if (toUpload.length === 0) {
+      setUploadError("No files within the size limit to upload");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const sessionRes = await fetch("/api/bulk-upload/session", { method: "POST" });
+      const sessionData = await sessionRes.json();
+      if (!sessionRes.ok) {
+        setUploadError(sessionData.error ?? "Failed to create upload session");
+        return;
+      }
+      const sid = sessionData.sessionId as string;
+      sessionIdRef.current = sid;
+      setSessionId(sid);
+
+      await runWithConcurrency(toUpload, UPLOAD_CONCURRENCY, async ({ file, i }) => {
+        await uploadOneFile(i, file, sid);
+      });
+
+      const sessionCheck = await fetch(`/api/bulk-upload/session/${sid}`);
+      if (!sessionCheck.ok) {
+        setUploadError("Failed to load session after upload");
+        return;
+      }
+      const checkData = await sessionCheck.json();
+      const docs = (checkData.documents ?? []) as SerializedSessionDocument[];
+      if (docs.length === 0) {
+        setUploadError("No documents were parsed successfully. Fix failed files and retry.");
+        return;
+      }
+
+      // Auto-advance when every attempted upload landed in the session.
+      // Partial success stays on Step 1 so the user can retry or Continue.
+      if (docs.length === toUpload.length) {
+        await advanceToClassification(sid);
+      }
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }, [files, uploading, uploadOneFile, advanceToClassification]);
+
+  const handleRetryFile = useCallback(
+    async (fileIndex: number) => {
+      const file = files[fileIndex];
+      const sid = sessionIdRef.current ?? sessionId;
+      if (!file || !sid || uploading) return;
+      setUploading(true);
+      setUploadError(null);
+      try {
+        await uploadOneFile(fileIndex, file, sid);
+      } finally {
+        setUploading(false);
+      }
+    },
+    [files, sessionId, uploading, uploadOneFile]
+  );
+
+  const handleContinue = useCallback(async () => {
+    const sid = sessionIdRef.current ?? sessionId;
+    if (!sid || uploading) return;
+    setUploadError(null);
+    try {
+      await advanceToClassification(sid);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : "Failed to continue");
+    }
+  }, [sessionId, uploading, advanceToClassification]);
 
   const getEffectiveClassification = useCallback(
     (index: number): ClassificationResult | null => {
@@ -342,6 +559,17 @@ export function BulkUploadWizard() {
     reviewDocs.length > 0 &&
     reviewDocs.every((d) => selectedIndexes.has(d.index));
 
+  const parsedCount = Array.from(fileStates.values()).filter((s) => s.status === "parsed").length;
+  const failedCount = Array.from(fileStates.values()).filter((s) => s.status === "failed").length;
+  const stillUploading = Array.from(fileStates.values()).some((s) => s.status === "uploading");
+  const canContinue =
+    step === 1 &&
+    !!sessionId &&
+    parsedCount > 0 &&
+    !uploading &&
+    !stillUploading &&
+    failedCount > 0;
+
   return (
     <div className="space-y-8">
       <div className="flex items-center gap-4">
@@ -379,39 +607,101 @@ export function BulkUploadWizard() {
       {step === 1 && (
         <div className="space-y-6">
           <FileDropZone onFilesSelected={handleFilesSelected} disabled={uploading} />
+          <p className="text-xs text-gray-500">
+            Limits: {DEFAULT_LIMITS.maxFileSizeMB} MB per file, {DEFAULT_LIMITS.maxBatchSizeMB} MB
+            total, {DEFAULT_LIMITS.maxBatchCount} files. Files upload individually (up to{" "}
+            {UPLOAD_CONCURRENCY} at a time).
+          </p>
           {files.length > 0 && (
             <ul className="space-y-2">
-              {files.map((file, i) => (
-                <li
-                  key={`${file.name}-${i}`}
-                  className="flex items-center justify-between rounded-lg border border-gray-800 bg-gray-900 px-4 py-2"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-white">{file.name}</span>
-                    <span className="text-xs text-gray-400">
-                      {formatFileSize(file.size)} · {getFormat(file.name)}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeFile(i)}
-                    disabled={uploading}
-                    className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50"
+              {files.map((file, i) => {
+                const state = fileStates.get(i);
+                const status = state?.status ?? "pending";
+                return (
+                  <li
+                    key={`${file.name}-${i}`}
+                    className="flex flex-col gap-1 rounded-lg border border-gray-800 bg-gray-900 px-4 py-2"
                   >
-                    Remove
-                  </button>
-                </li>
-              ))}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+                        <span className="truncate text-sm text-white">{file.name}</span>
+                        <span className="text-xs text-gray-400">
+                          {formatFileSize(file.size)} · {getFormat(file.name)}
+                        </span>
+                        <span
+                          className={`text-xs ${
+                            status === "parsed"
+                              ? "text-green-400"
+                              : status === "failed"
+                                ? "text-red-400"
+                                : status === "uploading"
+                                  ? "text-blue-400"
+                                  : "text-gray-500"
+                          }`}
+                        >
+                          {statusLabel(status)}
+                        </span>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {status === "failed" && sessionId && (
+                          <button
+                            type="button"
+                            onClick={() => handleRetryFile(i)}
+                            disabled={uploading}
+                            className="text-sm text-blue-400 hover:text-blue-300 disabled:opacity-50"
+                          >
+                            Retry
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeFile(i)}
+                          disabled={uploading}
+                          className="text-sm text-red-400 hover:text-red-300 disabled:opacity-50"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                    {state?.error && (
+                      <p className="text-xs text-red-300">{state.error}</p>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
-          <button
-            type="button"
-            onClick={handleUpload}
-            disabled={files.length === 0 || uploading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            {uploading ? "Uploading…" : "Upload & Parse"}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={handleUpload}
+              disabled={files.length === 0 || uploading}
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+            >
+              {uploading ? "Uploading…" : "Upload & Parse"}
+            </button>
+            {canContinue && (
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+              >
+                Continue with {parsedCount} parsed
+              </button>
+            )}
+          </div>
+          {parseErrors.length > 0 && step === 1 && (
+            <div className="rounded-lg border border-amber-800 bg-amber-950/20 px-4 py-3">
+              <p className="mb-1 text-sm font-medium text-amber-200">Parse warnings</p>
+              <ul className="list-inside list-disc space-y-1 text-xs text-amber-100/80">
+                {parseErrors.map((e, idx) => (
+                  <li key={`${e.filename}-${idx}`}>
+                    {e.filename}: {e.error}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
 

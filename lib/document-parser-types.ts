@@ -20,7 +20,8 @@ export interface ParseResult {
 }
 
 export const DEFAULT_LIMITS = {
-  maxFileSizeMB: 10,
+  /** Kept at 4 MB to stay under Vercel’s 4.5 MB function request body limit. */
+  maxFileSizeMB: 4,
   maxBatchSizeMB: 100,
   maxBatchCount: 50,
 } as const;

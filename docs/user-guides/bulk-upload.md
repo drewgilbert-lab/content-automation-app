@@ -1,6 +1,6 @@
 # Using Bulk Upload
 
-> Last updated: February 2026
+> Last updated: July 13, 2026
 
 ---
 
@@ -20,10 +20,20 @@ Navigate to `/bulk-upload` from the home page, or click the **Bulk Upload** card
 
 - Drag and drop files into the upload zone, or click to browse
 - Accepted formats: Markdown (.md), PDF (.pdf), DOCX (.docx), Plain Text (.txt)
-- Limits: 10 MB per file, 100 MB total, 50 files per batch
+- Limits: 4 MB per file, 100 MB total, 50 files per batch
 - You can remove individual files from the list before uploading
 - Click **Upload & Parse** to begin
-- If parsing fails, an error message is displayed on-screen with details
+
+### Per-File Upload Progress
+
+Files upload individually (up to 3 at a time) rather than in one batch request. Each file shows its own status:
+
+- **Pending** — waiting to upload
+- **Uploading** — currently being parsed
+- **Parsed** — successfully extracted
+- **Failed** — upload or parse error
+
+If a file fails, click **Retry** on that file to try again without re-uploading the rest of the batch. When some files succeed and others fail, you can click **Continue** to proceed to classification with only the successfully parsed files.
 
 ---
 
@@ -78,6 +88,7 @@ An admin reviews and accepts/rejects each submission through the standard review
 - Review low-confidence items carefully — the AI may be uncertain about the best object type
 - Use the **Reclassify** action after editing content if you want the AI to reconsider
 - You can approve some documents and remove others — partial approval is supported
+- If one file fails to upload, retry just that file — you do not need to restart the entire batch
 
 ---
 
@@ -85,13 +96,15 @@ An admin reviews and accepts/rejects each submission through the standard review
 
 - Scanned/image-based PDFs may produce empty text extraction (no OCR support)
 - Upload sessions expire after 24 hours
-- Sessions are stored in memory and may be lost on server restart
+- Individual files must be 4 MB or smaller (Vercel serverless body limit)
 
 ---
 
 ## Common Pitfalls
 
-**I uploaded files but the parse step failed.** An error message will appear explaining what went wrong. Check that your files are in a supported format (.md, .pdf, .docx, .txt) and within the size limits (10 MB per file, 100 MB total, 50 files per batch). If the error persists, try uploading fewer files or a different file format.
+**I uploaded files but the parse step failed.** An error message will appear explaining what went wrong. Check that your files are in a supported format (.md, .pdf, .docx, .txt) and within the size limits (4 MB per file, 100 MB total, 50 files per batch). If the error persists, try uploading fewer files or a different file format.
+
+**One file failed but others succeeded.** Use the per-file **Retry** button on the failed file, or click **Continue** to proceed with the files that parsed successfully.
 
 **Classification failed and I'm back on Step 1.** If the AI classification encounters a fatal error, you are automatically returned to Step 1 with an error message. You can retry by clicking **Upload & Parse** again. The error may be temporary (e.g., API timeout).
 
@@ -99,4 +112,4 @@ An admin reviews and accepts/rejects each submission through the standard review
 
 **I approved documents but don't see them in the queue.** Navigate to `/queue` and check the list. New submissions appear immediately. Ensure you are not filtering by a tab that excludes them.
 
-**My upload session disappeared.** Sessions expire after 24 hours and are stored in memory. If the server restarted, the session is lost. Re-upload your files to start a new session.
+**My upload session disappeared.** Sessions expire after 24 hours. If the session expired or the server restarted, re-upload your files to start a new session.

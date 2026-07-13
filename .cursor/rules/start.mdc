@@ -45,7 +45,8 @@ app/
   api/submissions/[id]/review/route.ts — POST accept/reject/defer
   api/submissions/[id]/merge/route.ts — POST stream AI merge
   api/submissions/[id]/merge/save/route.ts — POST save merged content
-  api/bulk-upload/parse/route.ts — POST parse files, create upload session (G3)
+  api/bulk-upload/session/route.ts + parse-single/route.ts — POST empty session, per-file parse (G6)
+  api/bulk-upload/parse/route.ts — POST batch parse, create session (G3 legacy)
   api/bulk-upload/classify/route.ts — POST classify documents via AI, SSE stream (G2/G3)
   api/bulk-upload/session/[sessionId]/route.ts — GET upload session state (G3)
   api/bulk-upload/reclassify/route.ts — POST reclassify single document (G3)
@@ -139,8 +140,8 @@ lib/
   submissions.ts          — Submission CRUD: create, list, get, review, countPending
   submission-types.ts     — Submission types, status enums, utilities
   merge.ts                — buildMergePrompt(), buildDocumentAdditionPrompt(), buildSkillRefreshPrompt() for AI merge workflow
-  document-parser.ts      — File parsing: md, pdf, docx, txt (G1)
-  document-parser-types.ts — ParsedDocument, ParseOptions, ParseResult types
+  document-parser.ts      — File parsing: md, pdf, docx, txt (G1); 4 MB per-file limit (G6)
+  document-parser-types.ts — ParsedDocument, ParseOptions, ParseResult types; DEFAULT_LIMITS
   classifier.ts           — AI document classification via Claude (G2)
   classification-types.ts — ClassificationResult, SuggestedRelationship types
   upload-session.ts       — Upload session store: Upstash Redis with in-memory fallback, 24h TTL (G3)
@@ -197,7 +198,8 @@ vercel.json               — Vercel config: security headers for /api/v1/ route
 
 | Group | Status |
 |---|---|
-| A–I, K, M, W, Y | Done |
+| A–F, H–I, K, M, W, Y | Done |
+| G | G1–G6 Done; G7 Planned |
 | J | J1–J12 Done; J13–J28 pending |
 | Content Workflow | CW1–CW10, CW20–CW21 Done; CW11–CW19 Pending |
 | S | Phase 1-2 done (S1–S9); Phase 3+ pending |
@@ -218,7 +220,7 @@ Authoritative grid: `docs/roadmap/README.md`.
 | Knowledge Base (Health Dashboard) | Done (Group D) |
 | Knowledge Base (Review Queue) | Done (Group E) |
 | Knowledge Base (AI Merge) | Done (Group F) |
-| Knowledge Base (Bulk Upload) | Done (Group G) |
+| Knowledge Base (Bulk Upload) | G1–G6 Done; G7 Planned (Group G) |
 | Knowledge Base (Enhanced Review) | Done (Group H) |
 | Skills Module | Done (Group I) |
 | MCP Server | J1–J12 Done, J13–J28 Pending (Group J) |

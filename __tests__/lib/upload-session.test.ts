@@ -10,6 +10,7 @@ import {
   setClassification,
   setUserEdit,
   deleteSession,
+  addDocumentToSession,
   _clearAllSessions,
   _getSessionCount,
   _setRedisForTesting,
@@ -48,12 +49,12 @@ const mockTtl = vi.fn(async () => 80000);
 
 const mockScan = vi.fn(
   async (
-    _cursor: number,
+    _cursor: string | number,
     opts?: { match?: string; count?: number }
   ) => {
     const prefix = (opts?.match ?? "").replace("*", "");
     const keys = Array.from(store.keys()).filter((k) => k.startsWith(prefix));
-    return [0, keys];
+    return ["0", keys];
   }
 );
 
@@ -301,5 +302,31 @@ describe("_clearAllSessions", () => {
 
     await _clearAllSessions();
     expect(await _getSessionCount()).toBe(0);
+  });
+});
+
+describe("addDocumentToSession", () => {
+  it("appends a document and returns the new index", async () => {
+    const session = await createSession([]);
+    const result = await addDocumentToSession(session.id, mockDoc("first.md"));
+    expect(result).toEqual({ index: 0 });
+
+    const second = await addDocumentToSession(session.id, mockDoc("second.md"));
+    expect(second).toEqual({ index: 1 });
+
+    const found = await getSession(session.id);
+    expect(found!.documents).toHaveLength(2);
+    expect(found!.documents[0].filename).toBe("first.md");
+    expect(found!.documents[1].filename).toBe("second.md");
+  });
+
+  it("returns null for unknown session", async () => {
+    expect(await addDocumentToSession("unknown-id", mockDoc("a.md"))).toBeNull();
+  });
+
+  it("creates an empty session via createSession([])", async () => {
+    const session = await createSession([]);
+    expect(session.documents).toEqual([]);
+    expect(session.status).toBe("parsing");
   });
 });

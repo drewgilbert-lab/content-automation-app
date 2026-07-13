@@ -1,6 +1,6 @@
 # Content Engine — API Reference
 
-> Last updated: March 25, 2026 (CL5–CL7 Content Library internal API routes; CL8–CL12 Content Library UI + reset route; I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
+> Last updated: July 13, 2026 (G6 per-file bulk upload isolation: `POST /api/bulk-upload/session`, `POST /api/bulk-upload/parse-single`, 4 MB per-file limit; CL5–CL7 Content Library internal API routes; CL8–CL12 Content Library UI + reset route; I6 Skill Testing Interface, I7 Claude Skill Package Compatibility routes; Group W Phase 3: permission set admin routes, audit log route, permissionSetId on user PATCH; Group W Phase 1–2: authentication, RBAC, admin users API, `/api/auth/me`; Group M Knowledge-Linked Skills implemented; CW1–CW21 implemented including full test matrix; minimal `/workflows` test UI added; K3–K6, J1–J12 implemented, N10 contentType propagation implemented; Group R narrative routes planned)
 
 **Production Base URL:** `https://content-automation-app-zeta.vercel.app`
 
@@ -485,20 +485,92 @@ Saves the reviewer-edited merged content to the target knowledge object and clos
 
 ---
 
-## Planned: Bulk Upload Routes (Group G)
+## Bulk Upload Routes (Group G)
 
-> These routes are scoped but not yet implemented. See [roadmap/README.md](./roadmap/README.md) Group G.
+> G1–G6 implemented. Primary parse flow (G6): create empty session → per-file parse via `parse-single` (concurrency 3) → incremental session build. Legacy batch `parse` retained for backward compatibility. Multipart parse routes are excluded from Edge middleware body buffering; auth enforced via `requireRole` on each route.
+
+### POST /api/bulk-upload/session
+
+Creates an empty upload session for incremental per-file parsing (G6).
+
+**Runtime:** `nodejs`
+
+**Request:** No body.
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "sessionId": "uuid"
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 401 | `{ "error": "Unauthorized" }` | No valid session |
+| 403 | `{ "error": "Forbidden" }` | Insufficient role (requires contributor) |
+| 500 | `{ "error": "Failed to create upload session" }` | Server error |
+
+**Implementation:** `app/api/bulk-upload/session/route.ts` → calls `createSession([])` from `lib/upload-session.ts`
+
+---
+
+### POST /api/bulk-upload/parse-single
+
+Parses a single file and adds it to an existing upload session (G6). Preferred path for the bulk upload wizard.
+
+**Runtime:** `nodejs`
+
+**Request:**
+- Content-Type: `multipart/form-data`
+- Fields:
+  - `sessionId` (required) — existing session UUID from `POST /api/bulk-upload/session`
+  - `file` (required) — single file (`.md`, `.pdf`, `.docx`, `.txt`)
+- Limits: 4 MB per file; session capped at 50 documents
+
+**Response (success):**
+- Status: `200`
+- Body:
+```json
+{
+  "sessionId": "uuid",
+  "index": 0,
+  "filename": "string",
+  "format": "md | pdf | docx | txt",
+  "wordCount": 0,
+  "parseErrors": ["string"]
+}
+```
+
+**Response (error):**
+
+| Status | Body | Condition |
+|---|---|---|
+| 400 | `{ "error": "sessionId is required" }` | Missing sessionId |
+| 400 | `{ "error": "A single file is required" }` | No file in FormData |
+| 400 | `{ "error": "File exceeds the 4 MB size limit (N MB)" }` | File too large |
+| 400 | `{ "error": "Session already has N documents, exceeding the limit of 50" }` | Session at capacity |
+| 400 | `{ "error": "Invalid form data" }` | Request body is not valid FormData |
+| 404 | `{ "error": "Session not found or expired" }` | Invalid or expired sessionId |
+| 500 | `{ "error": "Failed to parse document" }` | Server error |
+
+**Implementation:** `app/api/bulk-upload/parse-single/route.ts` → calls `parseDocument()` from `lib/document-parser.ts`, `addDocumentToSession()` from `lib/upload-session.ts`
+
+---
 
 ### POST /api/bulk-upload/parse
 
-Parses uploaded files and creates an upload session. Returns document metadata (without full content) and a session ID for subsequent classification and approval.
+Parses uploaded files in a single batch and creates an upload session. **Legacy endpoint** — retained for backward compatibility; the wizard uses `session` + `parse-single` (G6).
 
 **Runtime:** `nodejs`
 
 **Request:**
 - Content-Type: `multipart/form-data`
 - Field: `files` (multiple File entries — `.md`, `.pdf`, `.docx`, `.txt`)
-- Limits: 10 MB per file, 100 MB total batch size, 50 files per batch
+- Limits: 4 MB per file, 100 MB total batch size, 50 files per batch
 
 **Response (success):**
 - Status: `200`

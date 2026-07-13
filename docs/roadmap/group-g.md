@@ -24,19 +24,19 @@ Build `POST /api/bulk-upload/approve` route. For each approved document, creates
 
 ## Phase 2 — Upload Resilience and Error Reporting
 
-> Phase 1 (G1–G5) is complete. Phase 2 addresses per-file upload isolation and comprehensive error reporting gaps identified in production use.
+> Phase 1 (G1–G5) is complete. G6 (per-file upload isolation) is done. G7 (comprehensive error reporting) is planned.
 
-**G6 — Per-File Upload Isolation**
-Refactor the parse flow in `app/bulk-upload/components/bulk-upload-wizard.tsx` to upload files individually (or in small chunks of 3–5) rather than sending all files in a single `FormData` request. A single file failure does not prevent other files from being parsed. Add a `POST /api/bulk-upload/parse-single` endpoint accepting one file and returning one `ParsedDocument` plus errors; the existing batch endpoint remains for backward compatibility. As each file successfully parses, add it to the upload session via a new `addDocumentToSession()` function in `lib/upload-session.ts` so the session builds incrementally. If a file fails to parse (network error, timeout, server error), the UI shows a per-file retry button without re-uploading the entire batch. Show a per-file upload progress indicator in Step 1 with individual status (uploading, parsed, failed) so the user sees files completing independently. Enforce the existing 50-file and 100 MB batch limits client-side before starting uploads; the server-side 10 MB per-file limit still applies per request.
+**G6 — Per-File Upload Isolation** — ✅ Done (2026-07-13)
+Refactored the parse flow in `app/bulk-upload/components/bulk-upload-wizard.tsx` to upload files individually (concurrency 3) rather than sending all files in a single `FormData` request. A single file failure does not prevent other files from being parsed. Added `POST /api/bulk-upload/session` to create an empty session, then `POST /api/bulk-upload/parse-single` accepting one file and returning one `ParsedDocument` plus errors; the existing batch `POST /api/bulk-upload/parse` endpoint remains for backward compatibility. As each file successfully parses, it is added to the upload session via `addDocumentToSession()` in `lib/upload-session.ts` so the session builds incrementally. Failed files show a per-file retry button without re-uploading the entire batch; users can continue with successfully parsed files on partial failure. Step 1 shows per-file upload progress with individual status (pending, uploading, parsed, failed). Enforces 50-file and 100 MB batch limits client-side before starting uploads; server-side per-file limit lowered to 4 MB (Vercel 4.5 MB body limit). Middleware excludes multipart parse routes from Edge body buffering; auth still enforced via `requireRole` on routes.
 
 **G7 — Comprehensive Error Reporting and Recovery**
 Surface all per-file errors at every stage of the bulk upload pipeline with actionable remediation guidance. Specific improvements:
 
-- **Parse error display**: Render per-document `parseErrors` from the parse API response in the wizard UI. Show a warning banner per file with the specific error message (e.g., "PDF has no extractable text", "File exceeds 10 MB limit", "Unsupported file type"). Currently `parseErrors` is stored in component state (`parsedDocs`) but no JSX renders it.
+- **Parse error display**: Render per-document `parseErrors` from the parse API response in the wizard UI. Show a warning banner per file with the specific error message (e.g., "PDF has no extractable text", "File exceeds 4 MB limit", "Unsupported file type"). Currently `parseErrors` is stored in component state (`parsedDocs`) but no JSX renders it.
 - **Failed file visibility in review**: Documents that failed classification should remain visible in the Step 3 review list as error cards instead of vanishing. Show the file name, error reason, and actions: "Retry Classification", "Edit Content Manually", or "Remove from Batch". Currently `reviewDocs` in `bulk-upload-wizard.tsx` filters to only `classifications.has(i)`, hiding failures.
 - **Actionable error guidance**: Map each error type to a user-facing remediation hint:
   - "PDF has no extractable text" → "This PDF may be scanned/image-based. Convert to text or use OCR before uploading."
-  - "File exceeds 10 MB limit" → "Reduce file size or split into smaller documents."
+  - "File exceeds 4 MB limit" → "Reduce file size or split into smaller documents."
   - "Unsupported file type" → "Supported formats: .md, .pdf, .docx, .txt"
   - "Classification failed" → "The AI could not determine the document type. Edit the type manually or retry."
   - Submission creation failure → surface the specific Weaviate/validation error.

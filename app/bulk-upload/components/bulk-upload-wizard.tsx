@@ -143,12 +143,22 @@ export function BulkUploadWizard() {
         const res = await fetch("/api/bulk-upload/parse-single", {
           method: "POST",
           body: formData,
+          credentials: "same-origin",
         });
-        const data = await res.json();
+        let data: { error?: string; index?: number; filename?: string; format?: string; wordCount?: number; parseErrors?: string[] } = {};
+        try {
+          data = await res.json();
+        } catch {
+          updateFileState(fileIndex, {
+            status: "failed",
+            error: res.ok ? "Invalid server response" : `Upload failed (${res.status})`,
+          });
+          return;
+        }
         if (!res.ok) {
           updateFileState(fileIndex, {
             status: "failed",
-            error: data.error ?? "Upload failed",
+            error: data.error ?? `Upload failed (${res.status})`,
           });
           return;
         }
@@ -354,7 +364,10 @@ export function BulkUploadWizard() {
 
     setUploading(true);
     try {
-      const sessionRes = await fetch("/api/bulk-upload/session", { method: "POST" });
+      const sessionRes = await fetch("/api/bulk-upload/session", {
+        method: "POST",
+        credentials: "same-origin",
+      });
       const sessionData = await sessionRes.json();
       if (!sessionRes.ok) {
         setUploadError(sessionData.error ?? "Failed to create upload session");
@@ -368,15 +381,23 @@ export function BulkUploadWizard() {
         await uploadOneFile(i, file, sid);
       });
 
-      const sessionCheck = await fetch(`/api/bulk-upload/session/${sid}`);
+      const sessionCheck = await fetch(`/api/bulk-upload/session/${sid}`, {
+        credentials: "same-origin",
+      });
       if (!sessionCheck.ok) {
-        setUploadError("Failed to load session after upload");
+        const errBody = await sessionCheck.json().catch(() => ({}));
+        setUploadError(
+          (errBody as { error?: string }).error ??
+            "Failed to load session after upload (session missing — Redis may be required)"
+        );
         return;
       }
       const checkData = await sessionCheck.json();
       const docs = (checkData.documents ?? []) as SerializedSessionDocument[];
       if (docs.length === 0) {
-        setUploadError("No documents were parsed successfully. Fix failed files and retry.");
+        setUploadError(
+          "No documents were parsed successfully. Check per-file errors below, fix failed files, and retry."
+        );
         return;
       }
 

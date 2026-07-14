@@ -78,6 +78,21 @@ function sessionKey(id: string): string {
   return `${SESSION_KEY_PREFIX}${id}`;
 }
 
+function lockKey(id: string): string {
+  return `${SESSION_KEY_PREFIX}lock:${id}`;
+}
+
+/** True when running on Vercel (or NODE_ENV=production) where in-memory sessions are not durable. */
+export function requiresDurableSessionStore(): boolean {
+  return process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+}
+
+export function isRedisConfigured(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
+  );
+}
+
 async function writeToRedis(
   r: Redis,
   session: UploadSession,
@@ -91,11 +106,41 @@ async function writeToRedis(
   await r.set(sessionKey(session.id), toRedis(session), { ex });
 }
 
+/**
+ * Distributed lock so concurrent parse-single requests cannot clobber
+ * each other's appends (classic read-modify-write race on Redis).
+ */
+async function withSessionLock<T>(
+  r: Redis,
+  sessionId: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const key = lockKey(sessionId);
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const acquired = await r.set(key, "1", { nx: true, px: 15_000 });
+    if (acquired === "OK" || acquired === true) {
+      try {
+        return await fn();
+      } finally {
+        await r.del(key);
+      }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 20 + attempt * 5));
+  }
+  throw new Error("Timed out waiting for upload session lock");
+}
+
 // --- Public API (signatures match the old module, but return Promises) ---
 
 export async function createSession(
   documents: ParsedDocument[] = []
 ): Promise<UploadSession> {
+  if (requiresDurableSessionStore() && !isRedisConfigured()) {
+    throw new Error(
+      "Upload sessions require Redis in production. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN."
+    );
+  }
+
   const now = new Date();
   const session: UploadSession = {
     id: crypto.randomUUID(),
@@ -122,6 +167,7 @@ export async function createSession(
 /**
  * Appends a parsed document to an existing session.
  * Returns the new document index, or null if the session is missing/expired.
+ * Concurrent calls are serialized via a Redis lock when Redis is configured.
  */
 export async function addDocumentToSession(
   sessionId: string,
@@ -129,12 +175,14 @@ export async function addDocumentToSession(
 ): Promise<{ index: number } | null> {
   const r = getRedis();
   if (r) {
-    const session = await getSession(sessionId);
-    if (!session) return null;
-    const index = session.documents.length;
-    session.documents.push(document);
-    await writeToRedis(r, session, true);
-    return { index };
+    return withSessionLock(r, sessionId, async () => {
+      const session = await getSession(sessionId);
+      if (!session) return null;
+      const index = session.documents.length;
+      session.documents.push(document);
+      await writeToRedis(r, session, true);
+      return { index };
+    });
   }
 
   const session = fallbackStore.get(sessionId);

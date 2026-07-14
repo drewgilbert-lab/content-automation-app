@@ -7,19 +7,30 @@ vi.mock("@/lib/auth-server", () => ({
 vi.mock("@/lib/upload-session", () => ({
   createSession: vi.fn(),
   getSerializedSession: vi.fn(),
+  requiresDurableSessionStore: vi.fn(() => false),
+  isRedisConfigured: vi.fn(() => true),
 }));
 
 import { POST } from "@/app/api/bulk-upload/session/route";
 import { GET } from "@/app/api/bulk-upload/session/[sessionId]/route";
 import { requireRole } from "@/lib/auth-server";
-import { createSession, getSerializedSession } from "@/lib/upload-session";
+import {
+  createSession,
+  getSerializedSession,
+  requiresDurableSessionStore,
+  isRedisConfigured,
+} from "@/lib/upload-session";
 
 const mockedRequireRole = vi.mocked(requireRole);
 const mockedCreateSession = vi.mocked(createSession);
 const mockedGetSerializedSession = vi.mocked(getSerializedSession);
+const mockedRequiresDurable = vi.mocked(requiresDurableSessionStore);
+const mockedIsRedisConfigured = vi.mocked(isRedisConfigured);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockedRequiresDurable.mockReturnValue(false);
+  mockedIsRedisConfigured.mockReturnValue(true);
   mockedRequireRole.mockResolvedValue({
     id: "user-1",
     email: "test@example.com",
@@ -59,6 +70,17 @@ describe("POST /api/bulk-upload/session", () => {
     );
     const res = await POST();
     expect(res.status).toBe(401);
+    expect(mockedCreateSession).not.toHaveBeenCalled();
+  });
+
+  it("returns 503 when Redis is required but not configured", async () => {
+    mockedRequiresDurable.mockReturnValue(true);
+    mockedIsRedisConfigured.mockReturnValue(false);
+
+    const res = await POST();
+    expect(res.status).toBe(503);
+    const json = await res.json();
+    expect(json.error).toContain("Redis");
     expect(mockedCreateSession).not.toHaveBeenCalled();
   });
 });

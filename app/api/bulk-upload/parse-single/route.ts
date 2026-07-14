@@ -7,6 +7,15 @@ import { requireRole } from "@/lib/auth-server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function isUploadBlob(value: FormDataEntryValue | null): value is Blob {
+  return (
+    value !== null &&
+    typeof value !== "string" &&
+    typeof (value as Blob).arrayBuffer === "function" &&
+    typeof (value as Blob).size === "number"
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
     const authResult = await requireRole("contributor");
@@ -27,13 +36,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const file = formData.get("file");
-    if (!file || !(file instanceof File)) {
+    const rawFile = formData.get("file");
+    if (!isUploadBlob(rawFile)) {
       return Response.json(
         { error: "A single file is required" },
         { status: 400 }
       );
     }
+
+    // Next.js FormData may yield Blob rather than File; preserve filename when present.
+    const filename =
+      rawFile instanceof File && rawFile.name
+        ? rawFile.name
+        : "upload.bin";
+    const file =
+      rawFile instanceof File
+        ? rawFile
+        : new File([rawFile], filename, {
+            type: rawFile.type || "application/octet-stream",
+          });
 
     const maxBytes = DEFAULT_LIMITS.maxFileSizeMB * 1024 * 1024;
     if (file.size > maxBytes) {

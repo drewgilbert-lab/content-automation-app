@@ -31,7 +31,14 @@ const mockGet = vi.fn(async (key: string) => {
 });
 
 const mockSet = vi.fn(
-  async (key: string, value: unknown, _opts?: { ex?: number }) => {
+  async (
+    key: string,
+    value: unknown,
+    opts?: { ex?: number; nx?: boolean; px?: number }
+  ) => {
+    if (opts?.nx && store.has(key)) {
+      return null;
+    }
     store.set(key, JSON.stringify(value));
     return "OK";
   }
@@ -328,5 +335,23 @@ describe("addDocumentToSession", () => {
     const session = await createSession([]);
     expect(session.documents).toEqual([]);
     expect(session.status).toBe("parsing");
+  });
+
+  it("keeps all documents under concurrent appends (success criterion C)", async () => {
+    const session = await createSession([]);
+    const results = await Promise.all([
+      addDocumentToSession(session.id, mockDoc("a.md", "one")),
+      addDocumentToSession(session.id, mockDoc("b.md", "two")),
+      addDocumentToSession(session.id, mockDoc("c.md", "three")),
+    ]);
+
+    expect(results.every((r) => r !== null)).toBe(true);
+    const indexes = results.map((r) => r!.index).sort((a, b) => a - b);
+    expect(indexes).toEqual([0, 1, 2]);
+
+    const found = await getSession(session.id);
+    expect(found!.documents).toHaveLength(3);
+    const names = found!.documents.map((d) => d.filename).sort();
+    expect(names).toEqual(["a.md", "b.md", "c.md"]);
   });
 });

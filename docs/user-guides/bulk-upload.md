@@ -97,6 +97,7 @@ An admin reviews and accepts/rejects each submission through the standard review
 - Scanned/image-based PDFs may produce empty text extraction (no OCR support)
 - Upload sessions expire after 24 hours
 - Individual files must be 4 MB or smaller (Vercel serverless body limit)
+- Production requires Upstash Redis (`UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`) so the upload session is shared across serverless requests. Without Redis, multi-file upload cannot satisfy the durable-session success criteria.
 
 ---
 

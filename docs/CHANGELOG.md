@@ -6,6 +6,15 @@
 
 ## 2026-07-13
 
+### Bulk Upload Session Durability (Success Criteria B–C)
+
+Fixed multi-file parse failures (`Session not found or expired`, empty session after upload) so concurrent uploads satisfy the durable-session success criteria.
+
+- **Redis lock** on `addDocumentToSession()` — concurrent `parse-single` requests no longer lose documents via read-modify-write races.
+- **Production Redis required** — `POST /api/bulk-upload/session` returns 503 when running on Vercel/production without `UPSTASH_REDIS_*` (in-memory is not durable across serverless instances).
+- **Parse-single** accepts Blob/File FormData entries; wizard surfaces clearer session/parse errors.
+- **Tests**: concurrent append coverage + success-criteria suite for B–C.
+
 ### Group G Phase 2 — Per-File Upload Isolation (G6)
 
 Implemented per-file bulk upload isolation so a single file failure no longer blocks the entire batch.

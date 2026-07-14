@@ -3,18 +3,10 @@ import { parseDocument } from "@/lib/document-parser";
 import { addDocumentToSession, getSession } from "@/lib/upload-session";
 import { DEFAULT_LIMITS } from "@/lib/document-parser-types";
 import { requireRole } from "@/lib/auth-server";
+import { asUploadBlob } from "@/lib/upload-blob";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
-
-function isUploadBlob(value: FormDataEntryValue | null): value is Blob {
-  return (
-    value !== null &&
-    typeof value !== "string" &&
-    typeof (value as Blob).arrayBuffer === "function" &&
-    typeof (value as Blob).size === "number"
-  );
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,8 +28,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const rawFile = formData.get("file");
-    if (!isUploadBlob(rawFile)) {
+    const rawFile = asUploadBlob(formData.get("file"));
+    if (!rawFile) {
       return Response.json(
         { error: "A single file is required" },
         { status: 400 }

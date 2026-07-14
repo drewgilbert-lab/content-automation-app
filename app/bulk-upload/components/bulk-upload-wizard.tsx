@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { ClassificationResult } from "@/lib/classification-types";
 import type { SerializedSessionDocument } from "@/lib/upload-session-types";
 import { DEFAULT_LIMITS } from "@/lib/document-parser-types";
+import { UPLOAD_CONCURRENCY } from "@/lib/bulk-upload-constants";
 import { FileDropZone } from "./file-drop-zone";
 import { ClassificationProgress } from "./classification-progress";
 import { DocumentReviewCard } from "./document-review-card";
@@ -27,8 +28,6 @@ interface FileUploadState {
   sessionIndex?: number;
 }
 
-/** One file at a time — avoids hammering serverless and keeps progress predictable. */
-const UPLOAD_CONCURRENCY = 1;
 const MAX_FILE_BYTES = DEFAULT_LIMITS.maxFileSizeMB * 1024 * 1024;
 const MAX_BATCH_BYTES = DEFAULT_LIMITS.maxBatchSizeMB * 1024 * 1024;
 

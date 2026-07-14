@@ -1,6 +1,20 @@
 # Content Engine — Changelog
 
-> Newest entries first. Last updated: July 13, 2026
+> Newest entries first. Last updated: July 14, 2026
+
+---
+
+## 2026-07-14
+
+### Bulk Upload — Deploy Unblock (TS2677 Blob Predicate)
+
+Targeted fix so the LIST + sequential upload lineage (`dde44ac` and later) can pass `next build` on Vercel. Production had stayed on Ready SHA `571907e` because later deploys ERROR’d on an invalid TypeScript type predicate.
+
+- **`asUploadBlob()`** — Replaced invalid `value is Blob` type predicate with a narrowing helper in `lib/upload-blob.ts` (used by `app/api/bulk-upload/parse-single/route.ts`). Fixes TS2677 (`Blob` is not assignable to `FormDataEntryValue`).
+- **`UPLOAD_CONCURRENCY = 1`** — Extracted to `lib/bulk-upload-constants.ts`; wizard imports the shared constant (sequential upload already intended on `main`).
+- **Tests** — Extended `__tests__/lib/bulk-upload-success-criteria.test.ts` with delayed-concurrent-append regression, concurrency=1 guard, and `asUploadBlob` coverage.
+
+No new end-user behavior beyond making the already-intended G6 / LIST+sequential flow deployable. See `docs/tmp-bulk-upload-issue.md` (Phase 3 + targeted fix note).
 
 ---
 

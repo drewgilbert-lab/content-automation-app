@@ -394,3 +394,15 @@ Session `fb25d6e4-038b-4e0f-9737-a1d594984fa1` on Ready deploy `dpl_HmGAS7q…`:
 | Changelog | `docs/CHANGELOG.md` — 2026-07-14 “Deploy Unblock” |
 
 **Still open after this note:** Production Ready SHA must include this fix; then confirm multi-file A–E on the live alias. Until then, treat live product on `571907e` as racey G6 blob+concurrency-3.
+
+---
+
+## 13. Post-fix Ready E2E (2026-07-14) — B–E PASS
+
+| Item | Evidence |
+|---|---|
+| Deploy | `dpl_FNSWjkvvx5qNT6xFh1VV3Rd35So3` **READY**, SHA **`8e4a5be`**, aliases include `content-automation-app-zeta.vercel.app` |
+| 2-file B–E | Session `da542b14-f734-40ee-b80f-0a2bba174589`: sequential parse indexes `[0,1]`, GET durable count 2, classify `done` `{total:2, classified:2, failed:0}`, approve 201 → 2 submissionIds |
+| Mixed parsers | Session `a6122106-b944-4cc3-b476-2657baf13892`: md + pdf + txt all `parse-single` 200 and durable count **3** (synthetic PDF had extract warning; durability still held) |
+
+*Targeted fix verified on Ready production.*

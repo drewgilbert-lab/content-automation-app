@@ -26,7 +26,7 @@ Navigate to `/bulk-upload` from the home page, or click the **Bulk Upload** card
 
 ### Per-File Upload Progress
 
-Files upload individually (up to 3 at a time) rather than in one batch request. Each file shows its own status:
+Files upload one at a time rather than in one batch request. Each file shows its own status:
 
 - **Pending** — waiting to upload
 - **Uploading** — currently being parsed

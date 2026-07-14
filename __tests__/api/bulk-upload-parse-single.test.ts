@@ -81,6 +81,7 @@ describe("POST /api/bulk-upload/parse-single", () => {
       index: 0,
       filename: "test.md",
       format: "md",
+      content: "hello world",
       wordCount: 2,
       parseErrors: [],
     });

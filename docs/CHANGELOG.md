@@ -6,14 +6,19 @@
 
 ## 2026-07-13
 
-### Bulk Upload Session Durability (Success Criteria B–C)
+### Bulk Upload Reliability — Atomic Session Docs + Sequential Upload
 
-Fixed multi-file parse failures (`Session not found or expired`, empty session after upload) so concurrent uploads satisfy the durable-session success criteria.
+Fixed systemic multi-file bulk upload failures (lost documents, empty sessions, “Session not found”) by changing how sessions are stored and how the wizard uploads.
 
-- **Redis lock** on `addDocumentToSession()` — concurrent `parse-single` requests no longer lose documents via read-modify-write races.
-- **Production Redis required** — `POST /api/bulk-upload/session` returns 503 when running on Vercel/production without `UPSTASH_REDIS_*` (in-memory is not durable across serverless instances).
-- **Parse-single** accepts Blob/File FormData entries; wizard surfaces clearer session/parse errors.
-- **Tests**: concurrent append coverage + success-criteria suite for B–C.
+- **Atomic Redis LIST** — Session documents stored under `upload-session:{id}:docs` via `RPUSH` (not a whole-session JSON read-modify-write). Concurrent appends cannot overwrite each other. Meta (status, classifications, edits) stays in `upload-session:{id}:meta`.
+- **Sequential uploads** — Wizard uploads one file at a time (`UPLOAD_CONCURRENCY = 1`) for predictable progress and lower serverless contention.
+- **parse-single returns `content`** — Client can recover into classification if session GET is incomplete.
+- **Production Redis still required** — In-memory fallback is local-dev only; Vercel/production without `UPSTASH_REDIS_*` returns 503 on session create.
+- **Tests** — Fake Redis LIST helpers; concurrent-append and success-criteria B–C coverage.
+
+### Bulk Upload Session Durability (Success Criteria B–C) — superseded
+
+Earlier mitigation used a Redis lock around whole-session JSON updates. Replaced by atomic LIST storage above.
 
 ### Group G Phase 2 — Per-File Upload Isolation (G6)
 

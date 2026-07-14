@@ -38,9 +38,21 @@ const g = globalThis as unknown as {
 if (!g.__uploadSessions) g.__uploadSessions = new Map();
 const fallbackStore = g.__uploadSessions;
 
-// --- Redis serialization ---
+/**
+ * Session meta (no documents). Documents live in a Redis LIST so each
+ * parse-single can RPUSH atomically without read-modify-write races.
+ */
+interface RedisSessionMeta {
+  id: string;
+  classifications: [number, ClassificationResult][];
+  userEdits: [number, Partial<ClassificationResult>][];
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+}
 
-interface RedisSessionData {
+/** Legacy blob format (pre-atomic-list). Still readable for in-flight sessions. */
+interface RedisSessionDataLegacy {
   id: string;
   documents: ParsedDocument[];
   classifications: [number, ClassificationResult][];
@@ -50,31 +62,16 @@ interface RedisSessionData {
   expiresAt: string;
 }
 
-function toRedis(session: UploadSession): RedisSessionData {
-  return {
-    id: session.id,
-    documents: session.documents,
-    classifications: Array.from(session.classifications.entries()),
-    userEdits: Array.from(session.userEdits.entries()),
-    status: session.status,
-    createdAt: session.createdAt.toISOString(),
-    expiresAt: session.expiresAt.toISOString(),
-  };
+function metaKey(id: string): string {
+  return `${SESSION_KEY_PREFIX}${id}:meta`;
 }
 
-function fromRedis(data: RedisSessionData): UploadSession {
-  return {
-    id: data.id,
-    documents: data.documents,
-    classifications: new Map(data.classifications),
-    userEdits: new Map(data.userEdits),
-    status: data.status as UploadSession["status"],
-    createdAt: new Date(data.createdAt),
-    expiresAt: new Date(data.expiresAt),
-  };
+function docsKey(id: string): string {
+  return `${SESSION_KEY_PREFIX}${id}:docs`;
 }
 
-function sessionKey(id: string): string {
+/** Pre-split format key (entire session as one JSON value). */
+function legacySessionKey(id: string): string {
   return `${SESSION_KEY_PREFIX}${id}`;
 }
 
@@ -93,44 +90,66 @@ export function isRedisConfigured(): boolean {
   );
 }
 
-async function writeToRedis(
+function toMeta(session: UploadSession): RedisSessionMeta {
+  return {
+    id: session.id,
+    classifications: Array.from(session.classifications.entries()),
+    userEdits: Array.from(session.userEdits.entries()),
+    status: session.status,
+    createdAt: session.createdAt.toISOString(),
+    expiresAt: session.expiresAt.toISOString(),
+  };
+}
+
+function sessionFromParts(
+  meta: RedisSessionMeta,
+  documents: ParsedDocument[]
+): UploadSession {
+  return {
+    id: meta.id,
+    documents,
+    classifications: new Map(meta.classifications),
+    userEdits: new Map(meta.userEdits),
+    status: meta.status as UploadSession["status"],
+    createdAt: new Date(meta.createdAt),
+    expiresAt: new Date(meta.expiresAt),
+  };
+}
+
+async function refreshDocsTtl(r: Redis, sessionId: string): Promise<void> {
+  const remaining = await r.ttl(metaKey(sessionId));
+  const ex = remaining > 0 ? remaining : SESSION_TTL_SECONDS;
+  await r.expire(docsKey(sessionId), ex);
+}
+
+async function writeMeta(
   r: Redis,
   session: UploadSession,
   preserveTtl = false
 ): Promise<void> {
   let ex = SESSION_TTL_SECONDS;
   if (preserveTtl) {
-    const remaining = await r.ttl(sessionKey(session.id));
+    const remaining = await r.ttl(metaKey(session.id));
     if (remaining > 0) ex = remaining;
   }
-  await r.set(sessionKey(session.id), toRedis(session), { ex });
+  await r.set(metaKey(session.id), toMeta(session), { ex });
 }
 
-/**
- * Distributed lock so concurrent parse-single requests cannot clobber
- * each other's appends (classic read-modify-write race on Redis).
- */
-async function withSessionLock<T>(
+async function loadDocuments(
   r: Redis,
-  sessionId: string,
-  fn: () => Promise<T>
-): Promise<T> {
-  const key = lockKey(sessionId);
-  for (let attempt = 0; attempt < 50; attempt++) {
-    const acquired = await r.set(key, "1", { nx: true, px: 15_000 });
-    if (acquired === "OK" || acquired === true) {
-      try {
-        return await fn();
-      } finally {
-        await r.del(key);
-      }
+  sessionId: string
+): Promise<ParsedDocument[]> {
+  const raw = await r.lrange<string>(docsKey(sessionId), 0, -1);
+  if (!raw || raw.length === 0) return [];
+  return raw.map((item) => {
+    if (typeof item === "string") {
+      return JSON.parse(item) as ParsedDocument;
     }
-    await new Promise((resolve) => setTimeout(resolve, 20 + attempt * 5));
-  }
-  throw new Error("Timed out waiting for upload session lock");
+    return item as ParsedDocument;
+  });
 }
 
-// --- Public API (signatures match the old module, but return Promises) ---
+// --- Public API ---
 
 export async function createSession(
   documents: ParsedDocument[] = []
@@ -144,7 +163,7 @@ export async function createSession(
   const now = new Date();
   const session: UploadSession = {
     id: crypto.randomUUID(),
-    documents,
+    documents: [...documents],
     classifications: new Map(),
     userEdits: new Map(),
     status: "parsing",
@@ -154,9 +173,14 @@ export async function createSession(
 
   const r = getRedis();
   if (r) {
-    await r.set(sessionKey(session.id), toRedis(session), {
+    await r.set(metaKey(session.id), toMeta(session), {
       ex: SESSION_TTL_SECONDS,
     });
+    if (documents.length > 0) {
+      const payloads = documents.map((d) => JSON.stringify(d));
+      await r.rpush(docsKey(session.id), ...payloads);
+      await r.expire(docsKey(session.id), SESSION_TTL_SECONDS);
+    }
   } else {
     fallbackStore.set(session.id, session);
   }
@@ -166,8 +190,8 @@ export async function createSession(
 
 /**
  * Appends a parsed document to an existing session.
- * Returns the new document index, or null if the session is missing/expired.
- * Concurrent calls are serialized via a Redis lock when Redis is configured.
+ * On Redis, uses RPUSH (atomic) so concurrent parse-single calls cannot
+ * overwrite each other. Returns the new document index, or null if missing.
  */
 export async function addDocumentToSession(
   sessionId: string,
@@ -175,14 +199,24 @@ export async function addDocumentToSession(
 ): Promise<{ index: number } | null> {
   const r = getRedis();
   if (r) {
-    return withSessionLock(r, sessionId, async () => {
-      const session = await getSession(sessionId);
-      if (!session) return null;
-      const index = session.documents.length;
-      session.documents.push(document);
-      await writeToRedis(r, session, true);
+    const meta = await r.get<RedisSessionMeta>(metaKey(sessionId));
+    if (!meta) {
+      // Legacy single-blob sessions (pre-list storage)
+      const legacy = await r.get<RedisSessionDataLegacy>(
+        legacySessionKey(sessionId)
+      );
+      if (!legacy) return null;
+      const index = legacy.documents.length;
+      legacy.documents.push(document);
+      const remaining = await r.ttl(legacySessionKey(sessionId));
+      const ex = remaining > 0 ? remaining : SESSION_TTL_SECONDS;
+      await r.set(legacySessionKey(sessionId), legacy, { ex });
       return { index };
-    });
+    }
+
+    const length = await r.rpush(docsKey(sessionId), JSON.stringify(document));
+    await refreshDocsTtl(r, sessionId);
+    return { index: Math.max(0, length - 1) };
   }
 
   const session = fallbackStore.get(sessionId);
@@ -201,9 +235,24 @@ export async function getSession(
 ): Promise<UploadSession | null> {
   const r = getRedis();
   if (r) {
-    const data = await r.get<RedisSessionData>(sessionKey(id));
-    if (!data) return null;
-    return fromRedis(data);
+    const meta = await r.get<RedisSessionMeta>(metaKey(id));
+    if (meta) {
+      const documents = await loadDocuments(r, id);
+      return sessionFromParts(meta, documents);
+    }
+
+    // Legacy blob
+    const legacy = await r.get<RedisSessionDataLegacy>(legacySessionKey(id));
+    if (!legacy) return null;
+    return {
+      id: legacy.id,
+      documents: legacy.documents,
+      classifications: new Map(legacy.classifications),
+      userEdits: new Map(legacy.userEdits),
+      status: legacy.status as UploadSession["status"],
+      createdAt: new Date(legacy.createdAt),
+      expiresAt: new Date(legacy.expiresAt),
+    };
   }
 
   const session = fallbackStore.get(id);
@@ -232,7 +281,7 @@ export async function updateSessionStatus(
     const session = await getSession(id);
     if (!session) return false;
     session.status = status;
-    await writeToRedis(r, session, true);
+    await writeMeta(r, session, true);
     return true;
   }
 
@@ -258,7 +307,7 @@ export async function setClassification(
     if (documentIndex < 0 || documentIndex >= session.documents.length)
       return false;
     session.classifications.set(documentIndex, classification);
-    await writeToRedis(r, session, true);
+    await writeMeta(r, session, true);
     return true;
   }
 
@@ -287,7 +336,7 @@ export async function setUserEdit(
       return false;
     const existing = session.userEdits.get(documentIndex) ?? {};
     session.userEdits.set(documentIndex, { ...existing, ...edits });
-    await writeToRedis(r, session, true);
+    await writeMeta(r, session, true);
     return true;
   }
 
@@ -314,7 +363,7 @@ export async function deleteUserEdit(
     if (!session) return false;
     if (!session.userEdits.has(documentIndex)) return false;
     session.userEdits.delete(documentIndex);
-    await writeToRedis(r, session, true);
+    await writeMeta(r, session, true);
     return true;
   }
 
@@ -330,7 +379,12 @@ export async function deleteUserEdit(
 export async function deleteSession(id: string): Promise<boolean> {
   const r = getRedis();
   if (r) {
-    const count = await r.del(sessionKey(id));
+    const count = await r.del(
+      metaKey(id),
+      docsKey(id),
+      legacySessionKey(id),
+      lockKey(id)
+    );
     return count > 0;
   }
   return fallbackStore.delete(id);
@@ -359,7 +413,7 @@ export async function _clearAllSessions(): Promise<void> {
 export async function _getSessionCount(): Promise<number> {
   const r = getRedis();
   if (r) {
-    let count = 0;
+    const ids = new Set<string>();
     let cursor = "0";
     do {
       const [nextCursor, keys]: [string, string[]] = await r.scan(cursor, {
@@ -367,9 +421,13 @@ export async function _getSessionCount(): Promise<number> {
         count: 100,
       });
       cursor = nextCursor;
-      count += keys.length;
+      for (const key of keys) {
+        const rest = key.slice(SESSION_KEY_PREFIX.length);
+        const id = rest.split(":")[0];
+        if (id && !rest.startsWith("lock:")) ids.add(id);
+      }
     } while (cursor !== "0");
-    return count;
+    return ids.size;
   }
   return fallbackStore.size;
 }

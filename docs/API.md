@@ -487,7 +487,7 @@ Saves the reviewer-edited merged content to the target knowledge object and clos
 
 ## Bulk Upload Routes (Group G)
 
-> G1–G6 implemented. Primary parse flow (G6): create empty session → per-file parse via `parse-single` (concurrency 3) → incremental session build. Legacy batch `parse` retained for backward compatibility. Multipart parse routes are excluded from Edge middleware body buffering; auth enforced via `requireRole` on each route.
+> G1–G6 implemented. Primary parse flow (G6): create empty session → per-file parse via `parse-single` (sequential) → incremental session build via Redis LIST (`RPUSH`). Legacy batch `parse` retained for backward compatibility. Multipart parse routes are excluded from Edge middleware body buffering; auth enforced via `requireRole` on each route.
 
 ### POST /api/bulk-upload/session
 
@@ -540,11 +540,13 @@ Parses a single file and adds it to an existing upload session (G6). Preferred p
   "index": 0,
   "filename": "string",
   "format": "md | pdf | docx | txt",
+  "content": "parsed text content",
   "wordCount": 0,
   "parseErrors": ["string"]
 }
 ```
 
+`content` is included so the client can proceed to classification even if a subsequent session GET is incomplete.
 **Response (error):**
 
 | Status | Body | Condition |

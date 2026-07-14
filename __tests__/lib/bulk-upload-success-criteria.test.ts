@@ -10,7 +10,6 @@
  * This suite locks criteria B–C at the store layer (multi-file append durability).
  */
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import type { Redis } from "@upstash/redis";
 import type { ParsedDocument } from "@/lib/document-parser-types";
 import {
   createSession,
@@ -19,38 +18,9 @@ import {
   getSerializedSession,
   _setRedisForTesting,
 } from "@/lib/upload-session";
+import { createFakeUploadRedis } from "../helpers/fake-upload-redis";
 
-const store = new Map<string, string>();
-
-const fakeRedis = {
-  get: vi.fn(async (key: string) => {
-    const raw = store.get(key);
-    if (raw === undefined) return null;
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return raw;
-    }
-  }),
-  set: vi.fn(
-    async (
-      key: string,
-      value: unknown,
-      opts?: { nx?: boolean; px?: number; ex?: number }
-    ) => {
-      if (opts?.nx && store.has(key)) return null;
-      store.set(key, JSON.stringify(value));
-      return "OK";
-    }
-  ),
-  del: vi.fn(async (...keys: string[]) => {
-    let n = 0;
-    for (const k of keys) if (store.delete(k)) n++;
-    return n;
-  }),
-  ttl: vi.fn(async () => 80000),
-  scan: vi.fn(async () => ["0", []]),
-} as unknown as Redis;
+const fake = createFakeUploadRedis();
 
 function doc(filename: string): ParsedDocument {
   return {
@@ -63,9 +33,9 @@ function doc(filename: string): ParsedDocument {
 }
 
 beforeEach(() => {
-  store.clear();
+  fake.clear();
   vi.clearAllMocks();
-  _setRedisForTesting(fakeRedis);
+  _setRedisForTesting(fake.redis);
 });
 
 describe("Bulk upload success criteria B–C", () => {
@@ -77,7 +47,7 @@ describe("Bulk upload success criteria B–C", () => {
     expect(found!.documents).toEqual([]);
   });
 
-  it("C: two concurrent files both land in the same session", async () => {
+  it("C: two concurrent files both land in the same session (atomic LIST)", async () => {
     const session = await createSession([]);
     const [a, b] = await Promise.all([
       addDocumentToSession(session.id, doc("one.md")),

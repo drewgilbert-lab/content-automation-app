@@ -1,5 +1,4 @@
 import { vi, describe, it, expect, beforeEach } from "vitest";
-import type { Redis } from "@upstash/redis";
 import type { ParsedDocument } from "@/lib/document-parser-types";
 import type { ClassificationResult } from "@/lib/classification-types";
 import {
@@ -15,65 +14,10 @@ import {
   _getSessionCount,
   _setRedisForTesting,
 } from "@/lib/upload-session";
+import { createFakeUploadRedis } from "../helpers/fake-upload-redis";
 
-// --- Fake Redis backed by an in-memory Map ---
-
-const store = new Map<string, string>();
-
-const mockGet = vi.fn(async (key: string) => {
-  const raw = store.get(key);
-  if (raw === undefined) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return raw;
-  }
-});
-
-const mockSet = vi.fn(
-  async (
-    key: string,
-    value: unknown,
-    opts?: { ex?: number; nx?: boolean; px?: number }
-  ) => {
-    if (opts?.nx && store.has(key)) {
-      return null;
-    }
-    store.set(key, JSON.stringify(value));
-    return "OK";
-  }
-);
-
-const mockDel = vi.fn(async (...keys: string[]) => {
-  let count = 0;
-  for (const k of keys) {
-    if (store.delete(k)) count++;
-  }
-  return count;
-});
-
-const mockTtl = vi.fn(async () => 80000);
-
-const mockScan = vi.fn(
-  async (
-    _cursor: string | number,
-    opts?: { match?: string; count?: number }
-  ) => {
-    const prefix = (opts?.match ?? "").replace("*", "");
-    const keys = Array.from(store.keys()).filter((k) => k.startsWith(prefix));
-    return ["0", keys];
-  }
-);
-
-const fakeRedis = {
-  get: mockGet,
-  set: mockSet,
-  del: mockDel,
-  ttl: mockTtl,
-  scan: mockScan,
-} as unknown as Redis;
-
-// --- Helpers ---
+const fake = createFakeUploadRedis();
+const { mocks } = fake;
 
 function mockDoc(filename: string, content = "test content"): ParsedDocument {
   return {
@@ -98,9 +42,9 @@ function mockClassification(filename: string): ClassificationResult {
 }
 
 beforeEach(() => {
-  store.clear();
+  fake.clear();
   vi.clearAllMocks();
-  _setRedisForTesting(fakeRedis);
+  _setRedisForTesting(fake.redis);
 });
 
 describe("createSession", () => {
@@ -125,13 +69,17 @@ describe("createSession", () => {
     expect(s1.id).not.toBe(s2.id);
   });
 
-  it("stores session in Redis with 24h TTL", async () => {
+  it("stores session meta in Redis with 24h TTL and docs via LIST", async () => {
     const session = await createSession([mockDoc("a.md")]);
 
-    expect(mockSet).toHaveBeenCalledTimes(1);
-    const [key, , opts] = mockSet.mock.calls[0];
-    expect(key).toBe(`upload-session:${session.id}`);
+    expect(mocks.set).toHaveBeenCalled();
+    const [key, , opts] = mocks.set.mock.calls[0];
+    expect(key).toBe(`upload-session:${session.id}:meta`);
     expect(opts).toEqual({ ex: 86400 });
+    expect(mocks.rpush).toHaveBeenCalledWith(
+      `upload-session:${session.id}:docs`,
+      expect.any(String)
+    );
   });
 
   it("sets expiresAt to 24h from now", async () => {
@@ -193,11 +141,11 @@ describe("updateSessionStatus", () => {
 
   it("preserves remaining TTL on update", async () => {
     const session = await createSession([mockDoc("a.md")]);
-    mockTtl.mockResolvedValueOnce(50000);
+    mocks.ttl.mockResolvedValueOnce(50000);
 
     await updateSessionStatus(session.id, "reviewing");
 
-    const lastSetCall = mockSet.mock.calls[mockSet.mock.calls.length - 1];
+    const lastSetCall = mocks.set.mock.calls[mocks.set.mock.calls.length - 1];
     expect(lastSetCall[2]).toEqual({ ex: 50000 });
   });
 
@@ -283,11 +231,16 @@ describe("deleteSession", () => {
     expect(await deleteSession("unknown-id")).toBe(false);
   });
 
-  it("calls Redis del with correct key", async () => {
+  it("calls Redis del with meta, docs, legacy, and lock keys", async () => {
     const session = await createSession([mockDoc("a.md")]);
     await deleteSession(session.id);
 
-    expect(mockDel).toHaveBeenCalledWith(`upload-session:${session.id}`);
+    expect(mocks.del).toHaveBeenCalledWith(
+      `upload-session:${session.id}:meta`,
+      `upload-session:${session.id}:docs`,
+      `upload-session:${session.id}`,
+      `upload-session:lock:${session.id}`
+    );
   });
 });
 
@@ -337,7 +290,7 @@ describe("addDocumentToSession", () => {
     expect(session.status).toBe("parsing");
   });
 
-  it("keeps all documents under concurrent appends (success criterion C)", async () => {
+  it("keeps all documents under concurrent appends via atomic RPUSH", async () => {
     const session = await createSession([]);
     const results = await Promise.all([
       addDocumentToSession(session.id, mockDoc("a.md", "one")),

@@ -15,6 +15,8 @@ interface ParsedDocMeta {
   format: string;
   wordCount: number;
   parseErrors: string[];
+  /** Present when returned from parse-single; used if session GET is incomplete. */
+  content?: string;
 }
 
 type FileUploadStatus = "pending" | "uploading" | "parsed" | "failed";
@@ -25,7 +27,8 @@ interface FileUploadState {
   sessionIndex?: number;
 }
 
-const UPLOAD_CONCURRENCY = 3;
+/** One file at a time — avoids hammering serverless and keeps progress predictable. */
+const UPLOAD_CONCURRENCY = 1;
 const MAX_FILE_BYTES = DEFAULT_LIMITS.maxFileSizeMB * 1024 * 1024;
 const MAX_BATCH_BYTES = DEFAULT_LIMITS.maxBatchSizeMB * 1024 * 1024;
 
@@ -134,7 +137,11 @@ export function BulkUploadWizard() {
   }, []);
 
   const uploadOneFile = useCallback(
-    async (fileIndex: number, file: File, sid: string) => {
+    async (
+      fileIndex: number,
+      file: File,
+      sid: string
+    ): Promise<ParsedDocMeta | null> => {
       updateFileState(fileIndex, { status: "uploading", error: undefined });
       try {
         const formData = new FormData();
@@ -145,7 +152,15 @@ export function BulkUploadWizard() {
           body: formData,
           credentials: "same-origin",
         });
-        let data: { error?: string; index?: number; filename?: string; format?: string; wordCount?: number; parseErrors?: string[] } = {};
+        let data: {
+          error?: string;
+          index?: number;
+          filename?: string;
+          format?: string;
+          content?: string;
+          wordCount?: number;
+          parseErrors?: string[];
+        } = {};
         try {
           data = await res.json();
         } catch {
@@ -153,43 +168,48 @@ export function BulkUploadWizard() {
             status: "failed",
             error: res.ok ? "Invalid server response" : `Upload failed (${res.status})`,
           });
-          return;
+          return null;
         }
         if (!res.ok) {
           updateFileState(fileIndex, {
             status: "failed",
             error: data.error ?? `Upload failed (${res.status})`,
           });
-          return;
+          return null;
         }
+        const entry: ParsedDocMeta = {
+          index: data.index as number,
+          filename: data.filename as string,
+          format: data.format as string,
+          wordCount: data.wordCount as number,
+          parseErrors: (data.parseErrors as string[]) ?? [],
+          content: data.content,
+        };
         updateFileState(fileIndex, {
           status: "parsed",
-          sessionIndex: data.index as number,
+          sessionIndex: entry.index,
           error: undefined,
         });
         setParsedDocs((prev) => {
-          const entry: ParsedDocMeta = {
-            index: data.index as number,
-            filename: data.filename as string,
-            format: data.format as string,
-            wordCount: data.wordCount as number,
-            parseErrors: (data.parseErrors as string[]) ?? [],
-          };
           const without = prev.filter((d) => d.index !== entry.index);
           return [...without, entry].sort((a, b) => a.index - b.index);
         });
-        const errs = (data.parseErrors as string[]) ?? [];
-        if (errs.length > 0) {
+        if (entry.parseErrors.length > 0) {
           setParseErrors((prev) => [
-            ...prev.filter((e) => e.filename !== data.filename),
-            ...errs.map((error) => ({ filename: data.filename as string, error })),
+            ...prev.filter((e) => e.filename !== entry.filename),
+            ...entry.parseErrors.map((error) => ({
+              filename: entry.filename,
+              error,
+            })),
           ]);
         }
+        return entry;
       } catch (err) {
         updateFileState(fileIndex, {
           status: "failed",
           error: err instanceof Error ? err.message : "Upload failed",
         });
+        return null;
       }
     },
     [updateFileState]
@@ -285,20 +305,45 @@ export function BulkUploadWizard() {
   );
 
   const advanceToClassification = useCallback(
-    async (sid: string) => {
-      const sessionRes = await fetch(`/api/bulk-upload/session/${sid}`);
+    async (sid: string, clientFallbackDocs?: ParsedDocMeta[]) => {
+      const sessionRes = await fetch(`/api/bulk-upload/session/${sid}`, {
+        credentials: "same-origin",
+      });
       if (!sessionRes.ok) {
         setUploadError("Failed to load session");
         return;
       }
       const sessionData = await sessionRes.json();
-      setSessionDocuments(sessionData.documents ?? []);
+      let docs = (sessionData.documents ?? []) as SerializedSessionDocument[];
+
+      // Prefer durable session docs; if Redis returned fewer than we parsed locally,
+      // fill gaps from parse-single responses (includes content).
+      if (
+        clientFallbackDocs &&
+        clientFallbackDocs.length > docs.length
+      ) {
+        const byIndex = new Map(docs.map((d) => [d.index, d]));
+        for (const local of clientFallbackDocs) {
+          if (!byIndex.has(local.index) && local.content != null) {
+            byIndex.set(local.index, {
+              index: local.index,
+              filename: local.filename,
+              format: local.format as SerializedSessionDocument["format"],
+              content: local.content,
+              wordCount: local.wordCount,
+              parseErrors: local.parseErrors,
+            });
+          }
+        }
+        docs = Array.from(byIndex.values()).sort((a, b) => a.index - b.index);
+      }
+
+      setSessionDocuments(docs);
       setStep(2);
       setClassifications(new Map());
       setUserEdits(new Map());
       setRemovedIndexes(new Set());
       setApproveResult(null);
-      const docs = sessionData.documents as SerializedSessionDocument[];
       setParsedDocs(
         docs.map((d) => ({
           index: d.index,
@@ -306,6 +351,7 @@ export function BulkUploadWizard() {
           format: d.format,
           wordCount: d.wordCount,
           parseErrors: d.parseErrors ?? [],
+          content: d.content,
         }))
       );
       if (docs.length > 0) {
@@ -377,8 +423,10 @@ export function BulkUploadWizard() {
       sessionIdRef.current = sid;
       setSessionId(sid);
 
+      const localParsed: ParsedDocMeta[] = [];
       await runWithConcurrency(toUpload, UPLOAD_CONCURRENCY, async ({ file, i }) => {
-        await uploadOneFile(i, file, sid);
+        const entry = await uploadOneFile(i, file, sid);
+        if (entry) localParsed.push(entry);
       });
 
       const sessionCheck = await fetch(`/api/bulk-upload/session/${sid}`, {
@@ -394,17 +442,18 @@ export function BulkUploadWizard() {
       }
       const checkData = await sessionCheck.json();
       const docs = (checkData.documents ?? []) as SerializedSessionDocument[];
-      if (docs.length === 0) {
+      const durableCount = Math.max(docs.length, localParsed.length);
+      if (durableCount === 0) {
         setUploadError(
           "No documents were parsed successfully. Check per-file errors below, fix failed files, and retry."
         );
         return;
       }
 
-      // Auto-advance when every attempted upload landed in the session.
+      // Auto-advance when every attempted upload landed (session and/or local parse responses).
       // Partial success stays on Step 1 so the user can retry or Continue.
-      if (docs.length === toUpload.length) {
-        await advanceToClassification(sid);
+      if (durableCount === toUpload.length) {
+        await advanceToClassification(sid, localParsed);
       }
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
@@ -630,8 +679,7 @@ export function BulkUploadWizard() {
           <FileDropZone onFilesSelected={handleFilesSelected} disabled={uploading} />
           <p className="text-xs text-gray-500">
             Limits: {DEFAULT_LIMITS.maxFileSizeMB} MB per file, {DEFAULT_LIMITS.maxBatchSizeMB} MB
-            total, {DEFAULT_LIMITS.maxBatchCount} files. Files upload individually (up to{" "}
-            {UPLOAD_CONCURRENCY} at a time).
+            total, {DEFAULT_LIMITS.maxBatchCount} files. Files upload one at a time.
           </p>
           {files.length > 0 && (
             <ul className="space-y-2">

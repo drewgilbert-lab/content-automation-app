@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import type { Redis } from "@upstash/redis";
 import type { ParsedDocument } from "@/lib/document-parser-types";
 import type { ClassificationResult } from "@/lib/classification-types";
 import {
@@ -11,6 +10,7 @@ import {
   deleteSession,
   _setRedisForTesting,
 } from "@/lib/upload-session";
+import { createFakeUploadRedis } from "../helpers/fake-upload-redis";
 
 // --- Top-level mocks for rate-limit tests ---
 
@@ -29,52 +29,7 @@ vi.mock("@upstash/redis", () => {
   return { Redis: MockRedis };
 });
 
-// --- Fake Redis backed by an in-memory Map ---
-
-const store = new Map<string, string>();
-
-const mockGet = vi.fn(async (key: string) => {
-  const raw = store.get(key);
-  if (raw === undefined) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return raw;
-  }
-});
-
-const mockSet = vi.fn(
-  async (key: string, value: unknown, _opts?: { ex?: number }) => {
-    store.set(key, JSON.stringify(value));
-    return "OK";
-  }
-);
-
-const mockDel = vi.fn(async (...keys: string[]) => {
-  let count = 0;
-  for (const k of keys) {
-    if (store.delete(k)) count++;
-  }
-  return count;
-});
-
-const mockTtl = vi.fn(async () => 80000);
-
-const mockScan = vi.fn(
-  async (_cursor: number, opts?: { match?: string; count?: number }) => {
-    const prefix = (opts?.match ?? "").replace("*", "");
-    const keys = Array.from(store.keys()).filter((k) => k.startsWith(prefix));
-    return [0, keys];
-  }
-);
-
-const fakeRedis = {
-  get: mockGet,
-  set: mockSet,
-  del: mockDel,
-  ttl: mockTtl,
-  scan: mockScan,
-} as unknown as Redis;
+const fake = createFakeUploadRedis();
 
 // --- Helpers ---
 
@@ -106,9 +61,9 @@ function mockClassification(filename: string): ClassificationResult {
 
 describe("Upload session Redis integration", () => {
   beforeEach(() => {
-    store.clear();
+    fake.clear();
     vi.clearAllMocks();
-    _setRedisForTesting(fakeRedis);
+    _setRedisForTesting(fake.redis);
   });
 
   it("creates a session and retrieves it via Redis", async () => {
@@ -255,7 +210,7 @@ describe("Rate limit Redis integration", () => {
 
 describe("Graceful fallback without Redis", () => {
   beforeEach(() => {
-    store.clear();
+    fake.clear();
     vi.clearAllMocks();
     vi.unstubAllEnvs();
     vi.resetModules();
@@ -273,8 +228,8 @@ describe("Graceful fallback without Redis", () => {
     expect(found).not.toBeNull();
     expect(found!.id).toBe(created.id);
     expect(found!.documents).toEqual(docs);
-    expect(mockSet).not.toHaveBeenCalled();
-    expect(mockGet).not.toHaveBeenCalled();
+    expect(fake.mocks.set).not.toHaveBeenCalled();
+    expect(fake.mocks.get).not.toHaveBeenCalled();
   });
 
   it("rate limit returns permissive result without env vars", async () => {

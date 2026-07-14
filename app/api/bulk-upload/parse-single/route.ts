@@ -97,6 +97,7 @@ export async function POST(req: NextRequest) {
       index: added.index,
       filename: parsed.filename,
       format: parsed.format,
+      content: parsed.content,
       wordCount: parsed.wordCount,
       parseErrors: parsed.errors,
     });
